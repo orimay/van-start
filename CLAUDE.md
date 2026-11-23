@@ -11,6 +11,7 @@ When two rules conflict, the one written further down wins.
 - Run long commands in the background. No subagents.
 - Run Python with `-I`.
 - Never extract or use the user's credentials from their folders. Push to the orimay repos with `~/.ssh/id_ed25519_github`.
+- Sources live in `orimay/van-start` (push with `GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github"`). Commit and push each finished step; `scripts/deploy.sh` also commits and pushes the sources. Commits use `dmitrii.a.baranov@gmail.com`: the shell's `JJ_EMAIL` is the work one, so set `JJ_EMAIL` on every committing jj call.
 - While a deploy runs, do not edit files or run tests: the deploy picks up unfinished changes.
 - Bugs follow TDD: failing test first, then the fix.
 - Tests are black-box only: assert what the user sees (DOM, `data-testid`), never internals.
