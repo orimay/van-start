@@ -95,16 +95,18 @@ export function answer(session: Session, id: string, given: Answer, { slow = fal
   const toRung = (rung: number): CardState =>
     rung >= session.steps.length ? { ...card, rung, closed: true } : { ...card, rung, closed: false, due: t + gap(rung) };
 
-  const wrong = given === 'minus' || given === 'guessed';
+  const wrong = given === 'minus';
   let updated: CardState;
   if (wrong) updated = { ...toRung(0), errors: card.errors + 1 };
+  else if (given === 'guessed') updated = toRung(0);
   else if (given === 'postpone') updated = toRung(onLadder(card) ? card.rung + 1 : 0);
   else if (card.closed || card.rung === -1) updated = { ...card, closed: true };
   else updated = toRung(slow ? card.rung : card.rung + 1);
   updated = { ...updated, shows: card.shows + 1, lastShown: t - 1 };
 
   const cards = new Map(session.cards).set(id, updated);
-  const window = given === 'postpone' ? session.window : [...session.window, !wrong];
+  // A guess is neither right nor wrong: it comes back like a miss but leaves accuracy alone.
+  const window = given === 'postpone' || given === 'guessed' ? session.window : [...session.window, !wrong];
   return { ...session, t, cards, ...adjustPool(session.pool, window) };
 }
 

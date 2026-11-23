@@ -1823,14 +1823,36 @@ describe('a guess', () => {
     expect(w.find('[data-testid="guessed"]').exists()).toBe(false);
   });
 
-  it('counts as a miss in recall, logged as a guess', async () => {
+  it('comes back like a miss in recall, logged as a guess, graded neither way', async () => {
     const w = await doMount({ cards: cards(8), stages: ['recall'], retryGap: 8 });
     const guessed = promptOf(w);
     await doClick(w, 'reveal');
     await doClick(w, 'guessed');
-    expect(w.emitted('answer')).toEqual([['c' + guessed.slice(1), 'recall', false]]);
+    expect(w.emitted('answer')).toBeUndefined();
     expect(w.emitted('show')![0]![0]).toMatchObject({ answer: 'guessed' });
     expect(await answerUntil(w, guessed)).toBe(4);
+  });
+
+  it('leaves the card ungraded when it comes back and is recalled', async () => {
+    const w = await doMount({ cards: cards(8), stages: ['recall'], retryGap: 8 });
+    const guessed = promptOf(w);
+    await doClick(w, 'reveal');
+    await doClick(w, 'guessed');
+    await answerUntil(w, guessed);
+    await doRecall(w, true);
+    expect(w.emitted('answer')!.map(a => a[0])).not.toContain('c' + guessed.slice(1));
+  });
+
+  it('is taken back by stepping back, so the card is graded on its next answer', async () => {
+    const w = await doMount({ cards: cards(8), stages: ['recall'], retryGap: 8 });
+    const guessed = promptOf(w);
+    await doClick(w, 'reveal');
+    await doClick(w, 'guessed');
+    await doClick(w, 'previous');
+    expect(promptOf(w)).toBe(guessed);
+    await doClick(w, 'remembered');
+    expect(w.emitted('undo')).toBeUndefined();
+    expect(w.emitted('answer')).toEqual([['c' + guessed.slice(1), 'recall', true]]);
   });
 
   it('is claimed after a right answer in typing', async () => {
@@ -1838,7 +1860,7 @@ describe('a guess', () => {
     const guessed = promptOf(w);
     await doType(w, 'input', answerFor(guessed));
     await doClick(w, 'guessed');
-    expect(w.emitted('answer')).toEqual([['c' + guessed.slice(1), 'type', false]]);
+    expect(w.emitted('answer')).toBeUndefined();
     expect(w.emitted('show')![0]![0]).toMatchObject({ answer: 'guessed' });
   });
 

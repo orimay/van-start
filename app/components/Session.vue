@@ -150,6 +150,8 @@ const step = shallowRef(0);
 const view = shallowRef(0);
 const stageSize = shallowRef(1);
 let reported = new Set<string>();
+/** `stage:id` of guesses this session: answers that sent no grade, so stepping back has none to take back. */
+const ungraded = new Set<string>();
 
 /** State before each finished item, so the learner can step back to it. */
 interface Snapshot {
@@ -368,6 +370,14 @@ function report(id: string, ok: boolean, regradable = false) {
   emit('answer', id, gameOf(id), ok);
 }
 
+/** Takes the card out of this session's grading; stepping back gives it back. */
+function skipGrade(id: string) {
+  if (reported.has(id)) return;
+  reported.add(id);
+  answers.push(id);
+  ungraded.add(`${stageIndex.value}:${id}`);
+}
+
 /** The step being left, so Back can return to it. */
 function snapshot(): Snapshot {
   return { stageIndex: stageIndex.value, queue: queue.value, stageSize: stageSize.value, reported: new Set(reported), answers, shows, pick: { step: step.value, shown: new Map(shown), mistakes: new Map(mistakes) } };
@@ -471,8 +481,8 @@ function stepBack() {
   announcing.value = false;
   history.value = history.value.slice(0, -1);
   const stageOfLast = props.stages[last.stageIndex]!;
-  for (const id of last.answers) emit('undo', id, gameOf(id, stageOfLast));
-  for (const id of answers) emit('undo', id, gameOf(id));
+  for (const id of last.answers) if (!ungraded.delete(`${last.stageIndex}:${id}`)) emit('undo', id, gameOf(id, stageOfLast));
+  for (const id of answers) if (!ungraded.delete(`${stageIndex.value}:${id}`)) emit('undo', id, gameOf(id));
   for (const id of [...(last.shows ?? []), ...shows]) emit('unshow', id);
   answers = [];
   shows = [];
@@ -520,10 +530,11 @@ function onMissAgain(card: StudyCard) {
   emit('answer', card.id, gameOf(card.id), false);
 }
 
-/** `guessed`: right by luck, so it counts as a miss. */
+/** `guessed`: right by luck, so it comes back like a miss but is graded neither way. */
 /** `typingMs`: time spent typing, left out of the recall time. */
 function onCard(card: StudyCard, ok: boolean, guessed = false, typingMs = 0) {
-  report(card.id, ok, true);
+  if (guessed) skipGrade(card.id);
+  else report(card.id, ok, true);
   const item = current.value?.kind === 'card' && current.value.card.id === card.id ? current.value : { kind: 'card' as const, card };
   const ms = logShow(item, guessed ? 'guessed' : ok ? 'plus' : 'minus', typingMs);
   advance(ok ? [] : [{ kind: 'card', card }], { slow: ok && (props.isSlow?.(gameOf(card.id), ms) ?? false) });

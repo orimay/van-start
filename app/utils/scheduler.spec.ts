@@ -68,6 +68,13 @@ describe('a session', () => {
     expect(gapsOf(s.shows, 'c0')[0]).toBe(5);
   });
 
+  it('counts a guess neither as an error nor toward accuracy', () => {
+    const start = startSession(ids(10), 'seed');
+    const s = answer(start, next(start)!.id, 'guessed');
+    expect(s.cards.get(next(start)!.id)!.errors).toBe(0);
+    expect(s.window).toEqual(start.window);
+  });
+
   it('keeps a slow right answer on its rung', () => {
     const s = playAll(
       startSession(ids(40), 'seed'),

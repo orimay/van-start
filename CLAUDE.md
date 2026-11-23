@@ -167,7 +167,7 @@ When two rules conflict, the one written further down wins.
   - Review has no limit: it asks every card due now.
   - Review gaps follow 2-7-30: a learned word is due on day 2, each right answer moves it to 7, then 30, then doubles the gap; a miss starts over at 2, and putting it right in the same session keeps 2. Each gap counts from the last answer, per word and per game. A right answer before the word is due credits only the ladder gap its elapsed days cover (day 3 of a 2-7 step counts as the 2, so next is 7 from now); under 2 days changes nothing. Once the due time has come the whole step counts.
   - In a session, learning and review alike, every card game (listening included) follows the ladder below: a miss or a guess comes back after exactly 4 shown cards, each right answer moves it a rung up, past the top it is passed. A right answer with no other card left passes it.
-  - A guess counts as a miss: recall shows Guessed beside Example only after Reveal (before it Card and Example take the whole row), Forgot beside Remembered; typing offers Guessed in place of No idea once the answer is right; choice has a Guessing toggle pressed before the pick.
+  - A guess comes back like a miss but is graded neither way (no FSRS grade, no score, no error, not toward accuracy; stepping back gives the card a fresh grade): recall shows Guessed beside Example only after Reveal (before it Card and Example take the whole row), Forgot beside Remembered; typing offers Guessed in place of No idea once the answer is right; choice has a Guessing toggle pressed before the pick.
   - Every group, Continue included, is filled with the words not learned in all games on, in deck order, up to the group size; whether a word was seen before never changes its place. Then each game but the intro (or pronouncing in its place) shuffles by the seed and expected frequency (past mistakes), and runs that order skipping the words that passed it. Continue restores the saved spot only when it holds the very group built now (same ids, same order); a stale spot gives way to the fresh group from its first game. Only an update reload restores the exact spot unconditionally.
   - The offer to continue shows a bar per game on: words of the group to continue that passed it, out of the group.
   - A short group is topped up as set in Settings: words that gave trouble (default) or the next group's words. No question.
@@ -213,7 +213,8 @@ When two rules conflict, the one written further down wins.
 
 ## Session scheduler (`app/utils/scheduler.ts` holds the rules; `Session.vue` applies them on its queue)
 
-- Clock is shows, not seconds. Answers: plus, minus, guessed (= minus), postpone.
+- Clock is shows, not seconds. Answers: plus, minus, guessed, postpone.
+- Guessed: back to the first rung like a miss, but never counted as an error or toward accuracy.
 - Ladder of gaps from 4 up to the session size N (group size from settings; review: its card count), x4 per rung, at least 4 rungs where N allows: 20 -> 4,7,12,20; 100 -> 4,12,34,100; 256 -> 4,16,64,256. N < 16 climbs by 4.
 - Miss: back to the first rung. Plus: next rung; past the top the card is passed. Slow plus (> 2x typical answer time, after 10 pluses): stays on its rung. A new card right at once is passed.
 - Postpone: back at the first-rung gap, the card's own rung kept, not logged as a show, never counted as an error or toward accuracy.
