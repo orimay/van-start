@@ -6,9 +6,9 @@ import { sessionScore } from '@/utils/score';
 import { cardsOf, nodeAt, toStudyCard } from '@/utils/deck';
 import { takeUpdateReload } from '@/utils/update-reload';
 import { saveBeforeUpdate } from '@/utils/update-hold';
-import { GAME_TITLES, isReviewGame, learnStages } from '@/utils/games';
+import { GAME_TITLES, learnStages } from '@/utils/games';
 import { sessions } from '@/db/sessions';
-import { isSlow, recallMs, seenInDeckOrder, sessionLog } from '@/db/shows';
+import { isSlow, sessionLog } from '@/db/shows';
 
 /** Every answer of this visit goes to the show log. */
 const log = sessionLog(crypto.randomUUID());
@@ -38,7 +38,6 @@ const root = store.deck.value!;
 const node = nodeAt(root, path) ?? root;
 const sectionCards = cardsOf(node);
 const pool = cardsOf(root).map(c => toStudyCard(c));
-const seenBefore = seenInDeckOrder(pool.map(c => c.id), id => store.scores.value[id] !== undefined);
 const known = [...pool.filter(c => store.isLearned(c.id)), ...sectionCards].map(c => c.id);
 
 /** Games passed when the group began, so cards passing games during it keep their group. */
@@ -69,6 +68,8 @@ let position: Position | undefined;
 
 const round = shallowRef(0);
 const finished = shallowRef(false);
+/** Misses the game ran out of cards to space: left unpassed, they open the next group. */
+const carried = shallowRef(new Set<string>());
 /** Words not learned yet, in deck order, up to a group; a short group is topped up as set. */
 const group = computed(() => {
   void round.value;
@@ -178,8 +179,6 @@ function onAnswer(id: string, s: Stage, ok: boolean) {
   answered = true;
   scoring.answer(id, s, ok);
   if (s === 'type' && !ok) typeMistakes.add(id);
-  // A filler from the rest of the deck is a learned word: answering it is its review.
-  if (isReviewGame(s) && !group.value.some(c => c.id === id)) store.rate(id, ok ? store.Rating.Good : store.Rating.Again, s);
   writeResume();
 }
 
@@ -190,13 +189,14 @@ function onUndo(id: string, s: Stage) {
 }
 
 function onFinished() {
-  for (const c of group.value.filter(c => !store.isLearned(c.id))) store.rate(c.id, typeMistakes.has(c.id) ? store.Rating.Hard : store.Rating.Good);
+  for (const c of group.value.filter(c => !store.isLearned(c.id))) store.rate(c.id, typeMistakes.has(c.id) || carried.value.has(c.id) ? store.Rating.Hard : store.Rating.Good);
   clearResume();
   finished.value = true;
 }
 
 function nextGroup() {
   typeMistakes = new Set();
+  carried.value = new Set();
   scoring = sessionScore((id, game) => store.scores.value[id]?.[game], store.saveScore);
   resumeIds.value = undefined;
   startAt.value = 0;
@@ -273,6 +273,7 @@ function takeDone() {
     </div>
     <div v-else-if="finished || !group.length" class="flex flex-1 flex-col gap-4">
       <p class="flex flex-1 items-center justify-center text-xl font-semibold" data-testid="done">{{ group.length ? 'Group learned' : 'Section learned' }}</p>
+      <p v-if="finished && carried.size" class="text-center text-sm opacity-70" data-testid="carried">{{ carried.size }} hard {{ carried.size === 1 ? 'word moves' : 'words move' }} to the next group</p>
       <div class="flex flex-col gap-2">
         <NuxtLink to="/" class="btn-ghost text-center">To sections</NuxtLink>
         <button v-if="group.length && finished" class="btn-primary" data-testid="next-group" @click="nextGroup">Next group</button>
@@ -298,12 +299,11 @@ function takeDone() {
       @answer="onAnswer"
       @undo="onUndo"
       :is-slow="isSlow"
-      :recall-ms="recallMs"
-      :seen-before="seenBefore"
       :game-scores="store.scores.value"
       @show="log.show"
       @unshow="log.unshow"
       @passed="store.pass"
+      @carried="id => (carried = new Set(carried).add(id))"
       @finished="onFinished"
     />
   </div>

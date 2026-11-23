@@ -71,6 +71,14 @@ describe('a waiting update', () => {
     expect(order).toEqual(['save', 'marked update']);
   });
 
+  it('installs once though saving before it writes', async () => {
+    const update = vi.fn();
+    inScope(() => saveBeforeUpdate(() => void holdUntilDone(Promise.resolve())));
+    inScope(() => installWhenIdle(() => true, update));
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+    expect(update).toHaveBeenCalledOnce();
+  });
+
   it('waits for a write to land', async () => {
     let land!: () => void;
     holdUntilDone(new Promise<void>(r => (land = r)));

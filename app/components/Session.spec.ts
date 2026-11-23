@@ -41,35 +41,29 @@ describe('learning', () => {
     }
   });
 
-  it('repeats a missed card after the rest of the deck, until it is answered right', async () => {
-    const w = await doMount({ cards: cards(4), stages: ['recall'] });
+  it('repeats a missed card once four others have come between', async () => {
+    const w = await doMount({ cards: cards(6), stages: ['recall'] });
     const missed = promptOf(w);
     await doRecall(w, false);
     const pass: string[] = [];
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       pass.push(promptOf(w));
       await doRecall(w, true);
     }
     expect(pass).not.toContain(missed);
     expect(promptOf(w)).toBe(missed);
-    await doRecall(w, false);
-    expect(promptOf(w)).not.toBe(missed);
-    await answerUntil(w, missed);
-    expect(w.emitted('finished')).toBeUndefined();
-    await doRecall(w, true);
-    expect(w.emitted('finished')).toHaveLength(1);
   });
 });
 
 describe('choice', () => {
-  it('repeats a missed card after the rest of the deck', async () => {
+  it('repeats a missed card once four others have come between', async () => {
     vi.useFakeTimers();
-    const w = await doMount({ cards: cards(4), stages: ['choice'] });
+    const w = await doMount({ cards: cards(6), stages: ['choice'] });
     const missed = promptOf(w);
     await doPick(w, w.findAll('[data-testid="option"]').map(o => o.text()).find(o => !o.startsWith(answerFor(missed)))!);
     await doClick(w, 'next');
     const pass: string[] = [];
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       pass.push(promptOf(w));
       await doPick(w, answerFor(promptOf(w)));
       await vi.advanceTimersByTimeAsync(500);
@@ -364,18 +358,17 @@ describe('the count of cards left', () => {
     expect(counts.at(-1)).toBe(1);
   });
 
-  it('counts every right answer a missed card still needs and the filler its wait takes', async () => {
+  it('leaves out a miss nothing is left to space', async () => {
     const w = await doMount({ cards: cards(2), stages: ['recall'], retryGap: 5 });
     await doRecall(w, false);
-    // The other card, the miss, one filler (the only card free), the miss again.
-    expect(w.get('[data-testid="left"]').text()).toBe(`left ${ladder(5).length + 2}`);
+    expect(leftOf(w)).toBe(1);
   });
 
-  it('counts down as a missed card climbs back', async () => {
-    const w = await doMount({ cards: cards(2), stages: ['recall'], retryGap: 5 });
+  it('counts the climbs of a miss the new cards still space', async () => {
+    const w = await doMount({ cards: cards(10), stages: ['recall'], retryGap: 5 });
     await doRecall(w, false);
-    await doRecall(w, true);
-    expect(w.get('[data-testid="left"]').text()).toBe(`left ${ladder(5).length + 1}`);
+    // Nine new cards, the miss back after four of them and again after the last five.
+    expect(leftOf(w)).toBe(9 + ladder(5).length);
   });
 });
 
@@ -967,8 +960,8 @@ describe('typing', () => {
     expect(promptOf(w)).not.toBe(first);
   });
 
-  it('repeats a mistyped card after the deck', async () => {
-    const w = await doMount({ cards: cards(2), stages: ['type'] });
+  it('repeats a mistyped card once four others have come between', async () => {
+    const w = await doMount({ cards: cards(6), stages: ['type'] });
     const first = promptOf(w);
     await doType(w, 'input', 'wrong');
     await doClick(w, 'show-answer');
@@ -976,9 +969,11 @@ describe('typing', () => {
     await doType(w, 'input', answerFor(first));
     await doClick(w, 'submit');
     await nextTick();
-    await doType(w, 'input', answerFor(promptOf(w)));
-    await doClick(w, 'submit');
-    await nextTick();
+    for (let i = 0; i < 4; i++) {
+      await doType(w, 'input', answerFor(promptOf(w)));
+      await doClick(w, 'submit');
+      await nextTick();
+    }
     expect(promptOf(w)).toBe(first);
   });
 });
@@ -1143,21 +1138,8 @@ describe('a dictation miss', () => {
     while (heard() !== word) await doAnswer(w, heard());
   }
 
-  it('waits its gap after a reload, filled with cards shown before it', async () => {
-    const before = await doMount({ cards: cards(20), stages: ['dictation'], retryGap: 20 });
-    const missed = heard();
-    await doType(before, 'input', 'wrong');
-    await doClick(before, 'try-again');
-    await doAnswer(before, missed);
-    while ((lastPosition(before) as { queue: unknown[] }).queue.length > 2) await doAnswer(before, heard());
-    const w = await doMount({ cards: cards(20), stages: ['dictation'], retryGap: 20, resumeAt: lastPosition(before) });
-    const first = heard();
-    await doAnswer(w, first);
-    expect([first, missed]).not.toContain(heard());
-  });
-
   it('keeps its climbed rungs over a reload', async () => {
-    const before = await doMount({ cards: cards(20), stages: ['dictation'], retryGap: 20 });
+    const before = await doMount({ cards: cards(60), stages: ['dictation'], retryGap: 20 });
     const missed = heard();
     await doType(before, 'input', 'wrong');
     await doClick(before, 'try-again');
@@ -1166,193 +1148,64 @@ describe('a dictation miss', () => {
       await doAnswerUntil(before, missed);
       await doAnswer(before, missed);
     }
-    const w = await doMount({ cards: cards(20), stages: ['dictation'], retryGap: 20, resumeAt: lastPosition(before) });
+    const w = await doMount({ cards: cards(60), stages: ['dictation'], retryGap: 20, resumeAt: lastPosition(before) });
     await doAnswerUntil(w, missed);
     expect(w.get('[data-testid="shows-left"]').attributes('aria-label')).toBe(`${ladder(20).length - 2} left`);
   });
 });
 
 describe('a missed card left alone', () => {
-  const RECALL: Record<string, number> = { c0: 1000, c1: 5000, c2: 3000, c3: 2000 };
-  const recallMs = (id: string) => RECALL[id];
-
   async function missTheLast(w: VueWrapper) {
-    const passed: string[] = [];
-    for (let i = 0; i < 3; i++) {
-      passed.push(promptOf(w));
-      await doRecall(w, true);
-    }
+    for (let i = 0; i < 3; i++) await doRecall(w, true);
     const missed = promptOf(w);
     await doRecall(w, false);
-    return { missed, slowest: passed.sort((a, b) => RECALL['c' + b.slice(1)]! - RECALL['c' + a.slice(1)]!)[0]! };
+    return missed;
   }
 
-  it('waits behind the right card recalled the slowest', async () => {
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, recallMs });
-    const { missed, slowest } = await missTheLast(w);
-    expect(promptOf(w)).not.toBe(missed);
-    expect(promptOf(w)).toBe(slowest);
-  });
-
-  it('waits first behind the right card with the worst record of misses', async () => {
-    const scores = { c2: { right: 1, wrong: 1 }, c3: { right: 1, wrong: 4 }, c0: { right: 9, wrong: 0 } };
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, recallMs, scores });
-    const { missed } = await missTheLast(w);
-    expect(promptOf(w)).toBe(missed === 'p3' ? 'p2' : 'p3');
-  });
-
-  it('waits behind each card with misses once, worst first, before any comes again', async () => {
-    const scores = { c1: { right: 1, wrong: 4 }, c2: { right: 1, wrong: 2 }, c3: { right: 1, wrong: 1 } };
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, recallMs, scores });
-    const { missed } = await missTheLast(w);
-    const worstFirst = ['p1', 'p2', 'p3'].filter(p => p !== missed);
-    const fillers: string[] = [];
-    while (!w.emitted('finished')) {
-      if (promptOf(w) !== missed) fillers.push(promptOf(w));
-      await doRecall(w, true);
-    }
-    expect(fillers.slice(0, worstFirst.length)).toEqual(worstFirst);
-  });
-
-  it('waits behind a card with misses outweighing its fixes before one fixed many times', async () => {
-    const scores = { c1: { right: 8, wrong: 1 }, c2: { right: 4, wrong: 4 }, c3: { right: 8, wrong: 1 } };
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, scores });
-    const { missed } = await missTheLast(w);
-    if (missed === 'p2') return;
-    expect(promptOf(w)).toBe('p2');
-  });
-
-  it('waits behind the slower of two cards missed alike', async () => {
-    const scores = { c0: { right: 2, wrong: 2 }, c1: { right: 2, wrong: 2 }, c2: { right: 2, wrong: 2 }, c3: { right: 2, wrong: 2 } };
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, recallMs, scores });
-    const { slowest } = await missTheLast(w);
-    expect(promptOf(w)).toBe(slowest);
-  });
-
-  it('waits behind a card unseen for a month before one seen yesterday, missed alike', async () => {
-    const scores = { c0: { right: 2, wrong: 2 }, c1: { right: 2, wrong: 2 }, c2: { right: 2, wrong: 2 }, c3: { right: 2, wrong: 2 } };
-    const DAY = 86_400_000;
-    const longAgo = new Set<string>();
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, scores, seenBefore: (id: string) => Date.now() - (longAgo.has(id) ? 30 : 1) * DAY });
-    await doRecall(w, true);
-    await doRecall(w, true);
-    const latest = promptOf(w);
-    longAgo.add('c' + latest.slice(1));
-    await doRecall(w, true);
-    await doRecall(w, false);
-    expect(promptOf(w)).toBe(latest);
-  });
-
-  it('reads the misses of the game being played from earlier sessions', async () => {
-    const DAY = 86_400_000;
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, seenBefore: () => Date.now() - DAY });
-    await doRecall(w, true);
-    const earlier = promptOf(w);
-    await doRecall(w, true);
-    await doRecall(w, true);
-    await w.setProps({ gameScores: { ['c' + earlier.slice(1)]: { recall: { right: 1, wrong: 3 } } } });
-    await doRecall(w, false);
-    expect(promptOf(w)).toBe(earlier);
-  });
-
-  it('waits behind a learned card of the deck missed in this game before a right card of the group', async () => {
-    const gameScores = { c5: { recall: { right: 0, wrong: 2 } } };
-    const w = await doMount({ cards: cards(4), pool: cards(6), stages: ['recall'], retryGap: 8, gameScores });
-    await missTheLast(w);
-    expect(promptOf(w)).toBe('p5');
-  });
-
-  it('never fills a wait with a card of the deck not learned yet', async () => {
-    const gameScores = { c5: { recall: { right: 0, wrong: 2 } } };
-    const w = await doMount({ cards: cards(4), pool: cards(6), stages: ['recall'], retryGap: 8, gameScores, known: ['c0', 'c1', 'c2', 'c3'] });
-    await missTheLast(w);
-    expect(promptOf(w)).not.toBe('p5');
-  });
-
-  it('marks the card filling its wait', async () => {
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, recallMs });
-    ensureNoFillerMark(w);
-    await missTheLast(w);
-    expect(w.get('[data-testid="filler"]').attributes('aria-label')).toBe('Filling a wait');
-  });
-
-  it('trades its filler mark for the empty ring once missed', async () => {
-    const w = await doMount({ cards: cards(4), stages: ['type'], retryGap: 8 });
-    for (let i = 0; i < 3; i++) {
-      await doType(w, 'input', answerFor(promptOf(w)));
-      await doClick(w, 'submit');
-    }
-    const missed = promptOf(w);
-    await doType(w, 'input', 'wrong');
-    await doClick(w, 'try-again');
-    await doType(w, 'input', answerFor(missed));
-    await doClick(w, 'submit');
-    w.get('[data-testid="filler"]');
-    await doType(w, 'input', 'wrong');
-    ensureNoFillerMark(w);
-    expect(w.get('[data-testid="shows-left"]').attributes('aria-label')).toBe(`${ladder(8).length} left`);
-  });
-
-  it('colours its filler mark from red for a card mostly missed to green for one mostly right', async () => {
-    const hueOf = async (score: { right: number; wrong: number }) => {
-      const gameScores = Object.fromEntries(['c0', 'c1', 'c2', 'c3'].map(id => [id, { recall: score }]));
-      const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, gameScores });
-      await missTheLast(w);
-      return Number(/oklch\([^ ]+ [^ ]+ ([\d.]+)\)/.exec(w.get('[data-testid="filler"]').attributes('style')!)![1]);
-    };
-    expect(await hueOf({ right: 0, wrong: 6 })).toBeLessThan(40);
-    expect(await hueOf({ right: 6, wrong: 0 })).toBeGreaterThan(130);
-  });
-
-  it('colours a card never missed green and one missed once without fixes red', async () => {
-    const hueOf = async (score: { right: number; wrong: number }) => {
-      const gameScores = Object.fromEntries(['c0', 'c1', 'c2', 'c3'].map(id => [id, { recall: score }]));
-      const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, gameScores });
-      await missTheLast(w);
-      return Number(/oklch\([^ ]+ [^ ]+ ([\d.]+)\)/.exec(w.get('[data-testid="filler"]').attributes('style')!)![1]);
-    };
-    expect(await hueOf({ right: 0, wrong: 0 })).toBeGreaterThan(130);
-    expect(await hueOf({ right: 0, wrong: 1 })).toBeLessThan(40);
-  });
-
-  it('waits behind a card missed in another game before one never missed', async () => {
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, seenBefore: () => Date.now() });
-    await doRecall(w, true);
-    const earlier = promptOf(w);
-    await doRecall(w, true);
-    await doRecall(w, true);
-    await w.setProps({ gameScores: { ['c' + earlier.slice(1)]: { type: { right: 0, wrong: 2 } } } });
-    await doRecall(w, false);
-    expect(promptOf(w)).toBe(earlier);
+  it('ends the game unpassed and is carried to the next group', async () => {
+    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8 });
+    const missed = await missTheLast(w);
+    ensureEmitted(w, 'finished');
+    expect(w.emitted('carried')).toEqual([[idOf(missed), 'recall']]);
+    expect(w.emitted('passed')!.map(e => e[0])).not.toContain(idOf(missed));
   });
 
   it('colours the ring of a missed card by how well the card is known', async () => {
-    const w = await doMount({ cards: cards(2), stages: ['recall'], retryGap: 1 });
+    const w = await doMount({ cards: cards(6), stages: ['recall'], retryGap: 4 });
     await doRecall(w, false);
     while (!w.find('[data-testid="shows-left"]').exists()) await doRecall(w, true);
     const hue = Number(/oklch\([^ ]+ [^ ]+ ([\d.]+)\)/.exec(w.get('[data-testid="shows-left"]').attributes('style') ?? '')?.[1]);
     expect(hue).toBeLessThan(40);
   });
 
-  it('does not wait twice behind a card answered right while it waited', async () => {
-    const scores = { c0: { right: 1, wrong: 4 }, c1: { right: 1, wrong: 4 } };
-    let slow = false;
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, recallMs, scores, isSlow: () => slow });
-    const { missed } = await missTheLast(w);
-    slow = true;
-    const fillers: string[] = [];
-    // Slow right answers keep the missed card on its rung, so it waits again and again.
-    while (fillers.length < 4) {
-      if (promptOf(w) !== missed) fillers.push(promptOf(w));
-      await doRecall(w, true);
-    }
-    expect(fillers.slice(0, 3).filter((p, i, all) => p === all[i - 1] || p === all[i - 2])).toEqual([]);
+});
+
+describe('the known mark', () => {
+  const hueOf = async (score: { right: number; wrong: number }) => {
+    const w = await doMount({ cards: cards(1), stages: ['recall'], gameScores: { c0: { recall: score } } });
+    return Number(/oklch\([^ ]+ [^ ]+ ([\d.]+)\)/.exec(w.get('[data-testid="known"]').attributes('style')!)![1]);
+  };
+
+  it('is absent on a card new to the game', async () => {
+    const w = await doMount({ cards: cards(1), stages: ['recall'] });
+    ensureHas(w, 'known', false);
   });
 
-  it('still climbs every rung before the deck ends', async () => {
-    const w = await doMount({ cards: cards(4), stages: ['recall'], retryGap: 8, recallMs });
-    const { missed } = await missTheLast(w);
-    expect(await timesShown(w, missed)).toBe(ladder(8).length);
+  it('goes from red for a card mostly missed to green for one mostly right', async () => {
+    expect(await hueOf({ right: 0, wrong: 6 })).toBeLessThan(40);
+    expect(await hueOf({ right: 6, wrong: 0 })).toBeGreaterThan(130);
+  });
+
+  it('turns red for a card missed once without fixes', async () => {
+    expect(await hueOf({ right: 0, wrong: 1 })).toBeLessThan(40);
+  });
+
+  it('gives way to the ring once the card is missed', async () => {
+    const w = await doMount({ cards: cards(6), stages: ['recall'], retryGap: 4, gameScores: Object.fromEntries(cards(6).map(c => [c.id, { recall: { right: 2, wrong: 0 } }])) });
+    ensureHas(w, 'known');
+    await doRecall(w, false);
+    while (!w.find('[data-testid="shows-left"]').exists()) await doRecall(w, true);
+    ensureHas(w, 'known', false);
   });
 });
 
@@ -1857,23 +1710,28 @@ describe('review', () => {
     expect(await answerUntil(w, missed)).toBe(STEP);
   });
 
-  it('brings back a miss on the last card after the right one', async () => {
-    const w = await doMount({ cards: cards(2), stages: ['recall'], retryGap: GROUP });
-    const first = promptOf(w);
-    await doRecall(w, true);
-    const last = promptOf(w);
-    await doRecall(w, false);
-    expect(promptOf(w)).toBe(first);
-    await doRecall(w, true);
-    expect(promptOf(w)).toBe(last);
-  });
-
-  it('climbs every rung with a single card to fill in', async () => {
+  it('carries a miss left only waiting to the next group, unpassed, instead of filling its wait', async () => {
     const w = await doMount({ cards: cards(2), stages: ['recall'], retryGap: 100 });
     await doRecall(w, true);
     const missed = promptOf(w);
     await doRecall(w, false);
-    expect(await timesShown(w, missed)).toBe(ladder(100).length);
+    ensureEmitted(w, 'finished');
+    expect(w.emitted('carried')).toEqual([[idOf(missed), 'recall']]);
+    expect(w.emitted('passed')!.map(e => e[0])).not.toContain(idOf(missed));
+  });
+
+  it('spaces a late miss only between the cards still new, then carries it', async () => {
+    const w = await doMount({ cards: cards(6), stages: ['recall'], retryGap: 100, seed: 'late' });
+    const missed = promptOf(w);
+    await doRecall(w, false);
+    let shows = 0;
+    while (!w.emitted('finished')) {
+      shows++;
+      await doRecall(w, true);
+    }
+    // Five new cards plus the climbs that fit between them.
+    expect(shows).toBeLessThanOrEqual(5 + 3);
+    expect(w.emitted('carried')?.map(e => e[0]) ?? []).toContain(idOf(missed));
   });
 
   it('lets a miss go once it climbs past the top of the ladder', async () => {
@@ -1884,7 +1742,7 @@ describe('review', () => {
   });
 
   it('starts the ladder over on another miss', async () => {
-    const w = await doMount({ cards: cards(60), stages: ['recall'], retryGap: GROUP });
+    const w = await doMount({ cards: cards(200), stages: ['recall'], retryGap: GROUP });
     const missed = promptOf(w);
     await doRecall(w, false);
     await answerUntil(w, missed);
@@ -2023,10 +1881,6 @@ async function timesShown(w: VueWrapper, prompt: string) {
 
 // declarative helpers
 
-function ensureNoFillerMark(w: VueWrapper) {
-  expect(w.find('[data-testid="filler"]').exists()).toBe(false);
-}
-
 let played: string[] = [];
 let ended: Array<() => void> = [];
 
@@ -2069,7 +1923,7 @@ function ensureTryAgainOffered(w: VueWrapper) {
   expect(w.find('[data-testid="try-again"]').exists()).toBe(true);
 }
 
-async function doMount(props: { cards: StudyCard[]; stages: string[]; retryGap?: number; resumeAt?: unknown; pool?: StudyCard[]; known?: string[]; seed?: string; scores?: Record<string, Score>; games?: Record<string, string>; passed?: Record<string, string[]>; isSlow?: (game: string, ms: number) => boolean; recallMs?: (id: string, game: string) => number | undefined; introducing?: boolean; announce?: boolean; onPosition?: (p: unknown) => void }, attached = false) {
+async function doMount(props: { cards: StudyCard[]; stages: string[]; retryGap?: number; resumeAt?: unknown; pool?: StudyCard[]; known?: string[]; seed?: string; scores?: Record<string, Score>; games?: Record<string, string>; passed?: Record<string, string[]>; isSlow?: (game: string, ms: number) => boolean; introducing?: boolean; announce?: boolean; onPosition?: (p: unknown) => void }, attached = false) {
   return mountSuspended(Session, { props: { pool: props.cards, lang: 'nl', ...props } as never, ...(attached ? { attachTo: document.body } : {}) });
 }
 
@@ -2168,4 +2022,12 @@ function ensureHas(w: VueWrapper, testId: string, has = true) {
 
 function leftOf(w: { get: (s: string) => { text: () => string } }) {
   return Number(w.get('[data-testid="left"]').text().replace('left ', ''));
+}
+
+function idOf(prompt: string) {
+  return 'c' + prompt.slice(1);
+}
+
+function ensureEmitted(w: VueWrapper, event: string) {
+  expect(w.emitted(event)).toBeDefined();
 }

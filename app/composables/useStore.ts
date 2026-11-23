@@ -13,7 +13,7 @@ const DAY = 86_400_000;
 import { DEFAULT_GAMES, GAMES, type Game, learnStages, REVIEW_GAMES, type ReviewGame, savedGames } from '@/utils/games';
 
 
-export const LANGUAGES = { en: 'English', es: 'Español', pt: 'Português', tr: 'Türkçe', ru: 'Русский' } as const;
+export const LANGUAGES = { en: 'English', es: 'Español', pt: 'Português', tr: 'Türkçe', ro: 'Română', ru: 'Русский' } as const;
 export type Language = keyof typeof LANGUAGES;
 
 /** Native side of every card and section name, keyed by id; the Dutch side is shared. */

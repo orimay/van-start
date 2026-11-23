@@ -50,26 +50,18 @@ describe('the intro of a group with sections', () => {
   });
 });
 
-describe('a learned word waiting behind a miss', () => {
-  it('counts as reviewed when answered right', async () => {
-    vi.useFakeTimers({ now: new Date('2026-01-01T09:00:00Z'), toFake: ['Date'] });
-    const store = useStore();
-    store.updateSettings({ games: ['recall'], topUp: 'next' });
-    store.rate('k0', store.Rating.Good);
-    store.saveScore('k0', 'recall', { right: 1, wrong: 3 });
-    const due = store.scheduleOf('k0', 'recall')!.due;
-    vi.setSystemTime(new Date('2026-01-04T09:00:00Z'));
+describe('a hard word', () => {
+  it('missed on the last card moves to the next group, as the summary says', async () => {
+    useStore().updateSettings({ games: ['recall'] });
     const w = await doMount();
-    await introPrompts(w, 3);
+    await introPrompts(w, 4);
     await doClick(w, 'start-game');
-    const missed = promptOf(w);
-    await doClick(w, 'reveal');
-    await doClick(w, 'forgot');
-    while (promptOf(w) !== 'p0') await doRecall(w);
-    await doRecall(w);
-    expect(store.scheduleOf('k0', 'recall')!.due).not.toBe(due);
-    expect(missed).not.toBe('p0');
-    vi.useRealTimers();
+    while (!w.find('[data-testid="done"]').exists()) {
+      const last = leftOf(w) === 1;
+      await doClick(w, 'reveal');
+      await doClick(w, last ? 'forgot' : 'remembered');
+    }
+    expect(w.get('[data-testid="carried"]').text()).toBe('1 hard word moves to the next group');
   });
 });
 
@@ -81,8 +73,41 @@ describe('a group left halfway', () => {
     expect(promptOf(w)).toBe('p2');
   });
 
+  it('continues at the page of the game it was left on', async () => {
+    useStore().updateSettings({ games: ['recallNative', 'recall'] });
+    const before = await doMount();
+    for (let i = 0; i < cards.length; i++) await doClick(before, 'next');
+    await doClick(before, 'start-game');
+    for (let i = 0; i < 40 && !before.find('[data-testid="start-game"]').exists(); i++) {
+      await doRecall(before);
+    }
+    expect(before.get('[data-testid="stage"]').text()).toContain('Speaking');
+    before.unmount();
+    const w = await doMount();
+    await doClick(w, 'resume');
+    expect(w.get('[data-testid="stage"]').text()).toContain('Speaking');
+  });
+
+  it('goes on at the page of the game it was left on after an app update', async () => {
+    useStore().updateSettings({ games: ['recallNative', 'recall'] });
+    const before = await doMount();
+    for (let i = 0; i < cards.length; i++) await doClick(before, 'next');
+    await doClick(before, 'start-game');
+    for (let i = 0; i < 40 && !before.find('[data-testid="start-game"]').exists(); i++) await doRecall(before);
+    history.replaceState(null, '', '/learn?path=all');
+    await doUpdate(before);
+    const w = await doMount();
+    expect(w.get('[data-testid="stage"]').text()).toContain('Speaking');
+    w.unmount();
+    const again = await doMount();
+    await doClick(again, 'resume');
+    expect(again.get('[data-testid="stage"]').text()).toContain('Speaking');
+  });
+
   it('keeps its misses on their ladder when continued', async () => {
-    useStore().updateSettings({ games: ['pronounce', 'recall'], pronounceFirst: true });
+    // Enough words after the miss to bring it back.
+    useStore().deck.value = { id: 'root', name: 'Root', cards: Array.from({ length: 10 }, (_, i) => ({ id: `k${i}`, f: `p${i}`, b: `a${i}` })) };
+    useStore().updateSettings({ groupSize: 10, games: ['pronounce', 'recall'], pronounceFirst: true });
     const before = await doMount();
     await doClick(before, 'start-game');
     await doClick(before, 'reveal');
@@ -477,3 +502,8 @@ async function doContinue(w: VueWrapper) {
   await doClick(w, 'resume');
   if (w.find('[data-testid="start-game"]').exists()) await doClick(w, 'start-game');
 }
+
+function leftOf(w: VueWrapper) {
+  return Number(w.get('[data-testid="left"]').text().replace('left ', ''));
+}
+

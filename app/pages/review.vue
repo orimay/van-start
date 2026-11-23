@@ -9,7 +9,7 @@ import { sessionScore } from '@/utils/score';
 import { saveBeforeUpdate } from '@/utils/update-hold';
 import { takeUpdateReload } from '@/utils/update-reload';
 import { sessions } from '@/db/sessions';
-import { isSlow, recallMs, sessionLog } from '@/db/shows';
+import { isSlow, sessionLog } from '@/db/shows';
 
 /** Every answer of this visit goes to the show log. */
 const log = sessionLog(crypto.randomUUID());
@@ -50,11 +50,14 @@ const saved = takeUpdateReload(location.pathname + location.search) ? takeSaved(
 const now = new Date();
 const byId = new Map(all.map(c => [c.id, c]));
 const learnedAt = new Map(Object.keys(store.progress.value).map((id, i) => [id, i]));
+/** Misses over right answers in this game. */
+const balanceOf = (id: string) => (store.scores.value[id]?.[reviewGame]?.wrong ?? 0) - (store.scores.value[id]?.[reviewGame]?.right ?? 0);
 const batch = saved
   ? saved.ids.map(id => toStudyCard(byId.get(id)!))
   : candidates
       .filter(c => (section ? store.isLearned(c.id) : store.isDue(c.id, now, reviewGame)))
-      .sort((a, b) => learnedAt.get(a.id)! - learnedAt.get(b.id)!)
+      // Hardest first, so they get the most chances to come back.
+      .sort((a, b) => balanceOf(b.id) - balanceOf(a.id) || learnedAt.get(a.id)! - learnedAt.get(b.id)!)
       .map(c => toStudyCard(c));
 const finished = shallowRef(saved?.finished ?? false);
 /** Each card's score in this game as the session began: it orders the session and sets the card's odds. */
@@ -145,7 +148,6 @@ function onUndo(id: string, stage: Stage) {
       @answer="onAnswer"
       @undo="onUndo"
       :is-slow="isSlow"
-      :recall-ms="recallMs"
       @show="log.show"
       @unshow="log.unshow"
       @finished="(finished = true), leave()"

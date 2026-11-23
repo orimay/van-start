@@ -73,14 +73,13 @@ describe('review', () => {
     expect(w.get('[data-testid="done"]').text()).toBe('Done');
   });
 
-  it('ends once a missed card, left alone, is answered right', async () => {
+  it('ends at a miss nothing is left to space, leaving it rated forgotten', async () => {
     givenLearned('k0');
     givenDue('k0', 'recall');
     const w = await doMount();
     await doRecall(w, false);
-    expect(promptOf(w)).toBe('p0');
-    await doRecall(w, true);
     expect(w.get('[data-testid="done"]').text()).toBe('Done');
+    expect(store.isDue('k0', new Date(Date.now() + 60_000 * 60 * 24 * 3), 'recall')).toBe(true);
   });
 
   it('asks every learned card of a section, due or not', async () => {
@@ -150,6 +149,20 @@ describe('the order', () => {
     }
     expect(asked).toEqual(['p2', 'p0', 'p1']);
   });
+
+  it('starts with the hardest words of the game', async () => {
+    givenLearned('k0', 'k1', 'k2');
+    for (const id of ['k0', 'k1', 'k2']) givenDue(id, 'recall');
+    store.saveScore('k1', 'recall', { right: 1, wrong: 2 });
+    store.saveScore('k2', 'recall', { right: 1, wrong: 4 });
+    const w = await doMount();
+    const asked: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      asked.push(promptOf(w));
+      await doRecall(w, true);
+    }
+    expect(asked).toEqual(['p2', 'p1', 'p0']);
+  });
 });
 
 describe('leaving and coming back', () => {
@@ -166,16 +179,20 @@ describe('leaving and coming back', () => {
   });
 
   it('keeps a missed card coming back', async () => {
-    givenLearned('k0', 'k1');
-    for (const id of ['k0', 'k1']) givenDue(id, 'recall');
+    store.deck.value = { id: 'root', name: 'Root', cards: Array.from({ length: 6 }, (_, i) => ({ id: `k${i}`, f: `p${i}`, b: `a${i}` })) };
+    const ids = Array.from({ length: 6 }, (_, i) => `k${i}`);
+    givenLearned(...ids);
+    for (const id of ids) givenDue(id, 'recall');
     const first = await doMount();
     const missed = promptOf(first);
     await doRecall(first, false);
     first.unmount();
     const w = await doMount();
     const asked = [promptOf(w)];
-    await doRecall(w, true);
-    asked.push(promptOf(w));
+    for (let i = 0; i < 4; i++) {
+      await doRecall(w, true);
+      asked.push(promptOf(w));
+    }
     expect(asked).toContain(missed);
   });
 

@@ -10,7 +10,8 @@ export function nextGroup<T extends { id: string }>(cards: T[], progress: Progre
   const fresh = cards.filter(c => !progress[c.id]).slice(0, size);
   const target = topUpTo(fresh.length, size);
   if (!fresh.length || fresh.length === target) return fresh;
-  const topUp = after ? after.filter(c => !progress[c.id]) : missedMost(cards, progress);
+  // The last group has no cards after it: the hardest learned ones fill it then.
+  const topUp = [...(after?.filter(c => !progress[c.id]) ?? []), ...missedMost(cards, progress)];
   return [...fresh, ...topUp.slice(0, target - fresh.length)];
 }
 

@@ -30,10 +30,6 @@ const props = defineProps<{
   retryGap?: number;
   /** Whether an answer took too long to count as known; a slow right answer keeps its card on its rung. */
   isSlow?: (game: string, ms: number) => boolean;
-  /** How long a card took to recall in a game lately; the slowest right card fills in while only misses wait. */
-  recallMs?: (id: string, game: string) => number | undefined;
-  /** When a card was last shown in a game before this session, epoch ms. */
-  seenBefore?: (id: string, game: string) => number | undefined;
   /** Earlier answers per card id: missed cards go first, and each card's odds follow its balance. */
   scores?: Record<string, Score>;
   /** Stored right/wrong per card and game, read for the game being played. */
@@ -59,6 +55,8 @@ const emit = defineEmits<{
   finished: [];
   /** The card is done with this game. */
   passed: [id: string, stage: Stage];
+  /** A miss left waiting when the game ran out of cards: it stays unpassed, so the next group starts with it. */
+  carried: [id: string, stage: Stage];
   stage: [index: number];
   /** The learner stepped back over this answer: forget it. */
   undo: [id: string, stage: Stage];
@@ -100,7 +98,7 @@ export type CardState = { revealed?: 'self' | 'timeout'; picked?: string; option
 
 /** `round`: how many times the item was missed before; a later round waits for the earlier one to finish. */
 /** `skip`: passed before, so it goes by unasked yet keeps its place for Back. */
-type Item = ({ kind: 'card'; card: StudyCard; state?: CardState; skip?: boolean; filler?: boolean } | { kind: 'match'; cards: StudyCard[]; matched?: string[]; mistakes?: string[] }) & { round?: number; missedAt?: number; spacing?: number; rung?: number };
+type Item = ({ kind: 'card'; card: StudyCard; state?: CardState; skip?: boolean } | { kind: 'match'; cards: StudyCard[]; matched?: string[]; mistakes?: string[] }) & { round?: number; missedAt?: number; spacing?: number; rung?: number };
 
 const seed = props.seed ?? String(Math.random());
 /** A random source fixed per decision, so resume and back replay it identically. */
@@ -167,8 +165,6 @@ interface Snapshot {
   pick?: { step: number; shown: Map<string, number>; mistakes: Map<string, number>; cleared?: Set<string> };
 }
 const history = shallowRef<Snapshot[]>([]);
-/** Fillers answered right: they gave their wait, so the others fill the next ones first. */
-const cleared = new Set<string>();
 let answers: string[] = [];
 let shows: string[] = [];
 /** When the card on screen came up, to time the answer. */
@@ -184,13 +180,11 @@ const game = computed(() => (current.value?.kind === 'card' ? gameOf(current.val
 /** Share of the session done: whole stages plus the part of this one, retries not counted. */
 /** Cards of the game not passed yet, a retried one once. */
 const idsLeft = (items: Item[]) => new Set(items.filter(i => i.kind !== 'card' || !i.skip).flatMap(idsOf));
-/** Shows still to come: a missed card needs a right answer per rung left, a match round counts its cards; */
-/** Shows to the end of the game if every answer from now on is right, the fillers it will take included. */
+/** Shows to the end of the game if every answer from now on is right. */
 const cardsLeft = computed(() => {
   const pending = queue.value.filter(i => i.kind === 'match' || !i.skip);
-  const busy = new Set(pending.flatMap(idsOf));
   const items = pending.map(i => ({ size: i.kind === 'match' ? i.cards.length : 1, rung: i.rung, missedAt: i.missedAt, spacing: i.spacing }));
-  return showsLeft(items, { step: step.value, ladder: steps.value, fillers: fillers(busy).length, gapAt: (at, rung) => gapOf(rung, at) });
+  return showsLeft(items, { step: step.value, ladder: steps.value, gapAt: (at, rung) => gapOf(rung, at) });
 });
 /** Cards with nothing left in the queue, out of the stage's cards: a miss holds it still, never pulls it back. */
 const progress = computed(() => {
@@ -217,6 +211,8 @@ const cardColour = computed(() => {
   const item = current.value;
   if (item?.kind !== 'card') return undefined;
   const stored = props.gameScores?.[item.card.id]?.[gameOf(item.card.id)] ?? props.scores?.[item.card.id];
+  // A card new to the game has nothing to show yet.
+  if (!stored && !mistakes.has(item.card.id)) return undefined;
   return knownColour(stored?.right ?? 0, (stored?.wrong ?? 0) + (mistakes.get(item.card.id) ?? 0));
 });
 const currentCard = computed(() => (current.value?.kind === 'card' ? current.value.card : undefined));
@@ -243,17 +239,16 @@ const isSkipped = (h: Snapshot) => h.queue[0]?.kind === 'card' && !!h.queue[0].s
 /** Set by Back, cleared by an answer: the first step back passes over the passed cards to the card really answered last. */
 let steppingBack = false;
 
-/** Fillers come from the rest of the deck, so saved ids resolve against the pool too. */
 function itemsFrom(saved: Position['queue']): Item[] {
-  return saved.map(({ match, ids, round, missedAt, spacing, rung, matched, mistakes, state, skip, filler }): Item => {
+  return saved.map(({ match, ids, round, missedAt, spacing, rung, matched, mistakes, state, skip }): Item => {
     const cards = ids.map(id => byId.get(id)!);
     const spacedAt = { ...(missedAt !== undefined && { missedAt }), ...(spacing && { spacing }), ...(rung !== undefined && { rung }) };
-    return match ? { kind: 'match', cards, round, matched, mistakes, ...spacedAt } : { kind: 'card', card: cards[0]!, round, state, ...spacedAt, ...(skip && { skip }), ...(filler && { filler }) };
+    return match ? { kind: 'match', cards, round, matched, mistakes, ...spacedAt } : { kind: 'card', card: cards[0]!, round, state, ...spacedAt, ...(skip && { skip }) };
   });
 }
 
 function savedFrom(items: Item[]): Position['queue'] {
-  return items.map(i => ({ match: i.kind === 'match', ids: i.kind === 'match' ? i.cards.map(c => c.id) : [i.card.id], round: i.round, ...(i.missedAt !== undefined && { missedAt: i.missedAt }), ...(i.spacing && { spacing: i.spacing }), ...(i.rung !== undefined && { rung: i.rung }), ...(i.kind === 'match' && { matched: i.matched, mistakes: i.mistakes }), ...(i.kind === 'card' && i.state && { state: i.state }), ...(i.kind === 'card' && i.skip && { skip: true }), ...(i.kind === 'card' && i.filler && { filler: true }) }));
+  return items.map(i => ({ match: i.kind === 'match', ids: i.kind === 'match' ? i.cards.map(c => c.id) : [i.card.id], round: i.round, ...(i.missedAt !== undefined && { missedAt: i.missedAt }), ...(i.spacing && { spacing: i.spacing }), ...(i.rung !== undefined && { rung: i.rung }), ...(i.kind === 'match' && { matched: i.matched, mistakes: i.mistakes }), ...(i.kind === 'card' && i.state && { state: i.state }), ...(i.kind === 'card' && i.skip && { skip: true }) }));
 }
 
 /** False, leaving the session untouched, when the spot names a card neither the group nor the deck holds. */
@@ -277,8 +272,6 @@ function resumeFrom(at: Position) {
   step.value = steps.length;
   // Each step began on the card it showed, so the shown cards that fill a miss's wait come back too.
   history.value.forEach((h, at) => h.queue[0] && idsOf(h.queue[0]).forEach(id => shown.set(id, at)));
-  // A filler gone by gave its wait; one missed there is back on the ladder anyway.
-  history.value.forEach(h => h.queue[0]?.kind === 'card' && h.queue[0].filler && cleared.add(h.queue[0].card.id));
   return true;
 }
 
@@ -377,44 +370,12 @@ function report(id: string, ok: boolean, regradable = false) {
 
 /** The step being left, so Back can return to it. */
 function snapshot(): Snapshot {
-  return { stageIndex: stageIndex.value, queue: queue.value, stageSize: stageSize.value, reported: new Set(reported), answers, shows, pick: { step: step.value, shown: new Map(shown), mistakes: new Map(mistakes), cleared: new Set(cleared) } };
+  return { stageIndex: stageIndex.value, queue: queue.value, stageSize: stageSize.value, reported: new Set(reported), answers, shows, pick: { step: step.value, shown: new Map(shown), mistakes: new Map(mistakes) } };
 }
 
-/** Cards shown this game that could fill a miss's gap: ones with misses first, worst right-to-miss ratio first; then the slowest to recall; a cleared filler last. */
-const DAY_MS = 86_400_000;
-
-function fillers(busy: Set<string>, since = step.value) {
-  const inGroup = new Set(props.cards.map(c => c.id));
-  const storedWrong = (id: string) => (props.gameScores?.[id]?.[gameOf(id)] ?? props.scores?.[id])?.wrong ?? 0;
-  // Learned cards of the deck missed in this game join the right cards of the group.
-  const missedInDeck = props.pool.filter(c => !inGroup.has(c.id) && !busy.has(c.id) && isKnown(c.id) && storedWrong(c.id) > 0);
-  const shownIds = [...props.cards.filter(c => shown.has(c.id) && !busy.has(c.id)), ...missedInDeck];
-  const slowest = Math.max(1, ...shownIds.map(c => props.recallMs?.(c.id, gameOf(c.id)) ?? 0));
-  const rank = (c: StudyCard) => {
-    const stored = props.gameScores?.[c.id]?.[gameOf(c.id)] ?? props.scores?.[c.id];
-    const right = stored?.right ?? 0;
-    const wrong = (stored?.wrong ?? 0) + (mistakes.get(c.id) ?? 0);
-    const at = shown.get(c.id) ?? -1;
-    // Each miss wants more than one fix; a slow recall and a long time unseen make a card more suspect.
-    const slowness = 1 + (props.recallMs?.(c.id, gameOf(c.id)) ?? 0) / slowest;
-    const before = props.seenBefore?.(c.id, gameOf(c.id));
-    const unseen = Math.log2(2 + (before === undefined ? 0 : (Date.now() - before) / DAY_MS));
-    const missedElsewhere = Object.values(props.gameScores?.[c.id] ?? {}).some(score => (score?.wrong ?? 0) > 0);
-    return { card: c, cleared: cleared.has(c.id), fresh: at < since, missed: wrong > 0, missedElsewhere, badness: ((wrong + 0.5) / (right + 1)) * slowness * unseen, at };
-  };
-  return shownIds
-    .map(rank)
-    .sort((a, b) => Number(a.cleared) - Number(b.cleared) || Number(b.fresh) - Number(a.fresh) || Number(b.missed) - Number(a.missed) || Number(b.missedElsewhere) - Number(a.missedElsewhere) || b.badness - a.badness || a.at - b.at)
-    .map(f => f.card);
-}
-
-/** With only misses left and none due, the slowest right card fills in, so a miss still waits its gap; the gap never asks a card twice. */
-function withFiller(rest: Item[]): Item[] {
-  const busy = new Set(rest.flatMap(idsOf));
-  const waiting = rest.every(i => i.kind === 'card' && i.missedAt !== undefined && step.value - i.missedAt < Math.min(i.spacing ?? steps.value[0]!, fillers(busy).length));
-  if (!rest.length || !waiting) return rest;
-  const filler = fillers(busy, Math.min(...rest.map(i => i.missedAt!)))[0];
-  return filler ? [...rest, { kind: 'card', card: filler, filler: true }] : rest;
+/** Misses still waiting their gap when nothing else is left: the game lets them go unpassed rather than stall. */
+function stranded(rest: Item[]): Item[] {
+  return rest.length && rest.every(i => i.kind === 'card' && i.rung !== undefined && i.missedAt !== undefined && step.value - i.missedAt < (i.spacing ?? steps.value[0]!)) ? rest : [];
 }
 
 /** `slow`: a right answer that took too long keeps the card on its rung. */
@@ -426,24 +387,26 @@ function advance(missed: Item[], { slow = false } = {}) {
   for (const id of current.value ? idsOf(current.value) : []) shown.set(id, step.value);
   step.value++;
   const round = Math.max(0, current.value?.round ?? 0) + 1;
-  if (!missed.length && current.value?.kind === 'card' && current.value.filler) cleared.add(current.value.card.id);
   for (const i of missed) for (const c of i.kind === 'card' ? [i.card] : i.cards) mistakes.set(c.id, (mistakes.get(c.id) ?? 0) + 1);
   // A missed card climbs the ladder: back after 4 cards, then further at each right answer, until it passes the top.
+  // Rungs climb only between the game's own cards; a miss they cannot space any more is carried to the next group.
   const clean = missed.map((i): Item => (i.kind === 'card' ? { ...i, state: undefined } : i));
   const retry = clean.map((i): Item => (i.kind === 'card' ? { ...i, round: 0, rung: 0, missedAt: step.value, spacing: gapOf(0) } : { ...i, round }));
   const own = new Set(current.value ? idsOf(current.value) : []);
   const othersLeft = queue.value.slice(1).some(i => (i.kind !== 'card' || !i.skip) && idsOf(i).some(id => !own.has(id)));
   const climbed = current.value?.rung === undefined ? undefined : slow ? current.value.rung : current.value.rung + 1;
-  if (!missed.length && current.value?.kind === 'card' && climbed !== undefined && climbed < steps.value.length && (othersLeft || fillers(own).length)) retry.push({ ...current.value, state: undefined, rung: climbed, missedAt: step.value, spacing: gapOf(climbed) });
+  if (!missed.length && current.value?.kind === 'card' && climbed !== undefined && climbed < steps.value.length && othersLeft) retry.push({ ...current.value, state: undefined, rung: climbed, missedAt: step.value, spacing: gapOf(climbed) });
   // A card missed again replaces its earlier retries, so it never piles up copies.
   const missedIds = new Set(clean.flatMap(i => (i.kind === 'card' ? [i.card.id] : [])));
   const skipped = current.value?.kind === 'card' && current.value.skip;
   // A passed card going by is not shown, so it does not count toward a miss's gap.
   const others = queue.value.slice(1).filter(i => i.kind !== 'card' || !missedIds.has(i.card.id)).map(i => (skipped && i.missedAt !== undefined ? { ...i, missedAt: i.missedAt + 1 } : i));
-  const rest = withFiller([...others, ...retry]);
-  const left = new Set(rest.flatMap(idsOf));
+  const pending = [...others, ...retry];
+  const carried = stranded(pending);
+  const rest = carried.length ? [] : pending;
+  for (const id of carried.flatMap(idsOf)) emit('carried', id, gameOf(id));
+  const left = new Set(pending.flatMap(idsOf));
   if (!skipped) steppingBack = false;
-  // A filler from the rest of the deck is learned already: passing one game would pull it back into learning.
   for (const id of current.value && !skipped ? idsOf(current.value) : []) if (!left.has(id) && inGroupIds.has(id)) emit('passed', id, stage.value);
   if (idsLeft(rest).size) {
     queue.value = pickFront(rest);
@@ -523,8 +486,6 @@ function stepBack() {
     step.value = last.pick.step;
     restore(shown, last.pick.shown);
     restore(mistakes, last.pick.mistakes);
-    cleared.clear();
-    for (const id of last.pick.cleared ?? []) cleared.add(id);
   } else step.value++;
   view.value++;
 }
@@ -610,7 +571,7 @@ function optionsFor(card: StudyCard): StudyCard[] {
         <div class="actions"><BackButton /></div>
       </template>
       <div v-else class="relative flex flex-1 flex-col">
-        <span v-if="current?.kind === 'card' && current.filler && rungShown === undefined" class="absolute right-2 top-2 z-10 text-(--known)" :style="{ '--known': cardColour }" role="img" data-testid="filler" aria-label="Filling a wait" title="Filling a wait: answer it right and another card takes the next one"><FillerIcon /></span>
+        <span v-if="cardColour && rungShown === undefined" class="absolute right-2 top-2 z-10 text-(--known)" :style="{ '--known': cardColour }" role="img" data-testid="known" aria-label="How well it is known" title="How well you know it in this game"><FillerIcon /></span>
         <span v-else-if="rungShown !== undefined" class="absolute right-2 top-2 z-10 text-(--known)" :style="{ '--known': cardColour }" role="img" data-testid="shows-left" :aria-label="`${steps.length - rungShown} left`" :title="`${steps.length - rungShown} more right answers to go`"><ProgressPie :done="rungShown" :total="steps.length" /></span>
         <IntroGame v-if="game === 'intro'" :key="view" :card="current.card" @result="ok => current?.kind === 'card' && onCard(current.card, ok)" />
         <ChoiceGame v-else-if="game === 'choice'" :key="view" :card="current.card" :options="options" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />

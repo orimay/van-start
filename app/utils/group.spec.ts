@@ -36,6 +36,12 @@ describe('next group', () => {
     it('stays short when nothing follows', () => {
       expect(nextGroup(ids(3), {}, 5, [])).toHaveLength(3);
     });
+
+    it('falls back to the most missed learned cards when nothing follows', () => {
+      const cards = [...ids(3), ...ids(3, 10)];
+      const progress = { c10: { lapses: 0, difficulty: 1 }, c11: { lapses: 3, difficulty: 1 }, c12: { lapses: 1, difficulty: 1 } };
+      expect(nextGroup(cards, progress, 5, []).map(c => c.id)).toEqual(['c0', 'c1', 'c2', 'c11', 'c12']);
+    });
   });
 
   describe('following cards', () => {

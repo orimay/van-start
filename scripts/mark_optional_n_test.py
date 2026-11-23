@@ -1,0 +1,32 @@
+"""Run: python3 -I scripts/mark_optional_n_test.py"""
+import importlib.util
+import sys
+from pathlib import Path
+
+spec = importlib.util.spec_from_file_location('mark', Path(__file__).resolve().parent / 'mark-optional-n.py')
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+
+CASES = [
+    ('lopen', 'лоо́пэн', 'лоо́пэ(н)'),
+    # A linking -en before k is said ң; the droppable n is still written as one: бу́рэ(н)каас.
+    ('de boerenkaas', 'дэ бу́рэңкаас', 'дэ бу́рэ(н)каас'),
+    ('de studentenkamer', 'дэ стүдэ́нтэңкаамэр', 'дэ стүдэ́нтэ(н)каамэр'),
+    # The ng and nk of a root are not an -en: brengen, denken.
+    ('terugbrengen', 'тэрү́хбрэңэн', 'тэрү́хбрэңэ(н)'),
+    ('nadenken', 'наа́дэңкэн', 'наа́дэңкэ(н)'),
+    ('opengaan', 'оо́пэнхаан', 'оо́пэ(н)хаан'),
+    ('de pannenkoek', 'дэ па́нэнкук', 'дэ па́нэ(н)кук'),
+    ('binnenkort', 'бинэнко́рт', 'бинэ(н)ко́рт'),
+    # A mark left on a root ng earlier is taken back.
+    ('terugbrengen', 'тэрү́хбрэ(н)ңэ(н)', 'тэрү́хбрэңэ(н)'),
+    ('de boerenkaas', 'дэ бу́рэ(н)ңкаас', 'дэ бу́рэ(н)каас'),
+]
+fails = 0
+for dutch, tr, want in CASES:
+    got = m.mark(dutch, tr, 'ru')
+    if got != want:
+        fails += 1
+        print(f'FAIL {dutch}: {got!r} != {want!r}')
+print('ok' if not fails else f'{fails} failed')
+sys.exit(1 if fails else 0)

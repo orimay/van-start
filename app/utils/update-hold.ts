@@ -30,10 +30,13 @@ const held = computed(() => playing.value !== undefined || holds.size > 0 || pen
 
 /** Installs an update the first moment one is `ready()` and nothing holds it. */
 export function installWhenIdle(ready: () => boolean, update: () => void) {
+  // Once: the saves below hold the update and release it again.
+  let installed = false;
   watch(
     () => ready() && !held.value,
     go => {
-      if (!go) return;
+      if (!go || installed) return;
+      installed = true;
       savers.forEach(save => save());
       markUpdateReload();
       update();
