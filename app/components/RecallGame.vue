@@ -60,7 +60,7 @@ function reveal(how: 'self' | 'timeout') {
       </div>
       <div v-else class="flex gap-2">
         <ExampleButton class="flex-1" :card="card" :disabled="!revealed && (!dutchShown || quiet)" />
-        <button class="btn-ghost" :class="{ invisible: revealed !== 'self' }" data-testid="guessed" @click="emit('result', false, true)">Guessed</button>
+        <button v-if="revealed === 'self'" class="btn-ghost" data-testid="guessed" @click="emit('result', false, true)">Guessed</button>
       </div>
       <div class="actions flex gap-2"><BackButton /><LaterButton /><div class="grid flex-1">
       <button v-if="!revealed" class="btn-primary" data-testid="reveal" @click="reveal('self')">Reveal</button>

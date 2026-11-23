@@ -1960,6 +1960,11 @@ describe('a shown card', () => {
 });
 
 describe('a guess', () => {
+  it('is not offered before the answer shows, so it holds no empty place', async () => {
+    const w = await doMount({ cards: cards(4), stages: ['recall'] });
+    expect(w.find('[data-testid="guessed"]').exists()).toBe(false);
+  });
+
   it('counts as a miss in recall, logged as a guess', async () => {
     const w = await doMount({ cards: cards(8), stages: ['recall'], retryGap: 8 });
     const guessed = promptOf(w);
