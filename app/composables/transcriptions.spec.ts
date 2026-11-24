@@ -12,6 +12,9 @@ const walk = (node: Node) => {
 };
 (Array.isArray(deck) ? deck : [deck]).forEach(walk);
 
+// liggen's root ig is stressed, never the suffix
+const ROOT_IG = /ligt$|liggen$/;
+
 // English loans keep their English "you" sound
 const ENGLISH_YU = /interview|new york|steward/i;
 
@@ -41,6 +44,16 @@ describe('ru transcriptions', () => {
         && words.some((w, i) => /[^aei]a[?,.!]*$/i.test(w) && /[^а]а[?,.!]*$/.test(sounds[i]!));
     });
     expect(shortFinalA.map(c => `${c.b} /${c.tr}/`)).toEqual([]);
+  });
+
+  it('write the unstressed suffix -ig as эх in every form', () => {
+    const misspelt = cards.filter(c => {
+      const words = c.b.replace(/[?,.!]/g, '').split(' ');
+      const sounds = c.tr.replace(/[?,.!]/g, '').split(' ');
+      return words.length === sounds.length && words.some((w, i) =>
+        w.length > 4 && /[^e]ig(e|en|t|de)?$/.test(w) && !ROOT_IG.test(w) && /и[хг](э|э\(н\)|т|дэ)?$/.test(sounds[i]!));
+    });
+    expect(misspelt.map(c => `${c.b} /${c.tr}/`)).toEqual([]);
   });
 
   it('mark no optional n inside a root or before a participle ending', () => {

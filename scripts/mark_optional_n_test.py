@@ -30,6 +30,8 @@ CASES = [
     ('de erwtensoep', 'дэ э́ртэнсуп', 'дэ э́ртэ(н)суп'),
     ('de tomatensoep', 'дэ тоомаа́тэнсуп', 'дэ тоомаа́тэ(н)суп'),
     ('intensief', 'интэнсии́ф', 'интэнсии́ф'),
+    # eeuw is one Dutch vowel but two Russian ones (эйу); the -en- after it still links.
+    ('het leeuwenverblijf', 'эт лэ́йувэнфэрбләйф', 'эт лэ́йувэ(н)фэрбләйф'),
 ]
 fails = 0
 for dutch, tr, want in CASES:

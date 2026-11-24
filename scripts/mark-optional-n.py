@@ -102,10 +102,13 @@ def mark(dutch, tr, lang):
             continue
         runs = groups(token, vowels)
         tail = (schwa + ('h' if lang == 'en' else '') + n_letter)
-        if len(runs) != len(dutch_runs(word)):
+        extra = len(runs) - len(dutch_runs(word))
+        if extra < 0:
             if spots[-1][1] and token.endswith(tail):
                 tokens[i] = token[:-1] + f'({n_letter})'
             continue
+        # A Dutch run spelled as two (eeuw as эйу) sits before the -en-, so count runs from the end.
+        runs = runs[extra:]
         starts = [s for s, _ in dutch_runs(word)]
         for n, final in reversed(spots):
             s, e = runs[n]
