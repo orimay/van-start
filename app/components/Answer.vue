@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { watch } from 'vue';
 import { copyText } from '@/utils/copy';
-import { letterCount, noteLines, type StudyCard } from '@/utils/deck';
+import { letterCount, type StudyCard } from '@/utils/deck';
 import { speak } from '@/utils/speak';
 
 const sheet = useCardSheet();
@@ -26,7 +26,7 @@ watch(() => props.hidden, hidden => hidden || props.silent || speak(props.card),
     <p v-if="card.answerExample" class="cursor-copy text-sm text-stone-700 dark:text-stone-200" data-testid="answer-example" @click="hidden || copyText(card.answerExample)"><AffixWord v-if="dutchExample" :word="card.answerExample" :affix="card.affix!.dutch" /><template v-else>{{ card.answerExample }}</template></p>
     <p v-if="card.affix && !dutchExample && card.breakdown" class="text-sm text-stone-600 dark:text-stone-300" data-testid="breakdown"><NoteText :text="card.breakdown" :self="card.id" breakdown /></p>
     </div>
-    <ul v-if="card.answerNote" class="mx-auto w-fit max-w-full space-y-1 text-sm italic text-stone-500 marker:text-stone-400" :class="{ 'list-disc pl-5 text-left': noteLines(card.answerNote).length > 1, 'mt-1': card.answerExample || (card.affix && card.breakdown) }" data-testid="answer-note"><li v-for="(line, i) in noteLines(card.answerNote)" :key="i" :class="{ 'text-[oklch(55.3%_0.2_25)]': line.exception }" :data-exception="line.exception" data-testid="answer-note-line"><NoteText :text="line.text" :self="card.id" /></li></ul>
+    <NoteList v-if="card.answerNote" :note="card.answerNote" :kinds="card.answerKinds" :self="card.id" :class="{ 'mt-1': card.answerExample || (card.affix && card.breakdown) }" testid="answer-note" />
     </div>
     </div>
     <button v-if="!hidden" type="button" class="absolute top-1 right-1 flex size-7 items-center justify-center rounded-full border border-stone-300 text-sm text-stone-500 dark:border-stone-600 dark:text-stone-400" aria-label="Details" data-testid="card-details" @click.stop="sheet.open(card.id)">?</button>

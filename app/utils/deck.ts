@@ -52,6 +52,9 @@ export interface StudyCard {
   promptNote?: string;
   /** Per prompt note line: it gives the answer away, so it stays hidden until the answer is out. */
   promptSecret?: boolean[];
+  /** Per note line, what it is, so each kind looks its own. */
+  promptKinds?: NoteKind[];
+  answerKinds?: NoteKind[];
   answerNote?: string;
   promptExample?: string;
   answerExample?: string;
@@ -90,12 +93,12 @@ export function cardsOf(node: DeckNode): DeckCard[] {
 export function toStudyCard(card: DeckCard): StudyCard {
   const promptNote = [card.n, card.nx].filter(Boolean).join('\n') || undefined;
   const voice = isAffixCard(card) ? { affix: { dutch: card.b, tr: card.tr }, nl: card.xb!, audio: card.axb, tr: card.xt } : { nl: card.b, audio: card.au, nlExample: card.xb, exampleAudio: card.axb, tr: card.tr };
-  return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, id: card.id, ...voice, prompt: card.f, answer: card.b, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, breakdown: card.xl, img: card.img };
+  return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, promptKinds: promptNote ? kindsOf(card, promptNote) : undefined, answerKinds: card.nb ? noteLines(card.nb).map((): NoteKind => 'example') : undefined, id: card.id, ...voice, prompt: card.f, answer: card.b, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, breakdown: card.xl, img: card.img };
 }
 
 /** The same card asked the other way round: Dutch shown, native side recalled. */
 export function flip(card: StudyCard): StudyCard {
-  return { ...card, prompt: card.answer, answer: card.prompt, promptNote: card.answerNote, promptSecret: undefined, answerNote: card.promptNote, promptExample: card.answerExample, answerExample: card.promptExample };
+  return { ...card, prompt: card.answer, answer: card.prompt, promptNote: card.answerNote, promptSecret: undefined, promptKinds: card.answerKinds, answerKinds: card.promptKinds, answerNote: card.promptNote, promptExample: card.answerExample, answerExample: card.promptExample };
 }
 
 /** Node at a path of child indexes, e.g. [0, 1, 4]. */
@@ -141,4 +144,32 @@ function secretLines(card: DeckCard, promptNote: string): boolean[] {
   const twin = card.nr ?? card.n ?? '';
   const russian = /[а-яё]/i.test(twin) ? noteLines(twin) : [];
   return noteLines(promptNote).map(({ text }, i) => givesAway(text, card.b) || (i < own && russian.length === own && (namesDutch(russian[i]!.text) || givesAway(russian[i]!.text, card.b))));
+}
+
+/** A rule in plain words, a Dutch example, a labelled item (`не путать с: …`) or the word's origin (`от: …`). */
+export type NoteKind = 'rule' | 'example' | 'label' | 'origin';
+
+/** Kind of a Russian note item: the Russian says it plainly, while a translation's Dutch and labels read alike. */
+export function noteKind(russian: string): NoteKind {
+  const label = /^([а-яё][^:«(]{0,30}):\s/i.exec(russian)?.[1];
+  if (label) return /(^|[\s,])от$/.test(label) ? 'origin' : 'label';
+  return /^(zich )?[a-zà-ÿ'…]/i.test(russian) ? 'example' : 'rule';
+}
+
+/** A translated item takes the kind of its Russian twin when the items line up; one with no twin is labelled or a rule. */
+function kindsOf(card: DeckCard, note: string): NoteKind[] {
+  const twin = card.nr ?? card.n ?? '';
+  const russian = /[а-яё]/i.test(twin) ? noteLines(twin) : [];
+  const own = noteLines(card.n ?? '').length;
+  return noteLines(note).map(({ text }, i) => {
+    if (i < own && russian.length === own) return noteKind(russian[i]!.text);
+    return /[а-яё]/i.test(text) ? noteKind(text) : /^[^:()]{1,30}:\s/.test(text) ? 'label' : 'rule';
+  });
+}
+
+/** A note item's opening words, set apart in show: a label before its colon, an example's Dutch before its gloss. */
+export function noteHead(text: string, kind: NoteKind): string | undefined {
+  if (kind === 'rule') return undefined;
+  const end = kind === 'example' ? text.search(/ \(|: /) : text.indexOf(': ');
+  return end < 0 ? kind === 'example' ? text : undefined : text.slice(0, end);
 }

@@ -80,3 +80,29 @@ describe('an affix', () => {
     });
   }
 });
+
+/** An affix named in another card's note or breakdown carries its own card's gloss, or a piece of it: the card is the one source. */
+describe('an affix named in another card', () => {
+  const REF = /(?<![\p{L}-])(-\p{L}+|\p{L}+-) \(([^()]*)\)/gu;
+  const glossesOf = (f?: string) => (f ? [f, ...f.split('; '), ...f.split(/; |, |: /)] : []);
+  const mismatches = (texts: Array<[string, string | undefined]>, glossOf: (affix: Card) => string | undefined) => {
+    const byWord = new Map(cardsOf(deck).filter(c => isAffix(c.b)).map(c => [c.b, c]));
+    return texts.flatMap(([where, text]) => [...(text ?? '').matchAll(REF)].flatMap(([, affix, gloss]) => {
+      const card = byWord.get(affix!);
+      return card && !glossesOf(glossOf(card)).includes(gloss!) ? [`${where}: ${affix} (${gloss}) ≠ ${glossOf(card)}`] : [];
+    }));
+  };
+
+  it('carries its gloss in Russian', () => {
+    const cards = cardsOf(deck) as Array<Card & { n?: string }>;
+    expect(mismatches(cards.flatMap(c => [[c.b, c.n], [c.b, c.xl]] as Array<[string, string | undefined]>), c => c.f)).toEqual([]);
+  });
+
+  for (const lang of ['en', 'es', 'pt', 'tr', 'ro']) {
+    it(`carries its gloss in ${lang}`, () => {
+      const overlay = overlayOf(lang);
+      const texts = cardsOf(deck).flatMap(c => [[c.b, overlay[c.id]?.[3]], [c.b, overlay[c.id]?.[5]]] as Array<[string, string | undefined]>);
+      expect(mismatches(texts, c => overlay[c.id]?.[0])).toEqual([]);
+    });
+  }
+});

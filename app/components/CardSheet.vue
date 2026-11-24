@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { noteLines, toStudyCard } from '@/utils/deck';
+import { toStudyCard } from '@/utils/deck';
 import { cardKey, exampleKey } from '@/utils/play';
 import { speak, speakExample } from '@/utils/speak';
 import { useEventListener } from '@vueuse/core';
@@ -110,9 +110,7 @@ useEventListener(
         <p data-testid="card-sheet-meaning">
           <span v-for="sense in card.f.split('; ')" :key="sense" class="block" :class="{ 'font-semibold text-sky-700 dark:text-sky-400': layer?.gloss && same(layer.gloss, sense) && card.f.includes('; ') }" data-testid="card-sheet-sense">{{ sense }}</span>
         </p>
-        <p v-if="card.n" class="text-sm italic text-stone-500" data-testid="card-sheet-note">
-          <span v-for="(line, i) in noteLines(card.n)" :key="i" class="block" :class="{ 'text-[oklch(55.3%_0.2_25)]': line.exception }"><NoteText :text="line.text" :self="card.id" /></span>
-        </p>
+        <NoteList v-if="card.n" :note="card.n" :kinds="study?.promptKinds" :self="card.id" class="mx-0!" testid="card-sheet-note" />
         <div v-if="card.xb" class="flex items-start gap-2" data-testid="card-sheet-example">
           <div class="flex-1 text-sm">
             <p>{{ card.xb }}</p>

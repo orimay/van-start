@@ -256,3 +256,29 @@ describe('the context of a closed card', () => {
     expect(w.find('[data-testid="show-context"]').exists()).toBe(false);
   });
 });
+
+describe('a note of several kinds', () => {
+  const ru = 'в предложении отрывается и уходит в конец; ik maak het af (я это доделываю); afmaken (заканчивать): до конца; не путать с: of (или); от: af (готово)';
+  const card = { id: 'c9', f: 'до конца', b: 'af-', n: ru };
+  const kinds = (w: VueWrapper) => w.findAll('[data-testid="answer-note-line"]').map(l => l.attributes('data-kind'));
+  const texts = (w: VueWrapper, id: string) => w.findAll(`[data-testid="${id}"]`).map(l => l.text());
+
+  it('tells rules, Dutch examples, labelled items and the origin apart', async () => {
+    const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(card)), silent: true } });
+    expect(kinds(w)).toEqual(['rule', 'example', 'example', 'label', 'origin']);
+    expect(texts(w, 'note-dutch')).toEqual(['ik maak het af', 'afmaken']);
+    expect(texts(w, 'note-label')).toEqual(['не путать с', 'от']);
+  });
+
+  it('keeps the kinds of the Russian note in a translation', async () => {
+    const en = { ...card, n: 'it splits off to the end; ik maak het af (I finish it); afmaken (to finish): to the end; don\'t confuse with: of (or); from: af (done)', nr: ru };
+    const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(en)), silent: true } });
+    expect(kinds(w)).toEqual(['rule', 'example', 'example', 'label', 'origin']);
+    expect(texts(w, 'note-label')).toEqual(["don't confuse with", 'from']);
+  });
+
+  it('shows each Dutch line of a Dutch note as an example', async () => {
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard({ id: 'c10', f: 'большой', b: 'grote', nb: 'de grote man\nhet grote huis' }), silent: true } });
+    expect(kinds(w)).toEqual(['example', 'example']);
+  });
+});
