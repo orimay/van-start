@@ -17,6 +17,7 @@ When two rules conflict, the one written further down wins.
 - Tests are black-box only: assert what the user sees (DOM, `data-testid`), never internals.
 - Never claim audio sounds right without having heard it.
 - Every decision agreed with the user and not shipped yet goes into `notes/todo.md` the moment it is agreed; tick it only once deployed.
+- Work through the whole of `notes/todo.md` before stopping. Never stop on a question: the user is often away. Pick the sensible default, record it in the todo item, and keep going. Stop only when every item is shipped or truly blocked.
 
 ## Data
 

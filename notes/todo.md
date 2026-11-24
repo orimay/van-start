@@ -2,11 +2,19 @@
 
 Decisions agreed with the user and not shipped yet. Tick an item only once it is deployed.
 
+Work through every item before stopping. Never stop on a question: pick the sensible default, write it into the item, keep going.
+
 ## In progress
 
 - [x] No «без артикля»/«без de» hint on any card with an article, all 6 languages (`article-notes.spec.ts`).
 - [x] het eind / het einde notes: only variant + register, no «eind mei», «een heel … lopen», «aan het …» trivia.
-- [ ] Sweep all notes for the same: usage trivia and Dutch examples that do not help tell what to answer. List candidates for the user to confirm before removing.
+- [ ] Sweep all notes (all 6 languages). Decided:
+  - [ ] Prompt side never hints with Dutch: rewrite such notes in words.
+  - [ ] Adjective -e notes keep the rules format; exceptions are `!` lines, rendered red.
+  - [ ] Separable prefixes: the explanation stays; the Dutch example shows only after reveal.
+  - [ ] Register notes use words only (официальное, разговорное, короткое, книжное), never a named Dutch word.
+  - [ ] Other mentions and examples show only after reveal; mentioned words are links to the word sheet.
+  - [ ] Mechanism: a note line can be marked "after reveal" and stays invisible until the answer opens. Spec: no visible prompt-side line carries Dutch.
 
 ## Affix cards in pronounce
 
