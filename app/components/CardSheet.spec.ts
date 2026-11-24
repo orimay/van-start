@@ -13,8 +13,8 @@ mockNuxtImport('useStore', () => () => ({ deck, isLearned: (id: string) => learn
 const cards = [
   { id: 'ver', f: 'пере-, изменение; прочь, от-', b: 'ver-', xb: 'verkopen, verhuizen' },
   { id: 'kopen', f: 'покупать', b: 'kopen', tr: 'ко:пэн', xb: 'Ik wil brood kopen.', xf: 'Я хочу купить хлеб.' },
-  { id: 'verkopen', f: 'продавать', b: 'verkopen', n: 'от: ver- (пере-, изменение) + kopen (покупать)' },
   { id: 'verliezen', f: 'терять', b: 'verliezen', n: 'от: ver- (прочь, от-) + liezen' },
+  { id: 'verkopen', f: 'продавать', b: 'verkopen', n: 'от: ver- (пере-, изменение) + kopen (покупать)' },
   { id: 'koper', f: 'покупатель', b: 'de koper', n: 'от: kopen (покупать)' },
 ];
 deck.value = shallowRef({ id: 'root', name: 'root', cards }).value;
@@ -62,11 +62,16 @@ describe('a word a note derives the card from', () => {
 });
 
 describe('a sheet on a word of several meanings', () => {
-  it('marks the meaning the link gave and lists derived words under each meaning', async () => {
+  it('marks the meaning the link gave', async () => {
     const w = await doMount('verkopen');
     await findLinks(w)[0]!.trigger('click');
     expect(w.findAll('[data-testid="card-sheet-sense"]').map(s => s.classes('font-semibold'))).toEqual([true, false]);
-    expect(w.findAll('[data-testid="card-sheet-derived-sense"]').map(s => s.text())).toEqual(['пере-, изменение', 'прочь, от-']);
+  });
+
+  it('lists derived words in deck order, each tagged with the meaning it builds on', async () => {
+    const w = await doMount('verkopen');
+    await findLinks(w)[0]!.trigger('click');
+    expect(readSheet(w).derived).toEqual(['verliezen терять new прочь, от-', 'verkopen продавать new пере-, изменение']);
   });
 });
 
@@ -111,11 +116,57 @@ describe('sheets stacked from links inside a sheet', () => {
   });
 });
 
+describe('a sheet pulled down by the finger', () => {
+  it('follows the finger', async () => {
+    const w = await doOpenKopen();
+    await doDrag(w, 0, 60, false);
+    expect(findPanel(w).attributes('style')).toContain('translate: 0 60px');
+  });
+
+  it('closes when let go past a quarter of its height', async () => {
+    const w = await doOpenKopen();
+    await doDrag(w, 0, 120);
+    expect(w.find('[data-testid="card-sheet"]').exists()).toBe(false);
+  });
+
+  it('springs back when let go short of a quarter of its height', async () => {
+    const w = await doOpenKopen();
+    await doDrag(w, 0, 80);
+    expect(readSheet(w).word).toBe('kopen');
+    expect(findPanel(w).attributes('style') ?? '').not.toContain('translate');
+  });
+
+  it('stays put when pulled up', async () => {
+    const w = await doOpenKopen();
+    await doDrag(w, 0, -120);
+    expect(readSheet(w).word).toBe('kopen');
+  });
+});
+
 // declarative helpers
 
 async function doMount(id: string, secret = false) {
   const card = toStudyCard(cards.find(c => c.id === id)!);
   return mountSuspended(defineComponent(() => () => [h(Prompt, { card, secret }), h(CardSheet)]));
+}
+
+const findPanel = (w: VueWrapper) => w.get('[data-testid="card-sheet"]');
+
+/** The kopen sheet, its panel 400px tall. */
+async function doOpenKopen() {
+  const w = await doMount('verkopen');
+  await findLinks(w)[1]!.trigger('click');
+  Object.defineProperty(findPanel(w).element, 'offsetHeight', { configurable: true, value: 400 });
+  return w;
+}
+
+async function doDrag(w: VueWrapper, from: number, by: number, release = true) {
+  const at = (type: string, y: number, target: EventTarget) => target.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerId: 1, isPrimary: true, button: 0, clientY: y }));
+  at('pointerdown', from, findPanel(w).element);
+  for (let y = from; Math.abs(y - from) < Math.abs(by); y += Math.sign(by) * 10) at('pointermove', y, window);
+  at('pointermove', from + by, window);
+  if (release) at('pointerup', from + by, window);
+  await flushPromises();
 }
 
 const findLinks = (w: VueWrapper) => w.findAll('[data-testid="note-link"]');

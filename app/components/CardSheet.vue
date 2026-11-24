@@ -2,6 +2,7 @@
 import { noteLines, toStudyCard } from '@/utils/deck';
 import { cardKey, exampleKey } from '@/utils/play';
 import { speak, speakExample } from '@/utils/speak';
+import { useEventListener } from '@vueuse/core';
 
 const sheet = useCardSheet();
 const { isLearned } = useStore();
@@ -10,25 +11,93 @@ const card = computed(() => layer.value && sheet.index.value.byId.get(layer.valu
 const study = computed(() => card.value && toStudyCard(card.value));
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
-/** Cards built on this one, the secret one left out; under each meaning when the card has several. */
+/** Cards built on this one in deck order, the secret one left out; each with the meaning it builds on when the card has several. */
 const derived = computed(() => {
   if (!card.value) return [];
-  const words = (sheet.index.value.derived.get(card.value.id) ?? [])
-    .filter(d => d.id !== sheet.secret.value)
-    .map(d => ({ ...d, card: sheet.index.value.byId.get(d.id)! }));
   const senses = card.value.f.split('; ');
-  if (senses.length < 2) return words.length ? [{ sense: undefined, words }] : [];
-  const groups = senses.map(sense => ({ sense, words: words.filter(w => w.gloss && same(w.gloss, sense)) }));
-  const rest = words.filter(w => !senses.some(s => w.gloss && same(w.gloss, s)));
-  return [...groups, ...(rest.length ? [{ sense: undefined, words: rest }] : [])].filter(g => g.words.length);
+  return (sheet.index.value.derived.get(card.value.id) ?? [])
+    .filter(d => d.id !== sheet.secret.value)
+    .map(d => ({ ...d, card: sheet.index.value.byId.get(d.id)!, sense: senses.length > 1 ? senses.find(s => d.gloss && same(d.gloss, s)) : undefined }));
 });
+
+// The panel follows the finger down; let go past a quarter of its height it closes, short of that it springs back.
+// The body owns the gesture while scrolled or moving up, so its own scroll still works.
+const DRAG_SLOP_PX = 6;
+const body = useTemplateRef('body');
+const dragY = shallowRef(0);
+const dragging = shallowRef(false);
+let drag: { id: number; startY: number; fromBody: boolean; panel: HTMLElement } | undefined;
+let stopListening: (() => void)[] = [];
+
+function endDrag(dismiss: boolean) {
+  for (const stop of stopListening) stop();
+  stopListening = [];
+  const wasDragging = dragging.value;
+  const past = dismiss && wasDragging && !!drag && dragY.value > drag.panel.offsetHeight / 4;
+  drag = undefined;
+  dragging.value = false;
+  // Closing slides on from where the finger let go, once the drag's no-transition style is off.
+  if (past) return void nextTick(() => sheet.close());
+  dragY.value = 0;
+  // A drag let go over the button it started on would otherwise press it.
+  if (wasDragging) {
+    const swallow = (e: Event) => e.stopPropagation();
+    window.addEventListener('click', swallow, { capture: true, once: true });
+    setTimeout(() => window.removeEventListener('click', swallow, { capture: true }));
+  }
+}
+
+function onDragMove(e: PointerEvent) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const dy = e.clientY - drag.startY;
+  if (!dragging.value) {
+    if (dy < 0 && drag.fromBody) return endDrag(false);
+    if (Math.abs(dy) < DRAG_SLOP_PX) return;
+    dragging.value = true;
+  }
+  dragY.value = Math.max(0, dy);
+}
+
+function onDragStart(e: PointerEvent) {
+  if (!e.isPrimary || e.button !== 0) return;
+  const fromBody = !!body.value?.contains(e.target as Node);
+  if (fromBody && body.value!.scrollTop > 0) return;
+  endDrag(false);
+  drag = { id: e.pointerId, startY: e.clientY, fromBody, panel: e.currentTarget as HTMLElement };
+  stopListening = [
+    useEventListener(window, 'pointermove', onDragMove),
+    useEventListener(window, 'pointerup', (ev: PointerEvent) => ev.pointerId === drag?.id && endDrag(true)),
+    useEventListener(window, 'pointercancel', (ev: PointerEvent) => ev.pointerId === drag?.id && endDrag(false)),
+  ];
+}
+
+// At scrollTop 0 the browser would take a downward swipe as a scroll and cancel the pointer stream.
+useEventListener(
+  body,
+  'touchmove',
+  (e: TouchEvent) => {
+    if (drag?.fromBody && (dragging.value || (e.touches[0]?.clientY ?? 0) > drag.startY)) e.preventDefault();
+  },
+  { passive: false },
+);
 </script>
 
 <template>
-  <Transition name="sheet" :duration="200">
-    <div v-if="card && study" class="contents">
-      <div class="fixed inset-0 z-40 bg-black/60" data-testid="card-sheet-backdrop" @click="sheet.close()" />
-      <div class="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85dvh] max-w-md flex-col gap-2 overflow-y-auto rounded-t-2xl bg-white px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] dark:bg-stone-900" role="dialog" data-testid="card-sheet">
+  <Transition name="sheet-fade">
+    <div v-if="card" class="fixed inset-0 z-40 bg-black/60" data-testid="card-sheet-backdrop" @click="sheet.close()" />
+  </Transition>
+  <Transition name="sheet-slide" @after-leave="dragY = 0">
+    <div
+      v-if="card && study"
+      class="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85dvh] max-w-md flex-col rounded-t-2xl bg-white pb-[env(safe-area-inset-bottom)] dark:bg-stone-900"
+      :class="{ 'sheet-dragging': dragging }"
+      :style="dragY ? { translate: `0 ${dragY}px` } : undefined"
+      role="dialog"
+      data-testid="card-sheet"
+      @pointerdown="onDragStart"
+    >
+      <div class="flex shrink-0 touch-none flex-col gap-1 px-4 pt-2 pb-2">
+        <div class="mx-auto mb-1 h-1 w-10 rounded-full bg-stone-300 dark:bg-stone-600" />
         <div class="flex items-center gap-2">
           <button v-if="sheet.layers.value.length > 1" type="button" class="btn-ghost px-2" aria-label="Back" data-testid="card-sheet-back" @click="sheet.back()">‹</button>
           <p class="flex-1 text-xl font-semibold" data-testid="card-sheet-word">{{ card.b }}</p>
@@ -36,6 +105,8 @@ const derived = computed(() => {
           <button type="button" class="btn-ghost px-2" aria-label="Close" data-testid="card-sheet-close" @click="sheet.close()">✕</button>
         </div>
         <p v-if="card.tr" class="text-stone-500" data-testid="card-sheet-transcription">[{{ card.tr }}]</p>
+      </div>
+      <div ref="body" class="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain px-4 pb-4" data-testid="card-sheet-body">
         <p data-testid="card-sheet-meaning">
           <span v-for="sense in card.f.split('; ')" :key="sense" class="block" :class="{ 'font-semibold text-sky-700 dark:text-sky-400': layer?.gloss && same(layer.gloss, sense) && card.f.includes('; ') }" data-testid="card-sheet-sense">{{ sense }}</span>
         </p>
@@ -52,16 +123,26 @@ const derived = computed(() => {
         <p class="text-xs text-stone-500" data-testid="card-sheet-status">{{ isLearned(card.id) ? 'Learned' : 'Not learned yet' }}</p>
         <section v-if="derived.length" class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-derived">
           <p class="text-xs font-semibold uppercase text-stone-500">Words built on it</p>
-          <div v-for="group in derived" :key="group.sense ?? ''" class="flex flex-col">
-            <p v-if="group.sense" class="text-sm font-semibold" :class="{ 'text-sky-700 dark:text-sky-400': layer?.gloss && same(layer.gloss, group.sense) }" data-testid="card-sheet-derived-sense">{{ group.sense }}</p>
-            <button v-for="word in group.words" :key="word.id" type="button" class="flex gap-2 py-1 text-left" data-testid="card-sheet-derived-word" @click="sheet.open(word.id)">
-              <span class="text-sky-700 underline decoration-dotted decoration-2 underline-offset-4 dark:text-sky-400">{{ word.card.b }}</span>
-              <span class="flex-1 text-stone-500">{{ word.card.f }}</span>
-              <span v-if="!isLearned(word.id)" class="text-xs text-stone-400">new</span>
-            </button>
-          </div>
+          <button v-for="word in derived" :key="word.id" type="button" class="flex items-baseline gap-2 py-1 text-left" data-testid="card-sheet-derived-word" @click="sheet.open(word.id)">
+            <span class="text-sky-700 underline decoration-dotted decoration-2 underline-offset-4 dark:text-sky-400">{{ word.card.b }}</span>
+            <span class="flex-1 text-stone-500">{{ word.card.f }}</span>
+            <span v-if="!isLearned(word.id)" class="text-xs text-stone-400">new</span>
+            <span v-if="word.sense" class="shrink-0 rounded bg-stone-100 px-1.5 text-xs text-stone-500 dark:bg-stone-800" :class="{ 'text-sky-700 dark:text-sky-400': layer?.gloss && same(layer.gloss, word.sense) }">{{ word.sense }}</span>
+          </button>
         </section>
       </div>
     </div>
   </Transition>
 </template>
+
+<style scoped>
+.sheet-fade-enter-active { transition: opacity 200ms cubic-bezier(0, 0, 0.2, 1); }
+.sheet-fade-leave-active { transition: opacity 150ms cubic-bezier(0.4, 0, 1, 1); }
+.sheet-fade-enter-from, .sheet-fade-leave-to { opacity: 0; }
+/* Springs back from a short pull; follows the finger without lag while held. */
+[data-testid='card-sheet'] { transition: translate 200ms cubic-bezier(0, 0, 0.2, 1); }
+[data-testid='card-sheet'].sheet-dragging { transition: none; }
+.sheet-slide-enter-active { transition: transform 200ms cubic-bezier(0, 0, 0.2, 1); }
+.sheet-slide-leave-active { transition: transform 150ms cubic-bezier(0.4, 0, 1, 1); }
+.sheet-slide-enter-from, .sheet-slide-leave-to { transform: translateY(100%); }
+</style>

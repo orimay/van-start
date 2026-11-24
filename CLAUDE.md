@@ -196,9 +196,10 @@ When two rules conflict, the one written further down wins.
     - The home Review button: the same for every review game at once.
 
 - **Linked words.** A note's reference items (`от:`, `уменьш. от:`, `мн. ч. от:`, `вариант:`, `не путать с:`, `синоним:` and their translations, a gender mark allowed before them) link each named word to its card: dotted sky underline, tappable (`app/utils/links.ts`, `NoteText.vue`). A word no card has stays text; a card never links to itself; among cards of one spelling the gloss picks the one.
-  - A tap opens a bottom sheet on that card (`CardSheet.vue`, `useCardSheet`): word with audio, transcription, every meaning (the one the link gave highlighted), note with its own links, example, learned or not, and the words built on it (cards whose `от:`/`уменьш. от:` names it), grouped by meaning when it has several. Opened while an answer is secret, the sheet leaves the asked card out of those lists.
+  - A tap opens a bottom sheet on that card (`CardSheet.vue`, `useCardSheet`): word with audio, transcription, every meaning (the one the link gave highlighted), note with its own links, example, learned or not, and the words built on it (cards whose `от:`/`уменьш. от:` names it) in deck order, each tagged with the meaning it builds on when the word has several (the link's meaning highlighted). Opened while an answer is secret, the sheet leaves the asked card out of those lists.
   - Sheets stack. The device's back button closes the top one, as in focus-assistant (`app/utils/back.ts`: one history entry for all layers, a handler stack over it); the sheet's ‹ does the same, ✕ and the backdrop close all and remove the entry.
   - While a sheet is open the answer clock stops.
+  - The sheet slides up and fades its backdrop in (200 ms), slides out on close (150 ms), as focus-assistant's `Dialog.vue`. A finger drags it down; let go past a quarter of its height it closes, else springs back. The body takes the gesture while scrolled. Header (word, audio, ✕, transcription) stays put; only the body scrolls.
 
 ## Verify and ship
 
