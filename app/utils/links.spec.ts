@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildIndex, linkSegments } from './links';
+import { buildIndex, linkBreakdown, linkSegments } from './links';
 
 const cards = [
   { id: 'kopen', f: 'покупать', b: 'kopen' },
@@ -55,6 +55,22 @@ describe('a reference in a note', () => {
 
   it('leaves a note item without a reference label alone', () => {
     expect(linkSegments('1) за ним нет сущ.', index)).toEqual([{ text: '1) за ним нет сущ.' }]);
+  });
+});
+
+describe('a word breakdown', () => {
+  const parts = (text: string, self?: string) => linkBreakdown(text, index, self).filter(s => s.link).map(s => [s.text, s.link]);
+
+  it('links each part to its card', () => {
+    expect(parts('ver- (пере-, изменение) + het boek (книга): букв. «перекнига»')).toEqual([['ver-', 'ver'], ['het boek', 'boek']]);
+  });
+
+  it('keeps the literal sense as text', () => {
+    expect(linkBreakdown('ver- (пере-) + kopen (покупать): букв. «kopen»', index).at(-1)).toEqual({ text: ' (покупать): букв. «kopen»' });
+  });
+
+  it('never links the card it shows', () => {
+    expect(parts('ver- (пере-) + kopen (покупать)', 'ver')).toEqual([['kopen', 'kopen']]);
   });
 });
 

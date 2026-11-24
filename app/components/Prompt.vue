@@ -17,6 +17,6 @@ const spotlit = computed(() => !!props.card.affixShown && props.card.prompt === 
     <p data-testid="prompt" class="cursor-copy text-xl font-semibold" @click="copyText(card.prompt)"><AffixWord v-if="spotlit" :word="card.prompt" :affix="card.affixShown!.affix" /><template v-else>{{ card.prompt }}</template><span v-if="process" class="font-normal text-stone-500"> ({{ process }})</span></p>
     <p v-if="card.promptNote" class="text-sm italic text-stone-500" data-testid="prompt-note"><span v-for="(line, i) in noteLines(card.promptNote)" :key="i" class="block" :class="{ 'text-[oklch(55.3%_0.2_25)]': line.exception, invisible: secret && (card.promptSecret?.[i] ?? givesAway(line.text, card.answer)) }" :data-exception="line.exception" data-testid="prompt-note-line"><NoteText :text="line.text" :self="card.id" :secret="secret" /></span></p>
     <p v-if="card.promptExample" class="cursor-copy text-sm text-stone-500" data-testid="prompt-example" @click="copyText(card.promptExample)">{{ card.promptExample }}</p>
-    <p v-if="card.affixShown && !spotlit && card.breakdown" class="text-sm text-stone-500" data-testid="breakdown">{{ card.breakdown }}</p>
+    <p v-if="card.affixShown && !spotlit && card.breakdown" class="text-sm text-stone-500" data-testid="breakdown"><NoteText :text="card.breakdown" :self="card.id" :secret="secret" breakdown /></p>
   </div>
 </template>

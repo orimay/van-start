@@ -64,25 +64,39 @@ function resolve(index: CardIndex, dutch: string, gloss: string | undefined, sel
   return (g && candidates.find(c => c.f.toLowerCase().includes(g) || g.includes(c.f.toLowerCase())) || candidates[0]!).id;
 }
 
-/** A note item, its referenced words linked to their cards. */
-export function linkSegments(item: string, index: CardIndex, self?: string): Segment[] {
-  const label = item.match(LABEL);
-  if (!label) return [{ text: item }];
-  const segments: Segment[] = [{ text: label[0] }];
-  partsOf(item.slice(label[0].length)).forEach((part, i) => {
-    if (i % 2) return segments.push({ text: part });
+/** The words of a reference list linked to their cards, glosses and separators as text. */
+function linkList(list: string, index: CardIndex, self: string | undefined): Segment[] {
+  return partsOf(list).flatMap((part, i) => {
+    if (i % 2) return [{ text: part }];
     const [, dutch = part, rest = ''] = part.match(/^([^(]*?)(\s*\(.*)?$/) ?? [];
     const gloss = rest.match(/^\s*\((.*)\)$/)?.[1];
     const link = dutch && resolve(index, dutch, gloss, self);
-    segments.push(link ? { text: dutch, link, ...(gloss && { gloss }) } : { text: dutch }, { text: rest });
+    return [link ? { text: dutch, link, ...(gloss && { gloss }) } : { text: dutch }, { text: rest }];
   });
-  // Neighbouring text runs merge, so a line reads as plain text between its links.
-  return segments.filter(s => s.text).reduce<Segment[]>((out, s) => {
+}
+
+// Neighbouring text runs merge, so a line reads as plain text between its links.
+const merged = (segments: Segment[]) =>
+  segments.filter(s => s.text).reduce<Segment[]>((out, s) => {
     const last = out.at(-1);
     if (last && !last.link && !s.link) last.text += s.text;
     else out.push({ ...s });
     return out;
   }, []);
+
+/** A note item, its referenced words linked to their cards. */
+export function linkSegments(item: string, index: CardIndex, self?: string): Segment[] {
+  const label = item.match(LABEL);
+  if (!label) return [{ text: item }];
+  return merged([{ text: label[0] }, ...linkList(item.slice(label[0].length), index, self)]);
+}
+
+/** A word's breakdown, `ver- (…) + kopen (…): букв. «…»`, its parts linked to their cards. */
+export function linkBreakdown(text: string, index: CardIndex, self?: string): Segment[] {
+  let depth = 0;
+  const end = [...text].findIndex((c, i) => (depth += c === '(' ? 1 : c === ')' ? -1 : 0) === 0 && text.startsWith(': ', i));
+  const list = end < 0 ? text : text.slice(0, end);
+  return merged([...linkList(list, index, self), { text: text.slice(list.length) }]);
 }
 
 /** Note items: a line per `; ` item, as `noteLines` splits them. */

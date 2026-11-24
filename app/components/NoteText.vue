@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { linkSegments } from '@/utils/links';
+import { linkBreakdown, linkSegments } from '@/utils/links';
 
-/** A note item, the words it names as links to their cards; `secret`: the note's own card is not answered yet. */
-const props = defineProps<{ text: string; self?: string; secret?: boolean }>();
+/** A note item, the words it names as links to their cards; `secret`: the note's own card is not answered yet; `breakdown`: a word's parts, `a- (…) + b (…)`. */
+const props = defineProps<{ text: string; self?: string; secret?: boolean; breakdown?: boolean }>();
 const sheet = useCardSheet();
-const segments = computed(() => linkSegments(props.text, sheet.index.value, props.self));
+const segments = computed(() => (props.breakdown ? linkBreakdown : linkSegments)(props.text, sheet.index.value, props.self));
 </script>
 
 <template>
