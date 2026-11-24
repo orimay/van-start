@@ -10,6 +10,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] The origin is the true one (gedachte = ge- + denken, not -te; leiding ← leiden; sleutel ← sluiten). An example given for an affix really uses that affix.
 - [ ] An affix named in another card carries the affix card's own gloss (or a piece of it), and the gloss is plain enough to tell it from a near affix (-end делающий vs -ig какой).
 - [ ] An affix gloss names the affix's real meaning (-lijks = еже-), with one example per sense, and the example's meaning shows the affix's sense (not opleiding for "руководство").
+- [ ] Note items read by kind: the rule about the card itself first, then where it comes from, then examples, each looking different.
 - [ ] Every meaning of the word is given (haakje, lid, stranden, bladeren, agent).
 - [ ] Close pairs say how they differ, clearly enough to pick the right one from the native side alone (aanmelden / inschrijven, voornaam / naam, thuis / naar huis, 's morgens / 's ochtends, lief / lieve).
 - [ ] No two cards share a prompt within a language.
@@ -18,7 +19,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] Articles: nouns are learned with their article; the native side tells a specific thing from any (de krant lezen).
 - [ ] Number: plural and singular are obvious (мн. ч.), the plural comes after the singular, -je after the base word.
 - [ ] No hint in Dutch on the native side while the Dutch side is closed (jij kunt, aanmelden as a pair): Dutch in a note shows only once the card is open. That the card is a process or action stays visible.
-- [ ] A closed card's example stays hidden behind Show context, so the word is recalled on its own.
+- [ ] A closed card's example stays hidden behind Show context (a tap anywhere on the card shows it), so the word is recalled on its own.
 - [ ] Examples use only words learned earlier (or about to come); an example sentence contains the word itself.
 - [ ] Grammar terms are said in plain words with an example (be- = action aimed at something: лечить кого-то).
 - [ ] Rules carry their exceptions per card, the exception marked red.

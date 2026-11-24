@@ -162,7 +162,8 @@ function kindsOf(card: DeckCard, note: string): NoteKind[] {
   const russian = /[а-яё]/i.test(twin) ? noteLines(twin) : [];
   const own = noteLines(card.n ?? '').length;
   return noteLines(note).map(({ text }, i) => {
-    if (i < own && russian.length === own) return noteKind(russian[i]!.text);
+    if (i >= own) return 'example';
+    if (russian.length === own) return noteKind(russian[i]!.text);
     return /[а-яё]/i.test(text) ? noteKind(text) : /^[^:()]{1,30}:\s/.test(text) ? 'label' : 'rule';
   });
 }

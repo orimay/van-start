@@ -81,6 +81,7 @@ describe('native example lines', () => {
     const lines = w.findAll('[data-testid="prompt-note-line"]');
     expect(lines.map(l => l.text())).toEqual(['с -e: сразу за ним сущ.', 'большой мужчина (конкретный)', 'большой дом (абстрактный)']);
     expect(lines.map(l => l.attributes('data-exception') === 'true')).toEqual([false, false, true]);
+    expect(lines.map(l => l.attributes('data-kind'))).toEqual(['label', 'example', 'example']);
   });
 });
 
@@ -250,6 +251,12 @@ describe('the context of a closed card', () => {
     expect(w.find('[data-testid="show-context"]').exists()).toBe(false);
   });
 
+  it('shows on a tap anywhere on the card', async () => {
+    const w = await mountSuspended(Prompt, { props: { card: flip(card), secret: true } });
+    await w.get('[data-testid="prompt-card"]').trigger('click');
+    expect(w.get('[data-testid="prompt-example"]').classes()).not.toContain('invisible');
+  });
+
   it('shows once the card is open', async () => {
     const w = await mountSuspended(Prompt, { props: { card: flip(card) } });
     expect(w.get('[data-testid="prompt-example"]').classes()).not.toContain('invisible');
@@ -263,9 +270,9 @@ describe('a note of several kinds', () => {
   const kinds = (w: VueWrapper) => w.findAll('[data-testid="answer-note-line"]').map(l => l.attributes('data-kind'));
   const texts = (w: VueWrapper, id: string) => w.findAll(`[data-testid="${id}"]`).map(l => l.text());
 
-  it('tells rules, Dutch examples, labelled items and the origin apart', async () => {
+  it('tells rules, Dutch examples, labelled items and the origin apart, the origin before the examples', async () => {
     const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(card)), silent: true } });
-    expect(kinds(w)).toEqual(['rule', 'example', 'example', 'label', 'origin']);
+    expect(kinds(w)).toEqual(['rule', 'label', 'origin', 'example', 'example']);
     expect(texts(w, 'note-dutch')).toEqual(['ik maak het af', 'afmaken']);
     expect(texts(w, 'note-label')).toEqual(['не путать с', 'от']);
   });
@@ -273,8 +280,13 @@ describe('a note of several kinds', () => {
   it('keeps the kinds of the Russian note in a translation', async () => {
     const en = { ...card, n: 'it splits off to the end; ik maak het af (I finish it); afmaken (to finish): to the end; don\'t confuse with: of (or); from: af (done)', nr: ru };
     const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(en)), silent: true } });
-    expect(kinds(w)).toEqual(['rule', 'example', 'example', 'label', 'origin']);
+    expect(kinds(w)).toEqual(['rule', 'label', 'origin', 'example', 'example']);
     expect(texts(w, 'note-label')).toEqual(["don't confuse with", 'from']);
+  });
+
+  it('scrolls the transcription with the notes, so the word alone stays put', async () => {
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard({ ...card, tr: 'аф' }), silent: true } });
+    expect(w.get('[data-testid="answer-scroll"]').find('[data-testid="transcription"]').exists()).toBe(true);
   });
 
   it('shows each Dutch line of a Dutch note as an example', async () => {
