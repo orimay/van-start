@@ -127,9 +127,6 @@ def apply(path):
         before, bnode = find(deck, before_prefix)
         node['cards'].remove(card)
         bnode['cards'].insert(bnode['cards'].index(before), card)
-    for cid in list(langs['ro']['cards']):
-        c, _ = find(deck, cid)
-        put(langs['ro'], cid, {'tr': translit.convert(c['tr'], 'ro', c['b'])})
     reviewed |= {find(deck, p)[0]['id'] for p in fx.get('_reviewed', [])}
     reviewed |= {find(deck, p)[0]['id'] for p in fx if not p.startswith('_')}
     save(deck, langs)

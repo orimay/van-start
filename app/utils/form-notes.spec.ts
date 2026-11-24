@@ -30,16 +30,30 @@ describe("a card's -e form", () => {
   }
 });
 
-/** The word an -e card is the form of: the card its `!een …` example names. */
+/** The word an -e card is the form of: the adjective its `!een … noun` example puts after the article. */
 function pairsOf(): Array<{ card: Card; base: string }> {
   const sides = new Set(cardsOf(deck).map(c => c.b));
   return cardsOf(deck).flatMap(card => {
     if (!card.n?.includes('сразу за ним сущ.')) return [];
-    const words = (card.nb ?? '').split('\n').filter(l => l.startsWith('!')).flatMap(l => l.slice(1).split(' '));
-    const base = words.find(w => sides.has(w) && w !== card.b && w.slice(0, 3) === card.b.slice(0, 3));
-    return base ? [{ card, base }] : [];
+    const base = card.nb?.split('\n').find(l => l.startsWith('!'))?.split(' ')[1];
+    return base && sides.has(base) ? [{ card, base }] : [];
   });
 }
+
+interface Texted extends Card { xb?: string }
+const usedWords = new Set(cardsOf(deck).flatMap(c => [c.b, (c as Texted).xb, c.nb].join(' ').toLowerCase().split(/[^a-z\u00e0-\u00ff'-]+/)));
+// Their -e form is only a noun, a verb or part of a fixed term here: de jarige, de oudere, hij gebruikte, het gemiddelde, de tegenwoordige tijd.
+const NOT_ADJECTIVE_HERE = new Set(['jarig', 'ouder', 'gebruikt', 'gemiddeld', 'tegenwoordig']);
+
+describe('an adjective', () => {
+  it('has its -e pair card once its base note or the deck shows the -e form', () => {
+    const sides = new Set(cardsOf(deck).map(c => c.b));
+    const paired = new Set(pairsOf().map(p => p.base));
+    const unpaired = cardsOf(deck).filter(c => !paired.has(c.b) && !sides.has(`${c.b}e`) && !NOT_ADJECTIVE_HERE.has(c.b)
+      && (c.n?.startsWith('1) за ним нет сущ.') || /^[a-z]{4,}$/.test(c.b) && usedWords.has(`${c.b}e`)));
+    expect(unpaired.map(c => c.b)).toEqual([]);
+  });
+});
 
 const FORM_OF: Record<string, string> = { en: 'form of', es: 'forma de', pt: 'forma de', tr: 'biçimi', ro: 'forma lui' };
 
