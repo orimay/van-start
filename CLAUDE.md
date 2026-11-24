@@ -27,8 +27,9 @@ When two rules conflict, the one written further down wins.
   - `tr`: transcription;
   - `n`: note;
   - `xf`/`xb`: example translation and the Dutch example;
-  - `nb`/`nx`: optional extras.
-- `public/lang/{en,es,pt,tr}.json`: `cards[id] = [f, xf, tr, n?, nx?]`.
+  - `nb`/`nx`: optional extras;
+  - `k`: `sentence` or `combination`, a card the learner can switch off. Set only by `python3 -I scripts/flag-kinds.py` (idempotent; its `KEEP`/`SENTENCES` lists and `SERIES` rules are the decisions, `scripts/flag_kinds_test.py` checks them). Rerun it after any deck change.
+- `public/lang/{en,es,pt,tr,ro}.json`: `cards[id] = [f, xf, tr, n?, nx?]`.
 - Write both compact: `ensure_ascii=False, separators=(',',':')`.
 - Deck order is learning order. Groups keep the book's order. Inside a group, where its cards allow: a singular comes before its plural, a diminutive (-je) or an irregular form after its base word, and a word before every card using it, in its phrase or its example. A group's own words come first, then its sections' words in order.
 - Both parts of a compound word come before it, moved there from later groups if needed: `python3 -I scripts/order-compounds.py` after any deck change. False splits (`centrum` is not cent+rum) go in its `NOT_SPLITS`.
@@ -90,7 +91,7 @@ When two rules conflict, the one written further down wins.
   - Dutch u/uu is ү/үү; ю only in English loans (interview, steward). No ы, ё, ː. `app/composables/transcriptions.spec.ts` checks it.
   - The n of an unstressed -en, usually dropped in speech, is marked optional in every language: `лоо́пэ(н)`, `доосэ́нтэ(н)каамэр`. Never inside a root or before a d/t ending (`ви́ңкэлсэнтрүм`, `о́нбэкэндэ`), except before a tens word (`зэсэ(н)тви́нтэх`). Stress on a diphthong goes on its first letter: `э́й`, `ә́й`, `а́у`. A linking -en- said ң before k is still written `(н)` (`бу́рэ(н)каас`), only when the stem is a deck word; the ng/nk of a root stays (`брэ́ңэ(н)`, `наа́дэңкэ(н)`). Run `python3 -I scripts/mark-optional-n.py` after any transcription change.
   - Russian `tr` is the source: every other language's transcription is derived from it by `scripts/translit.py` (mark-optional-n rewrites them all). Edit ru, never another language's tr by hand. ij is spelled like ei in every language.
-  - Tests: `python3 -I scripts/translit_test.py` (also checks the whole deck is derived), `python3 -I scripts/mark_optional_n_test.py`, `python3 -I scripts/sync_audio_test.py`.
+  - Tests: `python3 -I scripts/translit_test.py` (also checks the whole deck is derived), `python3 -I scripts/mark_optional_n_test.py`, `python3 -I scripts/sync_audio_test.py`, `python3 -I scripts/flag_kinds_test.py`.
 - **Confusable pairs.** Words a learner cannot tell apart from the translation alone (aanmelden/inschrijven) carry the telling context in the translation itself (`регистрироваться (в реестре)`, `заявляться, подавать заявку`), and each note says when to use it with a short `…` example and names the other as `не путать с: …` (don't confuse with / no confundir con / não confundir com / karıştırma), in every language and every card of the word (phrases, nouns too). The hint and the Dutch example are separate note items: an item opening with `…` or `zich …` is a Dutch usage example and stays hidden until the answer is out (`DUTCH_USAGE` in `deck.ts`), as does any item naming a Dutch word; the plain hint stays shown. These labels hide like variants, in every language. Edits go through a data file `{b: {lang: (new f, note items to prepend)}}`; -e adjective forms take the base's hint and pair link.
 - **Split cards.** Merge them unless the split is justified, e.g. een paar vs het paar.
 - **Realia and loanwords.**
@@ -146,7 +147,7 @@ When two rules conflict, the one written further down wins.
   Rebuild after the last `b`/`xb` edit: affix examples rewritten after a build kept their old keys,
   so `be-` played «Kennismaken en begroeten.». `app/utils/clips.spec.ts` fails on any card whose
   `au`/`axb` is not the hash of its own text.
-- The audio repo is `~/Projects/private/pages/van-start-audio`. `scripts/deploy.sh` syncs and pushes it before the site: `scripts/sync-audio.py` makes `public/audio` and the repo hold exactly the clips the deck references (refuses when one is missing locally: run build-audio.py), then the repo is committed and pushed. A clip missing there gave a 404 on the deployed site. Test: `python3 -I scripts/sync_audio_test.py`.
+- The audio repo is `~/Projects/private/pages/van-start-audio`. `scripts/deploy.sh` syncs and pushes it before the site: `scripts/sync-audio.py` makes `public/audio` and the repo hold exactly the clips the deck references (refuses when one is missing locally: run build-audio.py), then the repo is committed and pushed. A clip missing there gave a 404 on the deployed site. Test: `python3 -I scripts/sync_audio_test.py`, `python3 -I scripts/flag_kinds_test.py`.
 - jj refuses to push past an empty undescribed commit; deploy.sh abandons them first.
 - Audio no card references is always deleted, locally and in the audio repo.
 - Audio loads lazily, in the background.
@@ -208,6 +209,10 @@ When two rules conflict, the one written further down wins.
   - App controls select no text, and a long press shows no system link preview.
 - **Settings and data.**
   - Settings save automatically.
+  - **Sentences and combinations** (`utils/kinds.ts`). Sentence: a phrase or sentence that only shows words in use (`op zaterdagavond`). Combination: one of a rule-built series (`dinsdagochtend`, `vierentwintig`, `om negen uur`); the first of a series stays and its note says the rule. Verb forms, fixed expressions, survival formulas, idioms and terms are never flagged.
+    - Settings has a switch per kind (`settings.kinds`), on by default. Off, those cards leave the deck everywhere (`shownCards` in the store's `compose`); their progress stays and comes back when switched on, so a passed section offers Learn again for them.
+    - A group's menu has Cards (`KindSheet.vue`), shown when the group holds a flagged card: per kind, As in settings / On / Off (`settings.groupKinds`). The nearest own switch up the tree wins. A group with its own gets the `own cards` badge; one whose subgroups disagree shows Mixed. A switch that would replace subgroups' own ones lists what each gets and asks first, then clears theirs.
+    - Settings says how many groups keep their own per kind and offers to reset them.
   - An update installs at the first possible moment on any page, and the app reloads onto the same step without offering to continue. The reload mark (`utils/update-reload.ts`) holds the page it was set on; a lesson goes on silently only when it is that page, so an update reloading home still leaves the offer to continue. It waits only while audio plays, while the user is typing or recording, while a game holds unsaved state (half a 5:5 pair) and while a DB write is pending (`holdUntilDone` in the kv/sessions/shows queues). UX must not suffer. `installWhenIdle` fires once: its own saves hold and release the update again, and re-firing looped forever (a vitest hang).
   - Import: a Lexilize export keeps its progress; a backup restores progress.
   - A backup holds everything stored: learning, every game's review schedule with its due times, games passed, today's review log, answer counts, settings, own cards and course edits.
