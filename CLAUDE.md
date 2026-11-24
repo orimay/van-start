@@ -16,6 +16,7 @@ When two rules conflict, the one written further down wins.
 - Bugs follow TDD: failing test first, then the fix.
 - Tests are black-box only: assert what the user sees (DOM, `data-testid`), never internals.
 - Never claim audio sounds right without having heard it.
+- Every decision agreed with the user and not shipped yet goes into `notes/todo.md` the moment it is agreed; tick it only once deployed.
 
 ## Data
 
@@ -56,7 +57,7 @@ When two rules conflict, the one written further down wins.
 - **Demonstratives.** dit/dat and deze/die each name their use (near or far; het-word in the singular, or de-word and plural) and their pair; dat also its standalone and conjunction uses.
 - **Adjective rule.** Every adjective with a with/without -e card pair carries the -e usage rule on both cards, before any meaning note.
 - **Variants.** Two cards of one word in different forms (eind/einde, makkelijk/gemakkelijk) name each other in the note, `вариант: …` first (also/también/também/ayrıca/variantă), in every language; a plural card puts its `мн. ч. от:` before it. When their use differs, both notes say when to pick which, without naming the card's own word (`эта форма`, `een heel … lopen`): a note is a hint.
-- **One word, one card.** A noun is learned with its article (de maandag, de vrijdagavond), never also as a bare card. Its article-less use as a time adverb goes in the note as `без артикля: в пятницу вечером` (without article/sin artículo/sem artigo/artikelsiz/fără articol), in every language. When two cards merge, the kept one takes the earlier slot.
+- **One word, one card.** A noun is learned with its article (de maandag, de vrijdagavond), never also as a bare card. Its article-less use as a time adverb goes in the note as `без de значит «в пятницу вечером»` (without de it means / sin de significa / sem de quer dizer / de'siz … anlamına gelir / fără de înseamnă), in every language: a bare «без артикля» beside a card that shows the article reads as a contradiction. When two cards merge, the kept one takes the earlier slot.
 - **Style pairs.** A colloquial card and its neutral or formal counterpart (check/controleer, de opa/de grootvader, de wc/het toilet) name each other in the note, `синоним: …` (synonym/sinónimo/sinônimo/eş anlamlı) first, in every language. Every card marked colloquial, neutral or formal is checked for a counterpart in the deck.
 - **Root families.** A derived word names its base with the base's translation, `от: …` (from/deriva de/deriva de/kökü), after any вариант/синоним or usage-rule item, in every language and every form card (plurals too). The base lists nothing back. Peers of one root, neither derived from the other, name each other both ways with `родственное: …` (related/relacionado/relacionado/akraba kelime/înrudit). Inside a link, meanings join with `, `, never `; `.
 - **Verbal nouns.** A het + infinitive card meaning the process (het knutselen, het rekenen, het hoesten, het spreken) is translated as the process and carries `процесс: het + глагол (knutselen — мастерить)` (process: het + verb / proceso: het + verbo / processo: het + verbo / süreç: het + fiil) as the last note item, in every language; its verb has a card before it. The prompt itself carries the label, `рукоделие (процесс)` (`processLabel` in `app/utils/deck.ts`); the note item hides until the answer is out. Lexicalized ones keep their meaning and get no mark: het eten, het drinken, het leven, het kussen.
@@ -176,7 +177,7 @@ When two rules conflict, the one written further down wins.
   - The user can go back to the previous card. Back restores the card's last state.
   - No swipes: cards move only by buttons, which show what they do.
   - Before the meaning is out, a Dutch-side prompt hides its picture (it would give the meaning away) but keeps its place, so nothing jumps.
-  - Before the answer is out, every note item that hints at the Dutch word stays hidden in place: its forms, `вариант:`/`синоним:`/`родственное:`/`от:` items, and any Russian item with Dutch in it except the allowed de, het, een, geen and -e. A translated item hides when its Russian twin does. Usage rules stay shown.
+  - Before the answer is out, every note item that hints at the Dutch word stays hidden in place: its forms, `вариант:`/`синоним:`/`родственное:`/`от:` items, and any Russian item with Dutch in it except the allowed de, het, een, geen and -e. A translated item hides when its Russian twin does. Usage rules stay shown. Pronouncing (and meeting a word through it) hides nothing: the Dutch is already on screen.
   - Buttons never vanish mid-card: one not usable yet is disabled, so nothing jumps.
   - "left" counts cards of the game not passed yet; a retried card counts once.
   - Review has no limit: it asks every card due now.

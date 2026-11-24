@@ -329,6 +329,11 @@ describe('a note giving the answer away', () => {
     expect(noteHidden(w)).toBe(false);
   });
 
+  it('is shown at once when pronouncing, the Dutch being on screen', async () => {
+    const w = await doMount({ cards: [card], stages: ['pronounce', 'recall'], introducing: true });
+    expect(noteHidden(w)).toBe(false);
+  });
+
   it('waits for the answer in typing', async () => {
     const w = await doMount({ cards: [card], stages: ['type'] });
     expect(noteHidden(w)).toBe(true);

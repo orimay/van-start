@@ -46,7 +46,7 @@ function reveal(how: 'self' | 'timeout') {
 <template>
   <div class="flex flex-1 flex-col justify-between gap-2">
     <div class="relative flex flex-1 flex-col gap-2">
-      <Prompt v-if="!listening || revealed" :card="card" :secret="!revealed" />
+      <Prompt v-if="!listening || revealed" :card="card" :secret="!revealed && !pronouncing" />
       <ListenButton v-else :card="card" />
       <Answer :card="card" :hidden="!revealed && !pronouncing" :no-transcription="pronouncing && !revealed" :silent="dutchShown" />
     </div>
