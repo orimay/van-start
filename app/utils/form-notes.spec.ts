@@ -55,6 +55,13 @@ describe('an adjective', () => {
   });
 });
 
+describe('an -e card', () => {
+  it('has its base card, named by its `!een … noun` example', () => {
+    const paired = new Set(pairsOf().map(p => p.card));
+    expect(cardsOf(deck).filter(c => c.n?.includes('сразу за ним сущ.') && !paired.has(c)).map(c => c.b)).toEqual([]);
+  });
+});
+
 const FORM_OF: Record<string, string> = { en: 'form of', es: 'forma de', pt: 'forma de', tr: 'biçimi', ro: 'forma lui' };
 
 describe('an -e pair card', () => {

@@ -51,6 +51,7 @@ When two rules conflict, the one written further down wins.
   - Only when that is impossible, use the nearest fitting words from later cards.
   - Every example is translated into all languages.
   - Several examples go on separate lines, and the translation has the same lines, line by line, `!` kept, in every language, never left in Dutch. `app/utils/example-translations.spec.ts` checks it.
+  - A `!` line is an exception and reads red on both sides, its Dutch too.
   - Examples show on the Dutch side.
 - **Notes.**
   - A note is context: it tells what the card means and so what to answer. It is not an answer, not a hint, not usage trivia. No Dutch usage examples on the prompt side (`перед месяцем только эта (eind mei)` is out).

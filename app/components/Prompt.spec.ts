@@ -72,6 +72,12 @@ describe('an exception line', () => {
     expect(w.findAll('[data-testid="answer-note-line"]').map(l => l.text())).toEqual(['de grote man', 'een groot huis']);
     expect(w.findAll('[data-testid="answer-note-line"]').map(l => l.attributes('data-exception') === 'true')).toEqual([false, true]);
   });
+
+  // The Dutch is the whole line, so its own example colour hid the mark.
+  it('sets its Dutch in the exception colour', async () => {
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard(card), silent: true } });
+    expect(w.findAll('[data-testid="note-dutch"]').map(d => d.classes().some(c => c.includes('oklch')))).toEqual([false, true]);
+  });
 });
 
 describe('native example lines', () => {

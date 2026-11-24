@@ -9,6 +9,8 @@ const LOOK: Record<NoteKind, string> = {
   origin: 'mt-1.5 list-none border-t border-stone-200 pt-1.5 text-stone-500 dark:border-stone-700 dark:text-stone-400',
 };
 /** What the card is and where it comes from go before the examples of it. */
+/** An exception line reads red, its Dutch head too. */
+const EXCEPTION = 'text-[oklch(55.3%_0.2_25)]!';
 const RANK: Record<NoteKind, number> = { rule: 0, label: 0, origin: 1, example: 2 };
 const HEAD: Record<NoteKind, string> = {
   rule: '',
@@ -23,14 +25,14 @@ const HEAD: Record<NoteKind, string> = {
 const props = defineProps<{ note: string; kinds?: NoteKind[]; self: string; secret?: boolean; hidden?: boolean[]; testid: string }>();
 const lines = computed(() => noteLines(props.note).map((line, i) => {
   const kind = props.kinds?.[i] ?? 'rule';
-  return { ...line, kind, head: noteHead(line.text, kind), hidden: props.hidden?.[i] };
+  return { ...line, kind, head: noteHead(line.text, kind), headClass: line.exception ? `${HEAD[kind]} ${EXCEPTION}` : HEAD[kind], hidden: props.hidden?.[i] };
 }).sort((a, b) => RANK[a.kind] - RANK[b.kind]));
 </script>
 
 <template>
   <ul class="mx-auto w-fit max-w-full space-y-1 text-sm" :class="{ 'pl-5 text-left': lines.length > 1 }" :data-testid="testid">
-    <li v-for="line in lines" :key="line.text" :class="[lines.length > 1 ? LOOK[line.kind] : 'text-stone-600 dark:text-stone-300', { 'text-[oklch(55.3%_0.2_25)]!': line.exception, invisible: line.hidden }]" :data-kind="line.kind" :data-exception="line.exception" :data-testid="`${testid}-line`">
-      <NoteText :text="line.text" :self="self" :secret="secret" :head="line.head" :head-class="HEAD[line.kind]" :head-testid="line.kind === 'example' ? 'note-dutch' : 'note-label'" />
+    <li v-for="line in lines" :key="line.text" :class="[lines.length > 1 ? LOOK[line.kind] : 'text-stone-600 dark:text-stone-300', { [EXCEPTION]: line.exception, invisible: line.hidden }]" :data-kind="line.kind" :data-exception="line.exception" :data-testid="`${testid}-line`">
+      <NoteText :text="line.text" :self="self" :secret="secret" :head="line.head" :head-class="line.headClass" :head-testid="line.kind === 'example' ? 'note-dutch' : 'note-label'" />
     </li>
   </ul>
 </template>

@@ -59,5 +59,6 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] Every mention of another card is a labelled link (`от:`, `форма от:`, `мн. ч. от:`...); the target lists it back on its sheet.
 - [ ] Every -e pair card carries `форма от: <base> (<sense>)` in all 6 languages.
 - [ ] An adjective whose -e form shows up anywhere in the deck has its -e pair card; its base carries the rule and `nb`/`nx` examples.
+- [ ] An exception line (`!`) reads red on both sides, a Dutch line that is all head included.
 - [ ] Every `nb` line has its own translated `nx` line in every language, `!` kept, never the Dutch itself.
 - [ ] An affix meaning shown as the word (prompt, answer, option, tile) carries `(suffix)` / `(prefix)` in the native language.
