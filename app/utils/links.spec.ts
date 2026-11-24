@@ -37,6 +37,7 @@ describe('a reference in a note', () => {
   it('reads labels in every language, a gender mark before them', () => {
     expect(links('pl. m. plural de: het boek')).toEqual([['het boek', 'boek']]);
     expect(links('kökü: kopen (almak)')).toEqual([['kopen', 'kopen']]);
+    expect(links('înrudit: kopen (a cumpăra)')).toEqual([['kopen', 'kopen']]);
   });
 
   it('stays text when no card has that word', () => {

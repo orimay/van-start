@@ -9,7 +9,7 @@ const OTHER = [
   ...['plural de', 'forma de', 'imperativo de', 'también', 'no confundir con', 'sinónimo', 'relacionado'],
   ...['também', 'não confundir com', 'sinônimo'],
   ...['çoğulu', 'biçimi', 'emir kipi', 'ayrıca', 'karıştırma', 'eş anlamlı', 'akraba kelime'],
-  ...['pluralul lui', 'forma lui', 'imperativul lui', 'variantă', 'a nu se confunda cu', 'sinonim'],
+  ...['pluralul lui', 'forma lui', 'imperativul lui', 'variantă', 'a nu se confunda cu', 'sinonim', 'înrudit'],
 ];
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const labelsOf = (labels: string[]) => [...labels].sort((a, b) => b.length - a.length).map(escape).join('|');
