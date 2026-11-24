@@ -23,7 +23,8 @@ for tr, dutch, want in CASES:
             fails += 1
             print(f'FAIL {dutch} {lang}: {got!r} != {expected!r}')
 
-# Every language's transcription is the Russian one, spelled for that language.
+# Every language's transcription is the Russian one, spelled for that language;
+# an affix's is its sound in its example word, which mark_optional_n_test checks.
 import json  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -38,7 +39,7 @@ deck = {c['id']: c for c in walk(json.loads((ROOT / 'public' / 'deck.json').read
 for lang in ('en', 'es', 'pt', 'tr', 'ro'):
     rows = json.loads((ROOT / 'public' / 'lang' / f'{lang}.json').read_text())['cards']
     off = [(cid, row[2]) for cid, row in rows.items()
-           if len(row) > 2 and row[2] and row[2] != translit.convert(deck[cid]['tr'], lang, deck[cid]['b'])]
+           if len(row) > 2 and row[2] and not deck[cid].get('xt') and row[2] != translit.convert(deck[cid]['tr'], lang, deck[cid]['b'])]
     if off:
         fails += 1
         print(f'FAIL {lang}: {len(off)} transcriptions not derived from the Russian one, e.g. {off[:3]}')

@@ -51,6 +51,8 @@ describe("an affix's example word", () => {
 
 const affixes = cardsOf(deck).filter(c => isAffix(c.b) && c.xb);
 const stem = (affix: string) => affix.replace(/^-|-$/g, '');
+/** The affix's transcription opens its example word's, past an article, or closes it. */
+const soundsIn = (affix: string, tr = '', word = '') => !!tr && (affix.endsWith('-') ? word.replace(/^\S+ /, '').startsWith(tr) : word.endsWith(tr));
 
 describe('an affix', () => {
   it('shows itself in its example word', () => {
@@ -58,11 +60,20 @@ describe('an affix', () => {
     expect(wrong).toEqual([]);
   });
 
+  it('is transcribed as it sounds in its example word in Russian', () => {
+    expect(affixes.filter(c => !soundsIn(c.b, c.tr, c.xt)).map(c => `${c.b}: ${c.tr} in ${c.xt}`)).toEqual([]);
+  });
+
   it('breaks its example word down in Russian', () => {
     expect(affixes.filter(c => !c.xl?.includes(c.b)).map(c => c.b)).toEqual([]);
   });
 
   for (const lang of ['en', 'es', 'pt', 'tr', 'ro']) {
+    it(`is transcribed as it sounds in its example word in ${lang}`, () => {
+      const overlay = overlayOf(lang);
+      expect(affixes.filter(c => !soundsIn(c.b, overlay[c.id]?.[2], overlay[c.id]?.[6])).map(c => `${c.b}: ${overlay[c.id]?.[2]} in ${overlay[c.id]?.[6]}`)).toEqual([]);
+    });
+
     it(`breaks its example word down in ${lang}`, () => {
       const overlay = overlayOf(lang);
       expect(affixes.filter(c => !String(overlay[c.id]?.[5] ?? '').includes(c.b)).map(c => c.b)).toEqual([]);

@@ -35,7 +35,7 @@ export interface CardIndex {
 const key = (dutch: string) => dutch.trim().toLowerCase();
 const ARTICLE = /^(de|het) /;
 
-/** Parts of a reference list, split at ` + `, `, ` and ` / ` outside the glosses. */
+/** Parts of a reference list, split at ` + `, ` = `, `, ` and ` / ` outside the glosses. */
 function partsOf(list: string): string[] {
   const parts: string[] = [];
   let depth = 0;
@@ -44,7 +44,7 @@ function partsOf(list: string): string[] {
     if (list[i] === '(') depth++;
     else if (list[i] === ')') depth--;
     else if (depth === 0) {
-      const separator = [' + ', ', ', ' / '].find(s => list.startsWith(s, i));
+      const separator = [' + ', ' = ', ', ', ' / '].find(s => list.startsWith(s, i));
       if (separator) {
         parts.push(list.slice(from, i), separator);
         i += separator.length - 1;

@@ -30,6 +30,14 @@ describe('a reference in a note', () => {
     ]);
   });
 
+  it('links every link of a chain spelled after its parent', () => {
+    expect(links('от: verkopen (продавать) = ver- (пере-, изменение) + kopen (покупать)')).toEqual([
+      ['verkopen', 'verkopen'],
+      ['ver-', 'ver'],
+      ['kopen', 'kopen'],
+    ]);
+  });
+
   it('finds a noun named with its article', () => {
     expect(links('уменьш. от: het boek (книга)')).toEqual([['het boek', 'boek']]);
   });

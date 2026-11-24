@@ -28,5 +28,19 @@ for dutch, tr, want in CASES:
     if got != want:
         fails += 1
         print(f'FAIL {dutch}: {got!r} != {want!r}')
+# An affix's transcription is its sound in its example word, the other languages split on the stem's side.
+AFFIX_CASES = [
+    ('samen-', 'samenwerken', 'саа́мэ(н)', 'саа́мэ(н)вэркэ(н)', {'ru': 'саа́мэ(н)', 'en': 'sáamu(n)', 'es': 'sáame(n)'}),
+    ('-te', 'de warmte', 'тэ', 'дэ ва́рмтэ', {'ru': 'тэ', 'en': 'tuh', 'pt': 'tê'}),
+    ('aan-', 'aankomen', 'аан', 'аа́ңкоомэ(н)', {'ru': 'аа́ң', 'en': 'áan', 'ro': 'áan'}),
+    ('-je', 'het katje', 'ьэ', 'эт ка́тьэ', {'ru': 'ьэ', 'en': 'yuh', 'es': 'ye'}),
+    ('voor-', 'de voornaam', 'фоор', 'дэ фоо́рнаам', {'ru': 'фоо́р', 'en': 'fóhr'}),
+]
+for affix, dutch, tr, xt, want in AFFIX_CASES:
+    for lang, sound in want.items():
+        got = m.affix_sound(affix, tr, xt, dutch, lang)
+        if got != sound:
+            fails += 1
+            print(f'FAIL {affix} {lang}: {got!r} != {sound!r}')
 print('ok' if not fails else f'{fails} failed')
 sys.exit(1 if fails else 0)

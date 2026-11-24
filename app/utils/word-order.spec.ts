@@ -25,3 +25,34 @@ describe('a base word', () => {
     expect(firstOf(base)).toBeLessThan(firstOf(derived));
   });
 });
+
+describe('an article', () => {
+  it.each(['de', 'het', 'een'])('%s comes before every card opening with it', article => {
+    expect(order.filter((b, i) => b.startsWith(`${article} `) && i < firstOf(article))).toEqual([]);
+  });
+});
+
+const deckCards = cards(JSON.parse(readFileSync('public/deck.json', 'utf8'))) as Array<Card & { n?: string }>;
+/** The cards a card's note says it is made of: `от: be- (...) + groeten (...)`; a diminutive is made with -je too. */
+const partsOf = (card: Card & { n?: string }) => {
+  const from = /(?:^|; )(уменьш\. )?от: (.*?)(?:;|$)/.exec(card.n ?? '');
+  return from ? [...from[2]!.matchAll(/([^()+]+?) \(/g)].map(m => m[1]!.trim()).concat(from[1] ? ['-je'] : []) : [];
+};
+
+describe('a part a note names', () => {
+  it('comes before the card made of it', () => {
+    const late = deckCards.flatMap((card, i) => partsOf(card).filter(part => firstOf(part) > i).map(part => `${part} after ${card.b}`));
+    expect(late).toEqual([]);
+  });
+});
+
+describe('an affix', () => {
+  it('is voiced by the first card made with it', () => {
+    const affixes = deckCards.filter((c: Card & { xb?: string }) => /^-|-$/.test(c.b) && c.xb) as Array<Card & { xb: string }>;
+    const wrong = affixes.flatMap(affix => {
+      const first = deckCards.find(card => partsOf(card).includes(affix.b) && !/^мн\. ч\./.test(card.n ?? ''));
+      return first && first.b !== affix.xb ? [`${affix.b}: ${affix.xb}, not ${first.b}`] : [];
+    });
+    expect(wrong).toEqual([]);
+  });
+});

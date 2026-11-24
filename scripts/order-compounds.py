@@ -1,4 +1,4 @@
-"""Moves each part of a compound word, and the base of a prefixed word, in front of the compound's first card, so the learner
+"""Moves each part of a compound word, the base of a prefixed word, and an article, in front of the compound's first card, so the learner
 knows the parts by the time the compound comes up. Rewrites public/deck.json in place.
 
 Run after build-deck.py:  python3 -I scripts/order-compounds.py
@@ -66,6 +66,17 @@ def roots(order):
     return {bare(card['b']): bare(m.group(1)) for _, card in order if (m := ORIGIN.search(card.get('n', '')))}
 
 
+FROM = re.compile(r'(?:^|; )(уменьш\. )?от: (.*?)(?:;|$)')
+
+
+def named_parts(card):
+    """The cards a note says the card is made of: `от: be- (...) + groeten (...)`; a diminutive is made with -je too."""
+    m = FROM.search(card.get('n', ''))
+    if not m:
+        return []
+    return [p.strip() for p in re.findall(r'([^()+]+?) \(', m.group(2))] + (['-je'] if m.group(1) else [])
+
+
 def move_once(deck):
     order = slots(deck, [])
     first = {}
@@ -73,7 +84,24 @@ def move_once(deck):
         first.setdefault(bare(card['b']), i)
     origins = roots(order)
     words = {w for w in first if ' ' not in w and len(w) >= 3 and w not in NOT_PARTS}
+    by_back = {}
+    for i, (_, card) in enumerate(order):
+        by_back.setdefault(card['b'], i)
     for i, (node, card) in enumerate(order):
+        # Every card a note names as a part comes before: groeten and be- before begroeten, -je before a diminutive.
+        late = next((p for p in named_parts(card) if by_back.get(p, -1) > i), None)
+        if late:
+            home, moved = order[by_back[late]]
+            home['cards'].remove(moved)
+            node['cards'].insert(node['cards'].index(card), moved)
+            return f'{late} before {card["b"]}'
+        # An article comes before the first card opening with it: het before het thema.
+        article = ARTICLE.match(card['b'].lower())
+        if article and first.get(article.group(1), -1) > i:
+            home, moved = order[first[article.group(1)]]
+            home['cards'].remove(moved)
+            node['cards'].insert(node['cards'].index(card), moved)
+            return f'{article.group(1)} before {card["b"]}'
         word = bare(card['b'])
         if ' ' in word or first[word] != i or (word in NOT_SPLITS and NOT_SPLITS[word] is None):
             continue

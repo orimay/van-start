@@ -617,7 +617,7 @@ describe('listening', () => {
 });
 
 describe('an affix', () => {
-  const affix: StudyCard = { id: 'af', prompt: 'acting on someone', answer: 'be-', nl: 'bewonen', affix: true, promptExample: 'to inhabit', answerExample: 'bewonen', breakdown: 'be- (on) + wonen (to live)', tr: 'bu', exampleTr: 'buvónun' };
+  const affix: StudyCard = { id: 'af', prompt: 'acting on someone', answer: 'be-', nl: 'bewonen', affix: { dutch: 'be-', tr: 'bu' }, promptExample: 'to inhabit', answerExample: 'bewonen', breakdown: 'be- (on) + wonen (to live)', tr: 'buvónun' };
 
   it('sits out listening', async () => {
     const w = await doMount({ cards: [affix, ...cards(1)], stages: ['listen'] });
@@ -632,65 +632,68 @@ describe('an affix', () => {
     expect(w.emitted('finished')).toBeTruthy();
   });
 
-  it('is pronounced by its example word', async () => {
+  it('is pronounced as itself, voiced by its example word', async () => {
     vi.mocked(speak).mockClear();
     const w = await doMount({ cards: [affix], stages: ['pronounce'] });
-    expect(promptOf(w)).toBe('bewonen');
+    expect(promptOf(w)).toBe('be-');
     await doClick(w, 'reveal');
-    expect(w.get('[data-testid="answer"]').text()).toBe('to inhabit');
+    expect(w.get('[data-testid="answer"]').text()).toBe('acting on someone');
     expect(vi.mocked(speak)).toHaveBeenCalledWith(expect.objectContaining({ nl: 'bewonen' }));
   });
 
-  it('shows its example word transcription, never its own', async () => {
-    const w = await doMount({ cards: [affix], stages: ['pronounce'] });
-    await doClick(w, 'reveal');
-    expect(w.get('[data-testid="transcription"]').text()).toBe('[buvónun]');
-  });
-
-  it('is introduced by pronouncing its example word', async () => {
+  it('is introduced by pronouncing itself', async () => {
     const w = await doMount({ cards: [affix], stages: ['pronounce', 'recall'], introducing: true });
-    expect(promptOf(w)).toBe('to inhabit');
-    expect(w.get('[data-testid="answer"]').text()).toBe('bewonen');
+    expect(promptOf(w)).toBe('acting on someone');
+    expect(w.get('[data-testid="answer"]').text()).toBe('be-');
   });
 
   for (const introducing of [false, true]) {
     describe(introducing ? 'met by pronouncing' : 'pronounced', () => {
-      it('names itself and its meaning', async () => {
+      it('shows its example word transcription, its own part marked', async () => {
         const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
-        expect(w.get('[data-testid="affix"]').text()).toBe('be- acting on someone');
-      });
-
-      it('names itself above everything else', async () => {
-        const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
-        const first = w.get('[data-testid="affix"]').element;
-        for (const other of ['prompt', 'answer', 'breakdown']) expect(first.compareDocumentPosition(w.get(`[data-testid="${other}"]`).element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        await doClick(w, 'reveal');
+        expect(w.get('[data-testid="transcription"]').text()).toBe('[buvónun]');
+        expect(w.get('[data-testid="transcription"] [data-testid="affix-part"]').text()).toBe('bu');
       });
 
       it('marks itself in its example word', async () => {
         const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
-        expect(w.get('[data-testid="affix-part"]').text()).toBe('be');
+        await doClick(w, 'reveal');
+        expect(w.get('[data-testid$="-example"] [data-testid="affix-part"]').text()).toBe('be');
       });
 
-      it('shows the breakdown before the reveal', async () => {
+      it('shows the breakdown on the side of its meaning', async () => {
         const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
-        expect(w.get('[data-testid="breakdown"]').text()).toBe('be- (on) + wonen (to live)');
-        expect(w.get('[data-testid="breakdown"]').element.closest('.invisible')).toBeNull();
+        await doClick(w, 'reveal');
+        const sides = w.findAll('[data-testid="prompt"], [data-testid="answer"], [data-testid="breakdown"]').map(e => e.text());
+        const meaning = sides.indexOf('acting on someone');
+        expect(sides.indexOf('be- (on) + wonen (to live)')).toBe(meaning + 1);
       });
     });
   }
 
+  it('hides the breakdown while its Dutch side is hidden', async () => {
+    const w = await doMount({ cards: [affix], stages: ['recall'] });
+    expect(w.get('[data-testid="breakdown"]').element.closest('.invisible')).not.toBeNull();
+    await doClick(w, 'reveal');
+    expect(w.get('[data-testid="breakdown"]').element.closest('.invisible')).toBeNull();
+  });
+
   it('marks a suffix at the end of its example word', async () => {
-    const suffix: StudyCard = { id: 'sf', prompt: 'like, -ly', answer: '-lijk', nl: 'vriendelijk', affix: true, promptExample: 'friendly', answerExample: 'vriendelijk' };
+    const suffix: StudyCard = { id: 'sf', prompt: 'like, -ly', answer: '-lijk', nl: 'vriendelijk', affix: { dutch: '-lijk', tr: 'luk' }, promptExample: 'friendly', answerExample: 'vriendelijk', tr: 'frínduluk' };
     const w = await doMount({ cards: [suffix], stages: ['pronounce'] });
-    expect(w.get('[data-testid="affix-part"]').text()).toBe('lijk');
-    expect(promptOf(w)).toBe('vriendelijk');
+    await doClick(w, 'reveal');
+    expect(w.get('[data-testid$="-example"] [data-testid="affix-part"]').text()).toBe('lijk');
+    expect(w.get('[data-testid="transcription"] [data-testid="affix-part"]').text()).toBe('luk');
   });
 
   it('marks a prefix after the article of its example noun', async () => {
-    const prefix: StudyCard = { id: 'pf', prompt: 'in front', answer: 'voor-', nl: 'de voornaam', affix: true, promptExample: 'first name', answerExample: 'de voornaam' };
+    const prefix: StudyCard = { id: 'pf', prompt: 'in front', answer: 'voor-', nl: 'de voornaam', affix: { dutch: 'voor-', tr: 'fohr' }, promptExample: 'first name', answerExample: 'de voornaam', tr: 'duh fóhrnaam' };
     const w = await doMount({ cards: [prefix], stages: ['pronounce'] });
-    expect(w.get('[data-testid="affix-part"]').text()).toBe('voor');
-    expect(promptOf(w)).toBe('de voornaam');
+    await doClick(w, 'reveal');
+    expect(w.get('[data-testid$="-example"]').text()).toBe('de voornaam');
+    expect(w.get('[data-testid$="-example"] [data-testid="affix-part"]').text()).toBe('voor');
+    expect(w.get('[data-testid="transcription"] [data-testid="affix-part"]').text()).toBe('fóhr');
   });
 });
 

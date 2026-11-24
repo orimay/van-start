@@ -56,14 +56,28 @@ export interface StudyCard {
   promptExample?: string;
   answerExample?: string;
   img?: string;
-  /** A prefix or a suffix: its voice is its example word's. */
-  affix?: boolean;
-  /** An affix's example word transcription: its voice. */
-  exampleTr?: string;
+  /** A prefix or a suffix, voiced and transcribed by its example word; its own spelling and transcription mark it there. */
+  affix?: { dutch: string; tr?: string };
   /** An affix's example word broken into its parts. */
   breakdown?: string;
-  /** Said by its example word: the affix it stands for, marked in the word. */
-  affixShown?: { affix: string; meaning: string };
+}
+
+/** The letters in a word, stress marks and brackets aside. */
+export const letterCount = (word: string) => word.match(/\p{L}/gu)?.length ?? 0;
+
+/** The word split around an affix's part, `[before, part, after]`, the part `size` letters long (stress marks and brackets aside); a noun's article stays before a prefix. */
+export function splitAffix(word: string, size: number, prefix: boolean): [string, string, string] {
+  const letter = (i: number) => /\p{L}/u.test(word[i] ?? '');
+  if (!prefix) {
+    let i = word.length;
+    for (let n = 0; i > 0 && n < size; ) if (letter(--i)) n++;
+    if (word[i - 1] === '(') i--;
+    return [word.slice(0, i), word.slice(i), ''];
+  }
+  const start = /^\S+ /.exec(word)?.[0].length ?? 0;
+  let i = start;
+  for (let n = 0; i < word.length && (n < size || /[\u0301)]/.test(word[i]!)); i++) if (letter(i)) n++;
+  return [word.slice(0, start), word.slice(start, i), word.slice(i)];
 }
 
 /** A prefix or a suffix with an example word to voice it. */
@@ -75,8 +89,8 @@ export function cardsOf(node: DeckNode): DeckCard[] {
 
 export function toStudyCard(card: DeckCard): StudyCard {
   const promptNote = [card.n, card.nx].filter(Boolean).join('\n') || undefined;
-  const voice = isAffixCard(card) && card.xb ? { affix: true, nl: card.xb, audio: card.axb, exampleTr: card.xt } : { nl: card.b, audio: card.au, nlExample: card.xb, exampleAudio: card.axb };
-  return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, id: card.id, ...voice, prompt: card.f, answer: card.b, tr: card.tr, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, breakdown: card.xl, img: card.img };
+  const voice = isAffixCard(card) ? { affix: { dutch: card.b, tr: card.tr }, nl: card.xb!, audio: card.axb, tr: card.xt } : { nl: card.b, audio: card.au, nlExample: card.xb, exampleAudio: card.axb, tr: card.tr };
+  return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, id: card.id, ...voice, prompt: card.f, answer: card.b, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, breakdown: card.xl, img: card.img };
 }
 
 /** The same card asked the other way round: Dutch shown, native side recalled. */

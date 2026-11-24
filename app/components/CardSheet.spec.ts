@@ -54,7 +54,7 @@ describe('a word a note derives the card from', () => {
   });
 
   it('is a link in the breakdown of an affix example too', async () => {
-    const card = { ...toStudyCard(cards[0]!), prompt: 'продавать', answer: 'verkopen', breakdown: 'ver- (пере-, изменение) + kopen (покупать): букв. «перекупать»', affixShown: { affix: 'ver-', meaning: 'пере-, изменение' } };
+    const card = { ...toStudyCard(cards[0]!), prompt: 'продавать', answer: 'verkopen', breakdown: 'ver- (пере-, изменение) + kopen (покупать): букв. «перекупать»', affix: { dutch: 'ver-' } };
     const w = await mountSuspended(defineComponent(() => () => [h(Prompt, { card }), h(CardSheet)]));
     expect(findLinks(w).map(l => l.text())).toEqual(['kopen']);
   });

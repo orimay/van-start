@@ -112,7 +112,7 @@ const shown = new Map<string, number>();
 const mistakes = new Map<string, number>();
 const odds = new Map(Object.entries(props.scores ?? {}).map(([id, s]) => [id, oddsOf(s)]));
 /** Asked in the game: not passed in it yet, and played by the card. */
-const isDue = (card: StudyCard, game: string, passed?: Record<string, string[]>) => !passed?.[card.id]?.includes(game) && playsIn(card.affix, game);
+const isDue = (card: StudyCard, game: string, passed?: Record<string, string[]>) => !passed?.[card.id]?.includes(game) && playsIn(!!card.affix, game);
 /** Games passed when the session began, so a stage's ladder keeps its length while its cards pass. */
 const passedAtStart: Record<string, string[]> = JSON.parse(JSON.stringify(props.passed ?? {}));
 /** A stage's ladder is as long as the words it asks, not the whole group. */
@@ -177,8 +177,6 @@ let answeredAt: number | undefined;
 
 const stage = computed(() => props.stages[stageIndex.value]!);
 /** Pronouncing in the intro's place meets the cards: the meaning on top, the Dutch to say under it. */
-/** An affix is pronounced by its example word: the affix alone has no sound to compare with. */
-const sayable = (card: StudyCard): StudyCard => (card.affix ? { id: card.id, nl: card.nl, audio: card.audio, tr: card.exampleTr, prompt: card.promptExample ?? card.prompt, answer: card.answerExample ?? card.answer, breakdown: card.breakdown, affixShown: { affix: card.answer, meaning: card.prompt } } : card);
 const meeting = computed(() => props.introducing && stageIndex.value === 0 && stage.value === 'pronounce');
 const hint = computed(() => (meeting.value ? 'Remember the new cards: read the meaning, say the Dutch aloud, record yourself if you like, then listen and compare.' : STAGE_HINTS[stage.value]));
 const gameOf = (id: string, at = stage.value) => props.games?.[id] ?? at;
@@ -598,7 +596,7 @@ function optionsFor(card: StudyCard): StudyCard[] {
         <IntroGame v-if="game === 'intro'" :key="view" :card="current.card" @result="ok => current?.kind === 'card' && onCard(current.card, ok)" />
         <ChoiceGame v-else-if="game === 'choice'" :key="view" :card="current.card" :options="options" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
         <RecallGame v-else-if="game === 'listen'" :key="view" :card="flip(current.card)" dutch-shown listening :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
-        <RecallGame v-else-if="game === 'pronounce'" :key="view" :card="meeting ? sayable(current.card) : flip(sayable(current.card))" dutch-shown quiet pronouncing :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
+        <RecallGame v-else-if="game === 'pronounce'" :key="view" :card="meeting ? current.card : flip(current.card)" dutch-shown quiet pronouncing :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
         <RecallGame v-else-if="game === 'recallNative'" :key="view" :card="flip(current.card)" dutch-shown quiet :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
         <RecallGame v-else-if="game === 'recall'" :key="view" :card="current.card" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
         <TypeGame v-else :key="view" :card="current.card" :lang="lang" :listening="game === 'dictation'" :state="current.state" @progress="onCardProgress" @miss="current?.kind === 'card' && onMissAgain(current.card)" @result="(ok, guessed, typingMs) => current?.kind === 'card' && onTyped(current.card, ok, guessed, typingMs)" />

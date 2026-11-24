@@ -58,7 +58,8 @@ def get(o, cid):
 def put(o, cid, fields):
     cur = get(o, cid)
     cur.update({k: v for k, v in fields.items()})
-    arr = [cur.get('f', ''), cur.get('xf', ''), cur.get('tr', ''), cur.get('n', ''), cur.get('nx', '')]
+    # Indexes 5 and 6 (an affix's breakdown and example transcription) are kept as they are.
+    arr = [cur.get('f', ''), cur.get('xf', ''), cur.get('tr', ''), cur.get('n', ''), cur.get('nx', ''), *o['cards'].get(cid, [])[5:]]
     while len(arr) > 3 and not arr[-1]:
         arr.pop()
     o['cards'][cid] = arr

@@ -1,10 +1,9 @@
 <script setup lang="ts">
-/** An affix's example word: the affix bright, the rest of the word grey. */
-const props = defineProps<{ word: string; affix: string }>();
-const stem = computed(() => props.affix.replace(/^-|-$/g, ''));
-/** A noun's article stays grey before a prefix. */
-const article = computed(() => /^(de|het) /.exec(props.word)?.[0] ?? '');
-const parts = computed(() => (props.affix.startsWith('-') ? [props.word.slice(0, -stem.value.length), stem.value, ''] : [article.value, stem.value, props.word.slice(article.value.length + stem.value.length)]));
+import { letterCount, splitAffix } from '@/utils/deck';
+
+/** An affix's example word, or its transcription (`size` letters of it the affix): the affix bright, the rest grey. */
+const props = defineProps<{ word: string; affix: string; size?: number }>();
+const parts = computed(() => splitAffix(props.word, props.size ?? letterCount(props.affix), props.affix.endsWith('-')));
 </script>
 
 <template>

@@ -114,6 +114,44 @@ def mark(dutch, tr, lang):
     return ' '.join(tokens)
 
 
+def letters(s):
+    return sum(ch.isalpha() for ch in s)
+
+
+def split_affix(word, size, prefix):
+    """`(before, part, after)`: the affix's `size` letters, brackets and stress aside; an article stays before a prefix.
+    Mirrors splitAffix in app/utils/deck.ts."""
+    if not prefix:
+        i, n = len(word), 0
+        while i > 0 and n < size:
+            i -= 1
+            n += word[i].isalpha()
+        if i and word[i - 1] == '(':
+            i -= 1
+        return word[:i], word[i:], ''
+    start = len(re.match(r'(\S+ )?', word).group(0))
+    i, n = start, 0
+    while i < len(word) and (n < size or word[i] in '\u0301)'):
+        n += word[i].isalpha()
+        i += 1
+    return word[:start], word[start:i], word[i:]
+
+
+def affix_sound(affix, tr, xt, dutch, lang):
+    """How the affix sounds in its example word: the Russian part of the word's transcription; another language's is
+    its spelling of the whole word less its spelling of the stem side, which the affix's sounds never reshape."""
+    prefix = affix.endswith('-')
+    before, part, after = split_affix(xt, letters(tr), prefix)
+    if lang == 'ru':
+        return part
+    full = translit.convert(xt, lang, dutch)
+    marked = translit.convert(before + part + '|' + after if prefix else before + '|' + part, lang, dutch)
+    head, tail = marked.split('|')
+    if prefix:
+        return split_affix(full, letters(full.split(' ')[-1]) - letters(tail), True)[1]
+    return split_affix(full, letters(full) - letters(head), False)[1]
+
+
 def cards(node):
     yield from node.get('cards', [])
     for child in node.get('children', []):
@@ -131,7 +169,7 @@ def main():
             card['tr'] = new
         for l, data in langs.items():
             row = data['cards'].get(card['id'])
-            if row and len(row) > 2 and row[2]:
+            if row and len(row) > 2 and row[2] and not card.get('xt'):
                 new = translit.convert(card['tr'], l, card['b'])
                 changed += new != row[2]
                 row[2] = new
@@ -147,6 +185,14 @@ def main():
                     new = translit.convert(card['xt'], l, card['xb'])
                     changed += row[6:] != [new]
                     row[6:] = [new]
+            # The affix's own transcription follows its sound in the example word, so the word shows it marked.
+            card['tr'] = affix_sound(card['b'], card['tr'], card['xt'], card['xb'], 'ru')
+            for l, data in langs.items():
+                row = data['cards'].get(card['id'])
+                if row:
+                    new = affix_sound(card['b'], card['tr'], card['xt'], card['xb'], l)
+                    changed += row[2] != new
+                    row[2] = new
     if '--dry' not in sys.argv:
         DECK.write_text(json.dumps(deck, ensure_ascii=False, separators=(',', ':')))
         for l, data in langs.items():
