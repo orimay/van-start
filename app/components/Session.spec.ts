@@ -1719,13 +1719,13 @@ describe('review', () => {
     });
   });
 
-  it('keeps a slow right answer on its rung', async () => {
+  it('brings a slow right answer back like a guess, ungraded but logged as right', async () => {
     const w = await doMount({ cards: cards(60), stages: ['recall'], retryGap: GROUP, isSlow: () => true });
-    const missed = promptOf(w);
-    await doRecall(w, false);
-    expect(await answerUntil(w, missed)).toBe(STEP);
+    const slow = promptOf(w);
     await doRecall(w, true);
-    expect(await answerUntil(w, missed)).toBe(STEP);
+    expect(w.emitted('answer')).toBeUndefined();
+    expect(w.emitted('show')![0]![0]).toMatchObject({ answer: 'plus' });
+    expect(await answerUntil(w, slow)).toBe(STEP);
   });
 
   it('times a recall to the reveal, so reading the answer long does not make it slow', async () => {

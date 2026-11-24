@@ -394,8 +394,7 @@ function stranded(rest: Item[]): Item[] {
   return rest.length && rest.every(i => i.kind === 'card' && i.rung !== undefined && i.missedAt !== undefined && step.value - i.missedAt < (i.spacing ?? steps.value[0]!)) ? rest : [];
 }
 
-/** `slow`: a right answer that took too long keeps the card on its rung. */
-function advance(missed: Item[], { slow = false } = {}) {
+function advance(missed: Item[]) {
   history.value = [...history.value, snapshot()];
   answers = [];
   shows = [];
@@ -410,7 +409,7 @@ function advance(missed: Item[], { slow = false } = {}) {
   const retry = clean.map((i): Item => (i.kind === 'card' ? { ...i, round: 0, rung: 0, missedAt: step.value, spacing: gapOf(0) } : { ...i, round }));
   const own = new Set(current.value ? idsOf(current.value) : []);
   const othersLeft = queue.value.slice(1).some(i => (i.kind !== 'card' || !i.skip) && idsOf(i).some(id => !own.has(id)));
-  const climbed = current.value?.rung === undefined ? undefined : slow ? current.value.rung : current.value.rung + 1;
+  const climbed = current.value?.rung === undefined ? undefined : current.value.rung + 1;
   if (!missed.length && current.value?.kind === 'card' && climbed !== undefined && climbed < steps.value.length && othersLeft) retry.push({ ...current.value, state: undefined, rung: climbed, missedAt: step.value, spacing: gapOf(climbed) });
   // A card missed again replaces its earlier retries, so it never piles up copies.
   const missedIds = new Set(clean.flatMap(i => (i.kind === 'card' ? [i.card.id] : [])));
@@ -451,9 +450,11 @@ function putOff() {
   skipPassed();
 }
 
+const answerMs = (typingMs: number) => (answeredAt ?? Date.now()) - shownAt - typingMs;
+
 /** Reports a card's show to the log; the answer just given is timed from when the card came up. */
 function logShow(item: Item & { kind: 'card' }, answer: Given, typingMs = 0): number {
-  const ms = (answeredAt ?? Date.now()) - shownAt - typingMs;
+  const ms = answerMs(typingMs);
   const game = gameOf(item.card.id);
   shows.push(item.card.id);
   emit('show', { id: item.card.id, game, answer, ms, rung: item.rung ?? -1, source: item.rung === undefined ? 'new' : 'ladder' });
@@ -539,11 +540,13 @@ function onMissAgain(card: StudyCard) {
 /** `guessed`: right by luck, so it comes back like a miss but is graded neither way. */
 /** `typingMs`: time spent typing, left out of the recall time. */
 function onCard(card: StudyCard, ok: boolean, guessed = false, typingMs = 0) {
-  if (guessed) skipGrade(card.id);
+  // A right answer far slower than usual was dug up, not known: it comes back like a guess.
+  const slow = ok && (props.isSlow?.(gameOf(card.id), answerMs(typingMs)) ?? false);
+  if (guessed || slow) skipGrade(card.id);
   else report(card.id, ok, true);
   const item = current.value?.kind === 'card' && current.value.card.id === card.id ? current.value : { kind: 'card' as const, card };
-  const ms = logShow(item, guessed ? 'guessed' : ok ? 'plus' : 'minus', typingMs);
-  advance(ok ? [] : [{ kind: 'card', card }], { slow: ok && (props.isSlow?.(gameOf(card.id), ms) ?? false) });
+  logShow(item, guessed ? 'guessed' : ok ? 'plus' : 'minus', typingMs);
+  advance(ok && !slow ? [] : [{ kind: 'card', card }]);
 }
 
 function onMatch(cards: StudyCard[], mistakes: string[]) {

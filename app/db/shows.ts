@@ -5,11 +5,18 @@ import { holdUntilDone } from '@/utils/update-hold';
 
 /** Pluses a game needs before its typical time judges an answer slow. */
 export const MIN_PLUSES_FOR_SLOW = 10;
-/** Slower than this many typical times counts as slow. */
-export const SLOW_FACTOR = 2;
+/** Right answers of a game its spread is read from. */
+const RECENT_PLUSES = 200;
+/** MADs above the median, on log times, that make an outlier; 1.4826 scales a MAD to a normal spread. */
+const OUTLIER_SPREADS = 3 * 1.4826;
+/** Steady answers still allow this much slower before one counts as slow. */
+const MIN_SLOW_RATIO = 1.5;
+/** A hesitation shorter than this over the median is no long recall. */
+const MIN_SLOW_EXTRA_MS = 1000;
 
 let queue: Promise<unknown> = Promise.resolve();
-const typical = new Map<string, { ms: number; n: number }>();
+/** Per game, the answer time past which a right answer is an outlier. */
+const typical = new Map<string, number>();
 /** Recall time per `word:game`. */
 const recall = new Map<string, number>();
 /** When each `word:game` was last shown before this run, epoch ms. */
@@ -39,17 +46,31 @@ export function unlogShow(id: Promise<string | undefined> | string | undefined) 
   }).catch(() => undefined));
 }
 
-/** True when a right answer took over twice the game's typical time, once the game has enough pluses to tell. */
+/** True when a right answer is a slow outlier among the game's recent right answers, once it has enough to tell. */
 export function isSlow(game: string, ms: number): boolean {
-  const t = typical.get(game);
-  return !!t && t.n >= MIN_PLUSES_FOR_SLOW && ms > t.ms * SLOW_FACTOR;
+  const limit = typical.get(game);
+  return limit !== undefined && ms > limit;
+}
+
+const median = (xs: number[]) => {
+  const sorted = xs.toSorted((a, b) => a - b);
+  const mid = sorted.length >> 1;
+  return sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
+};
+
+/** Times are skewed to the slow side, so the spread is read on their logs. */
+function slowAfter(times: number[]): number {
+  const logs = times.map(t => Math.log(Math.max(t, 1)));
+  const mid = median(logs);
+  const mad = median(logs.map(l => Math.abs(l - mid)));
+  return Math.max(Math.exp(mid + Math.max(OUTLIER_SPREADS * mad, Math.log(MIN_SLOW_RATIO))), Math.exp(mid) + MIN_SLOW_EXTRA_MS);
 }
 
 /** Reads the typical times kept by the database. */
 export async function loadTypical() {
   const db = await useDb();
-  const [rows] = await db.query('SELECT record::id(id) AS game, ms, n FROM stats').collect<[Array<{ game: string; ms?: number; n: number }>]>();
-  for (const { game, ms, n } of rows) if (ms !== undefined) typical.set(game, { ms, n });
+  const [rows] = await db.query('SELECT VALUE record::id(id) FROM stats').collect<[string[]]>();
+  for (const game of rows) await refreshTypical(game);
   const [times] = await db.query('SELECT record::id(id) AS key, ms FROM recall').collect<[Array<{ key: [string, string]; ms?: number }>]>();
   for (const { key, ms } of times) if (ms !== undefined) recall.set(key.join(':'), ms);
   const [last] = await db.query('SELECT word, game, <string>time::max(at) AS at FROM show GROUP BY word, game').collect<[Array<{ word: string; game: string; at: string }>]>();
@@ -85,9 +106,8 @@ async function refreshRecall(word: string, game: string) {
 
 async function refreshTypical(game: string) {
   const db = await useDb();
-  const [rows] = await db.query('SELECT ms, n FROM type::record("stats", $game)', { game }).collect<[Array<{ ms?: number; n: number }>]>();
-  const row = rows[0];
-  if (row?.ms !== undefined) typical.set(game, { ms: row.ms, n: row.n });
+  const [times] = await db.query('SELECT VALUE ms FROM show WHERE game = $game AND answer = "plus" AND ms != NONE ORDER BY at DESC LIMIT $limit', { game, limit: RECENT_PLUSES }).collect<[number[]]>();
+  if (times.length >= MIN_PLUSES_FOR_SLOW) typical.set(game, slowAfter(times));
 }
 
 /** Resolves once every write so far has landed. */

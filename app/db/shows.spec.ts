@@ -17,11 +17,25 @@ describe('a slow answer', () => {
     expect(isSlow('recall', 10_000)).toBe(false);
   });
 
-  it('takes over twice the typical time once it has', async () => {
+  it('takes at least one and a half times the typical time when answers are steady', async () => {
+    for (let i = 0; i < 10; i++) void logShow(plus(4000));
+    await flushShows();
+    expect(isSlow('recall', 6100)).toBe(true);
+    expect(isSlow('recall', 5900)).toBe(false);
+  });
+
+  it('takes at least a second over the typical time', async () => {
     for (let i = 0; i < 10; i++) void logShow(plus(1000));
     await flushShows();
     expect(isSlow('recall', 2100)).toBe(true);
     expect(isSlow('recall', 1900)).toBe(false);
+  });
+
+  it('is an outlier beyond the usual spread of the game', async () => {
+    for (let i = 0; i < 4; i++) for (const ms of [500, 1000, 2000]) void logShow(plus(ms));
+    await flushShows();
+    expect(isSlow('recall', 15_000)).toBe(false);
+    expect(isSlow('recall', 25_000)).toBe(true);
   });
 
   it('is judged per game', async () => {
