@@ -32,6 +32,11 @@ CASES = [
     ('intensief', 'интэнсии́ф', 'интэнсии́ф'),
     # eeuw is one Dutch vowel but two Russian ones (эйу); the -en- after it still links.
     ('het leeuwenverblijf', 'эт лэ́йувэнфэрбләйф', 'эт лэ́йувэ(н)фэрбләйф'),
+    # A trema starts a syllable of its own: kopie-ën, idee-ën, drie-ën-twintig.
+    ('de kopieën', 'дэ коопии́йэн', 'дэ коопии́йэ(н)'),
+    ('de ideeën', 'дэ идэ́йэ(н)', 'дэ идэ́йэ(н)'),
+    ('drieëntwintig', 'дриийэнтви́нтэх', 'дриийэ(н)тви́нтэх'),
+    ('de financiën', 'дэ фина́нсийэн', 'дэ фина́нсийэ(н)'),
 ]
 fails = 0
 for dutch, tr, want in CASES:

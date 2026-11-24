@@ -124,6 +124,7 @@ describe('ru transcriptions', () => {
 
   it('keep the optional n of a linking -en-', () => {
     const byFront = new Map(cards.map(c => [c.b, c.tr]));
-    expect([byFront.get('de docentenkamer'), byFront.get('zesentwintig')]).toEqual(['дэ доосэ́нтэ(н)каамэр', 'зэсэ(н)тви́нтэх']);
+    expect(['de docentenkamer', 'zesentwintig', 'de kopieën', 'drieëntwintig'].map(b => byFront.get(b)))
+      .toEqual(['дэ доосэ́нтэ(н)каамэр', 'зэсэ(н)тви́нтэх', 'дэ коопии́йэ(н)', 'дриийэ(н)тви́нтэх']);
   });
 });

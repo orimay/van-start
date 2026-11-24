@@ -59,14 +59,15 @@ VOCAB = None
 
 
 def dutch_runs(word):
-    """Vowel runs as (start, end); a diphthong ending in i keeps its -e apart (aai-en, groei-en)."""
+    """Vowel runs as (start, end); a diphthong ending in i keeps its -e apart (aai-en, groei-en), a trema starts a run (kopie-ën)."""
     runs = []
     for m in re.finditer(DUTCH_RUN, word):
-        s, e = m.start(), m.end()
-        if e - s > 2 and word[e - 2:e] == 'ie' and word[e - 3] in 'aeou':
-            runs += [(s, e - 1), (e - 1, e)]
-        else:
-            runs.append((s, e))
+        cuts = [m.start()] + [i for i in range(m.start() + 1, m.end()) if word[i] in 'ëï'] + [m.end()]
+        for s, e in zip(cuts, cuts[1:]):
+            if e - s > 2 and word[e - 2:e] == 'ie' and word[e - 3] in 'aeou':
+                runs += [(s, e - 1), (e - 1, e)]
+            else:
+                runs.append((s, e))
     return runs
 
 
@@ -75,7 +76,7 @@ def dutch_schwa_n(word):
     runs = dutch_runs(word)
     found = []
     for n, (s, e) in enumerate(runs):
-        if n == 0 or word[s:e] != 'e' or word[e:e + 1] != 'n' or word[s - 1] in DUTCH_VOWELS and runs[n - 1][1] != s:
+        if n == 0 or word[s:e] not in ('e', 'ë') or word[e:e + 1] != 'n' or word[s - 1] in DUTCH_VOWELS and runs[n - 1][1] != s:
             continue
         after = word[e + 1:e + 2]
         if after and (after in 'dt' and not re.match(TENS, word[e + 1:]) or word[s - 1:e + 2] == 'tens' and word[e + 1:] not in deck_words()):
