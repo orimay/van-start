@@ -50,5 +50,7 @@ Work through every item before stopping. Never stop on a question: pick the sens
 
 ## Deck
 
-- [ ] Nouns carry their article wherever they can. Days are fixed; scan the rest of the deck for bare nouns (e.g. mazelen, rode hond: Dutch says de mazelen, de rode hond).
-- [ ] Where it is not obvious the article is needed (phrases, sentences), the prompt says specific or general in words: «(конкретный)» for de/het, «(какой-нибудь)» for een. Never by naming de/het. Sweep all 6 languages.
+- [x] Nouns carry their article wherever they can. Days are fixed; scan the rest of the deck for bare nouns (e.g. mazelen, rode hond: Dutch says de mazelen, de rode hond).
+  - Decided: de mazelen, de rode hond, het basketbal, het kickboksen, de gymnastiek, de fitness, de wifi, de oudejaarsavond; "no article" notes dropped. Kept bare: department names (personeelszaken, burgerzaken), address forms (meneer, mevrouw), retour, months, days.
+- [x] Where it is not obvious the article is needed (phrases, sentences), the prompt says specific or general in words: «(конкретный)» for de/het, «(какой-нибудь)» for een. Never by naming de/het. Sweep all 6 languages.
+  - Decided: marked the 39 adjective + noun examples, where the -e ending hangs on it (ru marker agreeing with the noun, tr `(belirli)` / `bir`, en/es/pt/ro their own article, ro articulated form). Fixed phrases and instructions (in de klas, beantwoord de vragen, op het werk) stay unmarked: the article there is idiom, not a choice, and en/es/pt/ro already show it.
