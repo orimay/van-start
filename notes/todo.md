@@ -4,7 +4,9 @@ Decisions agreed with the user and not shipped yet. Tick an item only once it is
 
 ## In progress
 
-- [ ] No «без артикля»/«без de» hint on any card with an article, all 6 languages (`article-notes.spec.ts`). Data done, not deployed.
+- [x] No «без артикля»/«без de» hint on any card with an article, all 6 languages (`article-notes.spec.ts`).
+- [ ] het eind / het einde notes: only variant + register, no «eind mei», «een heel … lopen», «aan het …» trivia. Data done, not deployed.
+- [ ] Sweep all notes for the same: usage trivia and Dutch examples that do not help tell what to answer. List candidates for the user to confirm before removing.
 
 ## Affix cards in pronounce
 

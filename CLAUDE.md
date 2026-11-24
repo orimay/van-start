@@ -12,7 +12,7 @@ When two rules conflict, the one written further down wins.
 - Run Python with `-I`.
 - Never extract or use the user's credentials from their folders. Push to the orimay repos with `~/.ssh/id_ed25519_github`.
 - Sources live in `orimay/van-start` (push with `GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github"`). Commit and push each finished step; `scripts/deploy.sh` also commits and pushes the sources. Commits use `dmitrii.a.baranov@gmail.com`: the shell's `JJ_EMAIL` is the work one, so set `JJ_EMAIL` on every committing jj call.
-- While a deploy runs, do not edit files or run tests: the deploy picks up unfinished changes.
+- While a deploy runs its tests, commit or `pnpm build`, do not touch `app/`, `public/` or tests: the commit or the build would pick up unfinished changes. Docs (`CLAUDE.md`, `notes/`) are safe any time, and so is everything during the pushes and rsync.
 - Bugs follow TDD: failing test first, then the fix.
 - Tests are black-box only: assert what the user sees (DOM, `data-testid`), never internals.
 - Never claim audio sounds right without having heard it.
@@ -48,6 +48,7 @@ When two rules conflict, the one written further down wins.
   - Several examples go on separate lines, and the translation has the same lines, line by line.
   - Examples show on the Dutch side.
 - **Notes.**
+  - A note is context: it tells what the card means and so what to answer. It is not an answer, not a hint, not usage trivia. No Dutch usage examples on the prompt side (`перед месяцем только эта (eind mei)` is out).
   - Every listed meaning has an explanation. A missing meaning gets added.
   - Every meaning is in the translation itself (`полицейский; агент`), never only in a note's "также …" item.
   - A short form names its full word as `синоним:` and back (de agent/de politieagent).
@@ -56,7 +57,7 @@ When two rules conflict, the one written further down wins.
 - **Form pairs.** Singular/plural and adjective with/without -e carry identical meanings in every language (lente/lentes and herfst/herfsten once differed). Notes match too, except the usage rule: the form without -e gets the without-e rule, the -e form the -e rule (lief/lieve once shared one). An -e form drops the base's adverb meanings and its `вариант:` link (makkelijke names no gemakkelijk: no gemakkelijke card).
 - **Demonstratives.** dit/dat and deze/die each name their use (near or far; het-word in the singular, or de-word and plural) and their pair; dat also its standalone and conjunction uses.
 - **Adjective rule.** Every adjective with a with/without -e card pair carries the -e usage rule on both cards, before any meaning note.
-- **Variants.** Two cards of one word in different forms (eind/einde, makkelijk/gemakkelijk) name each other in the note, `вариант: …` first (also/también/também/ayrıca/variantă), in every language; a plural card puts its `мн. ч. от:` before it. When their use differs, both notes say when to pick which, without naming the card's own word (`эта форма`, `een heel … lopen`): a note is a hint.
+- **Variants.** Two cards of one word in different forms (eind/einde, makkelijk/gemakkelijk) name each other in the note, `вариант: …` first (also/también/também/ayrıca/variantă), in every language; a plural card puts its `мн. ч. от:` before it. When their register differs, each note says so in words (`формы взаимозаменяемы, эта разговорнее`), without naming the card's own word.
 - **One word, one card.** A noun is learned with its article (de maandag, de vrijdagavond), never also as a bare card. A card with an article never hints at dropping it (no `без артикля`, `без de`): the learner would leave the article out (`article-notes.spec.ts`). When two cards merge, the kept one takes the earlier slot.
 - **Style pairs.** A colloquial card and its neutral or formal counterpart (check/controleer, de opa/de grootvader, de wc/het toilet) name each other in the note, `синоним: …` (synonym/sinónimo/sinônimo/eş anlamlı) first, in every language. Every card marked colloquial, neutral or formal is checked for a counterpart in the deck.
 - **Root families.** A derived word names its base with the base's translation, `от: …` (from/deriva de/deriva de/kökü), after any вариант/синоним or usage-rule item, in every language and every form card (plurals too). The base lists nothing back. Peers of one root, neither derived from the other, name each other both ways with `родственное: …` (related/relacionado/relacionado/akraba kelime/înrudit). Inside a link, meanings join with `, `, never `; `.
