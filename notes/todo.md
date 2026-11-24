@@ -4,8 +4,7 @@ Decisions agreed with the user and not shipped yet. Tick an item only once it is
 
 ## In progress
 
-- [ ] Pronounce intro shows every note line, `от:` included (the Dutch is on screen anyway). Code + spec done, not deployed.
-- [ ] Day-part notes: «без артикля: X» → «без de значит «X»» in all 6 languages. Data done, not deployed.
+- [ ] No «без артикля»/«без de» hint on any card with an article, all 6 languages (`article-notes.spec.ts`). Data done, not deployed.
 
 ## Affix cards in pronounce
 
@@ -40,4 +39,5 @@ Decisions agreed with the user and not shipped yet. Tick an item only once it is
 
 ## Deck
 
-- [ ] Nouns carry their article wherever they can. Days are fixed; scan the rest of the deck for bare nouns.
+- [ ] Nouns carry their article wherever they can. Days are fixed; scan the rest of the deck for bare nouns (e.g. mazelen, rode hond: Dutch says de mazelen, de rode hond).
+- [ ] Where it is not obvious the article is needed (phrases, sentences), the prompt says specific or general in words: «(конкретный)» for de/het, «(какой-нибудь)» for een. Never by naming de/het. Sweep all 6 languages.
