@@ -6,7 +6,8 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 
 - [ ] Every Dutch word in a note, breakdown or example list carries its translation: `sterk (сильный) → sterkte (сила)`, both sides of an arrow.
 - [ ] A derived word names every part it is built from, the whole chain (afgelopen ← gelopen ← lopen), and each part comes earlier in the deck.
-- [ ] When the meaning does not follow plainly from the parts (af- + zeggen = отменять, af- + spreken = договариваться), a literal bridge links them: дословно «от-сказать», как «отказать».
+- [ ] When the meaning does not follow plainly from the parts (af- + zeggen = отменять, af- + spreken = договариваться), a literal bridge links them: букв. «от-сказать», как «отказать». Each language writes it one way: ru `букв. «…»`, en `literally "…"`, es/pt `literalmente "…"`, tr `kelimesi kelimesine "…"`, ro `literal „…”`.
+- [ ] A loan root sounds the same in every card that holds it (apotheek, muziek, hotel, video); an unstressed open o is `оо`, a plural -ieën `ии́йэ(н)`.
 - [ ] The origin is the true one (gedachte = ge- + denken, not -te; leiding ← leiden; sleutel ← sluiten). An example given for an affix really uses that affix.
 - [ ] An affix named in another card carries the affix card's own gloss (or a piece of it), and the gloss is plain enough to tell it from a near affix (-end делающий vs -ig какой).
 - [ ] An affix gloss names the affix's real meaning (-lijks = еже-), with one example per sense, and the example's meaning shows the affix's sense (not opleiding for "руководство").
