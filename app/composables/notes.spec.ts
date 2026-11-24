@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-type Card = { id: string; b: string; n?: string };
+type Card = { id: string; b: string; f: string; n?: string };
 type Node = { cards?: Card[]; children?: Node[]; sections?: Node[] };
 
 const deck = JSON.parse(readFileSync('public/deck.json', 'utf8')) as Node | Node[];
@@ -15,6 +15,9 @@ const walk = (node: Node) => {
 const overlayNotes = (lang: string) => Object.values(
   (JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')) as { cards: Record<string, string[]> }).cards,
 ).map(v => v[3] ?? '');
+
+const overlayCards = (lang: string) =>
+  (JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')) as { cards: Record<string, string[]> }).cards;
 
 // each language writes "literally" one way, with its own quotes
 const LITERALLY: Record<string, { marker: RegExp; form: RegExp }> = {
@@ -36,5 +39,23 @@ describe('literal translations in notes', () => {
   it.each(Object.keys(LITERALLY))('follow the one %s form', (lang) => {
     const { marker, form } = LITERALLY[lang]!;
     expect(overlayNotes(lang).filter(n => count(n, marker) !== count(n, form))).toEqual([]);
+  });
+});
+
+// an affix makes a noun, not a "thing": the learner needs the part of speech
+const THING: Record<string, RegExp> = {
+  en: /\bthing\b/, es: /\bcosa\b/, pt: /\bcoisa\b/, tr: /nesne|şey olarak/, ro: /\blucru\b/,
+};
+
+describe('affix glosses', () => {
+  const affixes = cards.filter(c => /^-|-$/.test(c.b));
+
+  it('name the part of speech in Russian', () => {
+    expect(affixes.filter(c => /предмет/.test(`${c.f} ${c.n ?? ''}`)).map(c => c.b)).toEqual([]);
+  });
+
+  it.each(Object.keys(THING))('name the part of speech in %s', (lang) => {
+    const overlay = overlayCards(lang);
+    expect(affixes.filter(c => THING[lang]!.test(`${overlay[c.id]?.[0]} ${overlay[c.id]?.[3]}`)).map(c => c.b)).toEqual([]);
   });
 });

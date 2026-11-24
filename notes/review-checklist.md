@@ -10,7 +10,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] A loan root sounds the same in every card that holds it (apotheek, muziek, hotel, video); an unstressed open o is `оо`, an unstressed open i a plain `и`, a plural -ieën `ии́йэ(н)` and drieën- `дриийэ(н)` keep the optional n; no doubled consonant letters, even across a seam (afval `а́фал`).
 - [ ] The origin is the true one (gedachte = ge- + denken, not -te; leiding ← leiden; sleutel ← sluiten). An example given for an affix really uses that affix.
 - [ ] An affix named in another card carries the affix card's own gloss (or a piece of it), and the gloss is plain enough to tell it from a near affix (-end делающий vs -ig какой).
-- [ ] An affix gloss names the affix's real meaning (-lijks = еже-), with one example per sense, and the example's meaning shows the affix's sense (not opleiding for "руководство").
+- [ ] An affix gloss names the affix's real meaning (-lijks = еже-), with one example per sense, and the example's meaning shows the affix's sense (not opleiding for "руководство"). What it makes is named by its part of speech (`существительное`), never as `предмет`.
 - [ ] Note items read by kind: the rule about the card itself first, then where it comes from, then examples, each looking different.
 - [ ] Every meaning of the word is given (haakje, lid, stranden, bladeren, agent).
 - [ ] Close pairs say how they differ, clearly enough to pick the right one from the native side alone (aanmelden / inschrijven, voornaam / naam, thuis / naar huis, 's morgens / 's ochtends, lief / lieve).
