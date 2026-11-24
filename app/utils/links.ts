@@ -30,6 +30,8 @@ export interface CardIndex {
   bySide: Map<string, DeckCard[]>;
   /** Cards whose origin note names the card, with the meaning it gives. */
   derived: Map<string, Array<{ id: string; gloss?: string }>>;
+  /** Cards whose other note labels name the card (a plural, a form, a word not to confuse it with), less those its own note links. */
+  related: Map<string, Array<{ id: string }>>;
 }
 
 const key = (dutch: string) => dutch.trim().toLowerCase();
@@ -103,19 +105,29 @@ export function linkBreakdown(text: string, index: CardIndex, self?: string): Se
 const itemsOf = (note: string) => note.split('\n').flatMap(line => line.replace(/^!/, '').split('; '));
 
 export function buildIndex(cards: DeckCard[]): CardIndex {
-  const index: CardIndex = { byId: new Map(), bySide: new Map(), derived: new Map() };
+  const index: CardIndex = { byId: new Map(), bySide: new Map(), derived: new Map(), related: new Map() };
   for (const card of cards) {
     index.byId.set(card.id, card);
     const k = key(card.b);
     index.bySide.set(k, [...(index.bySide.get(k) ?? []), card]);
   }
+  const named = new Map<string, Set<string>>();
   for (const card of cards) {
     for (const item of itemsOf(card.n ?? '')) {
-      if (!ORIGIN_LABEL.test(item.match(LABEL)?.[2] ?? '')) continue;
+      const label = item.match(LABEL)?.[2];
+      if (!label) continue;
       for (const { link, gloss } of linkSegments(item, index, card.id)) {
-        if (link) index.derived.set(link, [...(index.derived.get(link) ?? []), { id: card.id, ...(gloss && { gloss }) }]);
+        if (!link) continue;
+        named.set(card.id, (named.get(card.id) ?? new Set()).add(link));
+        if (ORIGIN_LABEL.test(label)) index.derived.set(link, [...(index.derived.get(link) ?? []), { id: card.id, ...(gloss && { gloss }) }]);
+        else index.related.set(link, [...(index.related.get(link) ?? []), { id: card.id }]);
       }
     }
+  }
+  for (const [id, words] of index.related) {
+    const unseen = words.filter(w => !named.get(id)?.has(w.id));
+    if (unseen.length) index.related.set(id, unseen);
+    else index.related.delete(id);
   }
   return index;
 }

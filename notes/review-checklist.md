@@ -56,3 +56,5 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] A heuristic on answers (slow, guessed, missed) skips the games that ask nothing: intro.
 - [ ] Updates install quietly and land on the same step.
 - [ ] A note never glosses its word's -e form as another word: the -e form is a pair card, a noun from it its own card.
+- [ ] Every mention of another card is a labelled link (`от:`, `форма от:`, `мн. ч. от:`...); the target lists it back on its sheet.
+- [ ] Every -e pair card carries `форма от: <base> (<sense>)` in all 6 languages.

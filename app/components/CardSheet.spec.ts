@@ -17,6 +17,7 @@ const cards = [
   { id: 'verliezen', f: 'терять', b: 'verliezen', n: 'от: ver- (прочь, от-) + liezen' },
   { id: 'verkopen', f: 'продавать', b: 'verkopen', n: 'от: ver- (пере-, изменение) + kopen (покупать)' },
   { id: 'koper', f: 'покупатель', b: 'de koper', n: 'от: kopen (покупать)' },
+  { id: 'kopers', f: 'покупатели', b: 'de kopers', n: 'мн. ч. от: de koper (покупатель)' },
 ];
 deck.value = shallowRef({ id: 'root', name: 'root', cards }).value;
 
@@ -64,7 +65,7 @@ describe('a word a note derives the card from', () => {
     learned.add('kopen');
     const w = await doMount('verkopen');
     await findLinks(w)[1]!.trigger('click');
-    expect(readSheet(w)).toEqual({ word: 'kopen', transcription: '[ко:пэн]', senses: ['покупать'], example: ['Ik wil brood kopen.', 'Я хочу купить хлеб.'], status: 'Learned', derived: ['verkopen продавать new', 'de koper покупатель new'] });
+    expect(readSheet(w)).toEqual({ word: 'kopen', transcription: '[ко:пэн]', senses: ['покупать'], example: ['Ik wil brood kopen.', 'Я хочу купить хлеб.'], status: 'Learned', derived: ['verkopen продавать new', 'de koper покупатель new'], related: [] });
   });
 });
 
@@ -79,6 +80,14 @@ describe('a sheet on a word of several meanings', () => {
     const w = await doMount('verkopen');
     await findLinks(w)[0]!.trigger('click');
     expect(readSheet(w).derived).toEqual(['verliezen терять new прочь, от-', 'verkopen продавать new пере-, изменение']);
+  });
+});
+
+describe('a sheet on a word another card is a form of', () => {
+  it('links that card back', async () => {
+    const w = await doMount('kopers');
+    await findLinks(w)[0]!.trigger('click');
+    expect(readSheet(w)).toMatchObject({ word: 'de koper', related: ['de kopers покупатели new'] });
   });
 });
 
@@ -209,6 +218,7 @@ function readSheet(w: VueWrapper) {
     example: w.findAll('[data-testid="card-sheet-example"] p').map(p => p.text()),
     status: text('card-sheet-status'),
     derived: w.findAll('[data-testid="card-sheet-derived-word"]').map(d => d.findAll('span').map(s => s.text()).join(' ')),
+    related: w.findAll('[data-testid="card-sheet-related-word"]').map(d => d.findAll('span').map(s => s.text()).join(' ')),
   };
 }
 

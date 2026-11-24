@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-interface Card { id: string; b: string; n?: string }
+interface Card { id: string; b: string; n?: string; nb?: string }
 interface Node { cards?: Card[]; children?: Node[] }
 type Row = [string, string?, string?, string?, string?];
 const deck: Node = JSON.parse(readFileSync('public/deck.json', 'utf8'));
@@ -26,6 +26,31 @@ describe("a card's -e form", () => {
     it(`is never glossed in its note as another word in ${lang}`, () => {
       const rows: Record<string, Row> = JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
       expect(glossedForms(c => rows[c.id]?.[3])).toEqual([]);
+    });
+  }
+});
+
+/** The word an -e card is the form of: the card its `!een …` example names. */
+function pairsOf(): Array<{ card: Card; base: string }> {
+  const sides = new Set(cardsOf(deck).map(c => c.b));
+  return cardsOf(deck).flatMap(card => {
+    if (!card.n?.includes('сразу за ним сущ.')) return [];
+    const words = (card.nb ?? '').split('\n').filter(l => l.startsWith('!')).flatMap(l => l.slice(1).split(' '));
+    const base = words.find(w => sides.has(w) && w !== card.b && w.slice(0, 3) === card.b.slice(0, 3));
+    return base ? [{ card, base }] : [];
+  });
+}
+
+const FORM_OF: Record<string, string> = { en: 'form of', es: 'forma de', pt: 'forma de', tr: 'biçimi', ro: 'forma lui' };
+
+describe('an -e pair card', () => {
+  it('names its base as the word it is a form of in Russian', () => {
+    expect(pairsOf().filter(({ card, base }) => !itemsOf(card.n ?? '').some(i => i.startsWith(`форма от: ${base} (`))).map(p => p.card.b)).toEqual([]);
+  });
+  for (const [lang, label] of Object.entries(FORM_OF)) {
+    it(`names its base as the word it is a form of in ${lang}`, () => {
+      const rows: Record<string, Row> = JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
+      expect(pairsOf().filter(({ card, base }) => !itemsOf(rows[card.id]?.[3] ?? '').some(i => i.startsWith(`${label}: ${base} (`))).map(p => p.card.b)).toEqual([]);
     });
   }
 });

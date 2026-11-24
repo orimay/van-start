@@ -20,6 +20,12 @@ const derived = computed(() => {
     .map(d => ({ ...d, card: sheet.index.value.byId.get(d.id)!, sense: senses.length > 1 ? senses.find(s => d.gloss && same(d.gloss, s)) : undefined }));
 });
 
+/** Cards that are a form of this one, a variant of it or easy to confuse with it, in deck order, the secret one left out. */
+const related = computed(() => {
+  if (!card.value) return [];
+  return (sheet.index.value.related.get(card.value.id) ?? []).filter(r => r.id !== sheet.secret.value).map(r => ({ ...r, card: sheet.index.value.byId.get(r.id)! }));
+});
+
 // The panel follows the finger down; let go past a quarter of its height it closes, short of that it springs back.
 // The body owns the gesture while scrolled or moving up, so its own scroll still works.
 const DRAG_SLOP_PX = 6;
@@ -126,6 +132,14 @@ useEventListener(
             <span class="flex-1 text-stone-500">{{ word.card.f }}</span>
             <span v-if="!isLearned(word.id)" class="text-xs text-stone-400">new</span>
             <span v-if="word.sense" class="shrink-0 rounded bg-stone-100 px-1.5 text-xs text-stone-500 dark:bg-stone-800" :class="{ 'text-sky-700 dark:text-sky-400': layer?.gloss && same(layer.gloss, word.sense) }">{{ word.sense }}</span>
+          </button>
+        </section>
+        <section v-if="related.length" class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-related">
+          <p class="text-xs font-semibold uppercase text-stone-500">Related words</p>
+          <button v-for="word in related" :key="word.id" type="button" class="flex items-baseline gap-2 py-1 text-left" data-testid="card-sheet-related-word" @click="sheet.open(word.id)">
+            <span class="text-sky-700 underline decoration-dotted decoration-2 underline-offset-4 dark:text-sky-400">{{ word.card.b }}</span>
+            <span class="flex-1 text-stone-500">{{ word.card.f }}</span>
+            <span v-if="!isLearned(word.id)" class="text-xs text-stone-400">new</span>
           </button>
         </section>
       </div>

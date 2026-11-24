@@ -15,6 +15,8 @@ const cards = [
   { id: 'pas-1', f: 'лишь', b: 'pas' },
   { id: 'pas-2', f: 'примерь!', b: 'pas' },
   { id: 'pasje', f: 'карточка', b: 'het pasje', n: 'n. diminutivo de: pas (примерь!)' },
+  { id: 'snel', f: 'быстро', b: 'snel', n: 'синоним: vlug (быстро)' },
+  { id: 'vlug', f: 'быстро', b: 'vlug', n: 'синоним: snel (быстро)' },
 ];
 const index = buildIndex(cards);
 const links = (item: string, self?: string) => linkSegments(item, index, self).filter(s => s.link).map(s => [s.text, s.link]);
@@ -87,5 +89,16 @@ describe('derived words', () => {
     expect(index.derived.get('kopen')).toEqual([{ id: 'verkopen', gloss: 'покупать' }]);
     expect(index.derived.get('ver')).toEqual([{ id: 'verkopen', gloss: 'пере-, изменение' }]);
     expect(index.derived.get('boek')).toEqual([{ id: 'boekje', gloss: 'книга' }]);
+  });
+});
+
+describe('related words', () => {
+  it("are the cards whose form, variant or don't-confuse note names the word", () => {
+    expect(index.related.get('boek')).toEqual([{ id: 'boeken' }]);
+    expect(index.related.get('weer-n')).toEqual([{ id: 'weer' }]);
+  });
+
+  it("leave out a card the word's own note already links", () => {
+    expect(index.related.get('snel')).toBeUndefined();
   });
 });
