@@ -55,3 +55,4 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] Continue shows the progress per game and starts at the first unfinished game.
 - [ ] A heuristic on answers (slow, guessed, missed) skips the games that ask nothing: intro.
 - [ ] Updates install quietly and land on the same step.
+- [ ] A note never glosses its word's -e form as another word: the -e form is a pair card, a noun from it its own card.
