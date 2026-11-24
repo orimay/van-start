@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { noteLines } from './deck';
+import { noteLines, toStudyCard, type DeckCard } from './deck';
 
 interface Card { id: string; b: string; n?: string }
 interface Node { cards?: Card[]; children?: Node[] }
@@ -27,6 +27,19 @@ describe('a Russian note item', () => {
   it('keeps its meaning apart from a Dutch example', () => {
     const offenders = cardsOf(deck).flatMap(c => items(c.n).filter(hidesMeaning).map(i => `${c.b}: ${i}`));
     expect(offenders).toEqual([]);
+  });
+});
+
+describe('a Russian prompt', () => {
+  it('shows no Dutch word before the answer is out', () => {
+    const shown = cardsOf(deck).flatMap(c => {
+      const card = toStudyCard(c as DeckCard);
+      return noteLines(card.promptNote ?? '')
+        .filter((_, i) => !card.promptSecret?.[i])
+        .filter(l => firstDutch(l.text) !== undefined)
+        .map(l => `${c.b}: ${l.text}`);
+    });
+    expect(shown).toEqual([]);
   });
 });
 
