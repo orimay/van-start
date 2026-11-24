@@ -111,9 +111,13 @@ export function givesAway(item: string, answer: string) {
   return dutchWords(item).some(w => answerWords.some(a => w.startsWith(a) || a.startsWith(w)));
 }
 
+/** In a Russian note item (a note with no Cyrillic is someone's own, in another script), any Latin word beyond the article and the -e ending is Dutch. */
+const namesDutch = (russian: string) => (russian.toLowerCase().match(/[a-zà-ÿ]+/g) ?? []).some(w => !ALLOWED_DUTCH.has(w));
+
 /** A translated note item is judged by its Russian twin too, when the items line up. */
 function secretLines(card: DeckCard, promptNote: string): boolean[] {
   const own = noteLines(card.n ?? '').length;
-  const russian = card.nr === undefined ? undefined : noteLines(card.nr);
-  return noteLines(promptNote).map(({ text }, i) => givesAway(text, card.b) || (i < own && russian?.length === own && givesAway(russian[i]!.text, card.b)));
+  const twin = card.nr ?? card.n ?? '';
+  const russian = /[а-яё]/i.test(twin) ? noteLines(twin) : [];
+  return noteLines(promptNote).map(({ text }, i) => givesAway(text, card.b) || (i < own && russian.length === own && (namesDutch(russian[i]!.text) || givesAway(russian[i]!.text, card.b))));
 }

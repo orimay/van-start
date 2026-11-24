@@ -144,8 +144,17 @@ describe('a native note item with a Dutch word', () => {
   });
 
   it('stays hidden when it names the word not to confuse it with, in any language', async () => {
-    for (const label of ['не путать с', "don't confuse with", 'no confundir con', 'não confundir com', 'karıştırma'])
+    expect(await hidden({ id: 'c11', f: 'сейчас', b: 'nu', n: 'текущий момент; не путать с: meteen' })).toEqual([false, true]);
+    for (const label of ["don't confuse with", 'no confundir con', 'não confundir com', 'karıştırma'])
       expect(await hidden({ id: 'c11', f: 'now', b: 'nu', n: `the present moment; ${label}: meteen` })).toEqual([false, true]);
+  });
+
+  it('stays hidden when it is Dutch alone, its meaning shown', async () => {
+    expect(await hidden({ id: 'c12', f: 'делать', b: 'maken', n: 'изготавливать или чинить; de fiets …' })).toEqual([false, true]);
+  });
+
+  it('stays hidden when it is Dutch alone, in any language', async () => {
+    expect(await hidden({ id: 'c13', f: 'to make', b: 'maken', n: 'produce or fix; de fiets …', nr: 'изготавливать или чинить; de fiets …' })).toEqual([false, true]);
   });
 
   it('stays hidden when it is a Dutch usage example, its hint shown', async () => {

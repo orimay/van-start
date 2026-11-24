@@ -50,6 +50,8 @@ When two rules conflict, the one written further down wins.
   - Examples show on the Dutch side.
 - **Notes.**
   - A note is context: it tells what the card means and so what to answer. It is not an answer, not a hint, not usage trivia. No Dutch usage examples on the prompt side (`перед месяцем только эта (eind mei)` is out).
+  - Any Dutch word hides its whole item until the answer is out (judged on the Russian twin, so every language matches). So a meaning and its Dutch example are separate items: `изготавливать или чинить; de fiets …`, `в предложении отрывается и уходит в конец; ik bel je op (я тебе звоню)`. Mentions of other words and examples show after the reveal, as links to their cards. `app/utils/note-dutch.spec.ts` checks it, and that every translated note has the Russian item count.
+  - Register says it in words (`официальнее`, `обычное слово`, `короткое слово`), never by naming the other word; that word goes in its own `синоним:` item.
   - Every listed meaning has an explanation. A missing meaning gets added.
   - Every meaning is in the translation itself (`полицейский; агент`), never only in a note's "также …" item.
   - A short form names its full word as `синоним:` and back (de agent/de politieagent).
