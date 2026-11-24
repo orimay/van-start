@@ -5,6 +5,7 @@ import Prompt from './Prompt.vue';
 import Toast from './Toast.vue';
 import Answer from './Answer.vue';
 import { flip, toStudyCard, type DeckCard } from '@/utils/deck';
+import { useStore } from '@/composables/useStore';
 
 const CARD = { id: 'c0', prompt: 'huis', answer: 'дом', promptExample: 'Een huis.' } as never;
 
@@ -302,5 +303,42 @@ describe('a note of several kinds', () => {
   it('shows each Dutch line of a Dutch note as an example', async () => {
     const w = await mountSuspended(Answer, { props: { card: toStudyCard({ id: 'c10', f: 'большой', b: 'grote', nb: 'de grote man\nhet grote huis' }), silent: true } });
     expect(kinds(w)).toEqual(['example', 'example']);
+  });
+});
+
+/** A native gloss alone reads as a word of its own: the card says it means an affix. */
+describe('an affix meaning', () => {
+  const suffix = { id: 'a1', f: 'о женщине: после -er, -aar', b: '-es', xf: 'певица', xb: 'de zangeres' };
+  const prefix = { id: 'a2', f: 'из глагола делает существительное', b: 'ge-', xf: 'разговор', xb: 'het gesprek' };
+  const setLanguage = (language: 'en' | 'ru') => { const { settings } = useStore(); settings.value = { ...settings.value, language }; };
+  afterEach(() => setLanguage('en'));
+
+  it('says it is a suffix', async () => {
+    const w = await mountSuspended(Prompt, { props: { card: toStudyCard(suffix) } });
+    expect(w.get('[data-testid="prompt"]').text()).toBe('о женщине: после -er, -aar (suffix)');
+  });
+
+  it('says it is a prefix on the answer', async () => {
+    const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(prefix)), silent: true } });
+    expect(w.get('[data-testid="answer"]').text()).toBe('из глагола делает существительное (prefix)');
+  });
+
+  it('says so in the native language', async () => {
+    setLanguage('ru');
+    const w = await mountSuspended(Prompt, { props: { card: toStudyCard(suffix) } });
+    expect(w.get('[data-testid="prompt"]').text()).toBe('о женщине: после -er, -aar (суффикс)');
+  });
+
+  it('leaves the affix itself bare', async () => {
+    const w = await mountSuspended(Prompt, { props: { card: flip(toStudyCard(suffix)) } });
+    expect(w.get('[data-testid="prompt"]').text()).toBe('-es');
+  });
+
+  it('copies without the tag', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
+    const w = await mountSuspended(Prompt, { props: { card: toStudyCard(suffix) } });
+    await w.get('[data-testid="prompt"]').trigger('click');
+    expect(writeText.mock.calls).toEqual([['о женщине: после -er, -aar']]);
   });
 });

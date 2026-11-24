@@ -84,7 +84,7 @@ describe('an affix', () => {
 /** An affix named in another card's note or breakdown carries its own card's gloss, or a piece of it: the card is the one source. */
 describe('an affix named in another card', () => {
   const REF = /(?<![\p{L}-])(-\p{L}+|\p{L}+-) \(([^()]*)\)/gu;
-  const glossesOf = (f?: string) => (f ? [f, ...f.split('; '), ...f.split(/; |, |: /)] : []);
+  const glossesOf = (f?: string) => (f ? [f, ...f.split('; '), ...f.split(': '), ...f.split(/; |, |: /)] : []);
   const mismatches = (texts: Array<[string, string | undefined]>, glossOf: (affix: Card) => string | undefined) => {
     const byWord = new Map(cardsOf(deck).filter(c => isAffix(c.b)).map(c => [c.b, c]));
     return texts.flatMap(([where, text]) => [...(text ?? '').matchAll(REF)].flatMap(([, affix, gloss]) => {
@@ -103,6 +103,22 @@ describe('an affix named in another card', () => {
       const overlay = overlayOf(lang);
       const texts = cardsOf(deck).flatMap(c => [[c.b, overlay[c.id]?.[3]], [c.b, overlay[c.id]?.[5]]] as Array<[string, string | undefined]>);
       expect(mismatches(texts, c => overlay[c.id]?.[0])).toEqual([]);
+    });
+  }
+});
+
+/** Two affixes with one meaning leave the learner guessing which to recall: each gloss says what sets it apart. */
+describe('an affix meaning', () => {
+  const shared = (glossOf: (c: Card) => string | undefined) => Object.values(Object.groupBy(cardsOf(deck).filter(c => isAffix(c.b)), c => glossOf(c) ?? '')).filter(g => g!.length > 1).map(g => g!.map(c => c.b).join(' = '));
+
+  it('belongs to one affix in Russian', () => {
+    expect(shared(c => c.f)).toEqual([]);
+  });
+
+  for (const lang of ['en', 'es', 'pt', 'tr', 'ro']) {
+    it(`belongs to one affix in ${lang}`, () => {
+      const overlay = overlayOf(lang);
+      expect(shared(c => overlay[c.id]?.[0])).toEqual([]);
     });
   }
 });

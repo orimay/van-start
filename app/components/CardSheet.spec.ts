@@ -9,7 +9,7 @@ import Prompt from './Prompt.vue';
 import { toStudyCard, type DeckNode } from '@/utils/deck';
 
 const { deck, learned } = vi.hoisted(() => ({ deck: { value: undefined as DeckNode | undefined }, learned: new Set<string>() }));
-mockNuxtImport('useStore', () => () => ({ deck, isLearned: (id: string) => learned.has(id) }));
+mockNuxtImport('useStore', () => () => ({ deck, isLearned: (id: string) => learned.has(id), settings: { value: { language: 'en' } } }));
 
 const cards = [
   { id: 'ver', f: 'пере-, изменение; прочь, от-', b: 'ver-', xb: 'verkopen, verhuizen' },
