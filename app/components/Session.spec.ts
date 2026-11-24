@@ -654,6 +654,12 @@ describe('an affix', () => {
         expect(w.get('[data-testid="affix"]').text()).toBe('be- acting on someone');
       });
 
+      it('names itself above everything else', async () => {
+        const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
+        const first = w.get('[data-testid="affix"]').element;
+        for (const other of ['prompt', 'answer', 'breakdown']) expect(first.compareDocumentPosition(w.get(`[data-testid="${other}"]`).element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      });
+
       it('marks itself in its example word', async () => {
         const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
         expect(w.get('[data-testid="affix-part"]').text()).toBe('be');
