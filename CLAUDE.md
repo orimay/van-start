@@ -12,7 +12,7 @@ When two rules conflict, the one written further down wins.
 - Run Python with `-I`.
 - Never extract or use the user's credentials from their folders. Push to the orimay repos with `~/.ssh/id_ed25519_github`.
 - Sources live in `orimay/van-start` (push with `GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github"`). Commit and push each finished step; `scripts/deploy.sh` also commits and pushes the sources. Commits use `dmitrii.a.baranov@gmail.com`: the shell's `JJ_EMAIL` is the work one, so set `JJ_EMAIL` on every committing jj call.
-- Ship with `scripts/ship.sh "msg"`: it snapshots the working copy into the `build` jj workspace (`../van-start-build`, made on first run with `node_modules` and `public/audio` linked in) and runs `scripts/deploy.sh` there, then rebases the working copy onto the pushed `main`. Editing goes on during the build; only changes made before the snapshot ship.
+- Ship with `scripts/ship.sh "msg"`: it snapshots the working copy into the `build` jj workspace (`../van-start-build`, made on first run with `node_modules` and `public/audio` linked in) and runs `scripts/deploy.sh` there, then moves the working copy onto the pushed `main` with its files unchanged. Editing goes on during the build; only changes made before the snapshot ship.
 - Bugs follow TDD: failing test first, then the fix.
 - Tests are black-box only: assert what the user sees (DOM, `data-testid`), never internals.
 - Never claim audio sounds right without having heard it.

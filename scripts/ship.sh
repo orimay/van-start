@@ -7,15 +7,18 @@ cd "$APP"
 jj status >/dev/null
 if [ ! -d "$BUILD/.jj" ]; then
   jj workspace add --name build "$BUILD"
-  ln -s "$APP/node_modules" "$BUILD/node_modules"
-  # Clips are gitignored; the deploy syncs them from here.
-  ln -s "$APP/public/audio" "$BUILD/public/audio"
 fi
 cd "$BUILD"
 JJ_EDITOR=true jj new main
 jj restore --from default@
+# Gitignored, so linked in from the working copy; the deploy syncs the clips from here.
+ln -sfn "$APP/node_modules" node_modules
+ln -sfn "$APP/public/audio" public/audio
 rm -rf .output
 scripts/deploy.sh "$1"
 cd "$APP"
-# The working copy keeps only what changed after the snapshot.
-JJ_EDITOR=true jj rebase -r default@ -d main
+# The working copy moves onto the pushed main with its files as they are: a merge would conflict on a file added before the snapshot and edited after.
+OLD=$(jj log --no-graph -r @ -T commit_id)
+JJ_EDITOR=true jj new main
+jj restore --from "$OLD"
+jj abandon "$OLD"
