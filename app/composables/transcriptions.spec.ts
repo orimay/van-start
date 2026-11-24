@@ -42,6 +42,10 @@ const ROOT_SOUNDS: Record<string, string> = {
   assistent: 'асистэ',
   apothe: 'аапоотэ',
   annule: 'аанүүлэ',
+  produc: 'проодүк',
+  sollicit: 'солиси',
+  direct: 'дирэк',
+  serie: 'сэйри',
 };
 
 // English loans keep their English "you" sound
@@ -63,6 +67,11 @@ describe('ru transcriptions', () => {
   // tj is one soft sound (ть); nj is нь (Spanje)
   it('write je after any other consonant as йэ', () => {
     expect(cards.filter(c => /[бвгдзклмпрсфхңһ]ьэ/.test(c.tr)).map(c => `${c.b} /${c.tr}/`)).toEqual([]);
+  });
+
+  // Dutch has no long consonants, not even across a compound seam (afval, aannemen)
+  it('write no doubled consonant', () => {
+    expect(cards.filter(c => /([бвгджзйклмнпрстфхцчшщңһ])\1/.test(c.tr.replace(/\(н\)/g, ''))).map(c => `${c.b} /${c.tr}/`)).toEqual([]);
   });
 
   it('write a word-final a as аа', () => {
