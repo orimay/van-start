@@ -110,6 +110,8 @@ When two rules conflict, the one written further down wins.
 - **Part of speech.** A noun translates as a noun (de maandagochtend = `утро понедельника`); an adverbial use goes in the note.
 - **Number.** Singular and plural are visible in the translation, also in phrases (`пепернотен (мн.)`, pepernoten eten).
 - **Articles.** Where de/het or its absence changes the sense (de krant lezen, in de tuin, een festival bezoeken, kerstmis vieren vs de kerstmis), the translation shows specific vs general in words (`читать газету (свою, обычную)`, `посещать фестиваль (какой-нибудь)`), and the note says why. Never name de or het in a prompt or note to say so: that hands over the article.
+  - An adjective with its noun (the -e ending depends on it) says which in ru: `(конкретный)` for de/het, `(какой-нибудь)` for een, agreeing with the noun (`вкусная пицца (конкретная)`). tr says `(belirli)` or puts `bir` in; en/es/pt/ro use their own article (`the tasty pizza`, `una calle ancha`, ro the articulated form `cartea ieftină` or `o carte`).
+  - A noun card always carries its article, also one Russian says without (de mazelen, het basketbal, de wifi).
 - **Parts of a word.** A word built from other words names every link of its chain, each link with its meaning, down to the root:
   - Every ancestor comes before the word built from it, each with its own card: lopen, then gelopen, then aflopen, then afgelopen.
   - Each card names its direct parent as `от:` and spells the rest of the chain after it, so the whole build shows on one card. afgelopen: `от: aflopen (заканчиваться) = af (с, от) + lopen (идти)`, `причастие`.
