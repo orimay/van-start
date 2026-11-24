@@ -4,6 +4,7 @@ import { flushPromises } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent, h, shallowRef } from 'vue';
 import CardSheet from './CardSheet.vue';
+import Answer from './Answer.vue';
 import Prompt from './Prompt.vue';
 import { toStudyCard, type DeckNode } from '@/utils/deck';
 
@@ -89,6 +90,20 @@ describe('a sheet opened while the answer is secret', () => {
   });
 });
 
+describe('the details button on an answer card', () => {
+  it('opens the sheet on the card it shows', async () => {
+    const w = await doMountAnswer('verkopen');
+    await w.get('[data-testid="card-details"]').trigger('click');
+    expect(readSheet(w).word).toBe('verkopen');
+    expect(readSheet(w).derived).toEqual([]);
+  });
+
+  it('is not there while the answer is secret', async () => {
+    const w = await doMountAnswer('verkopen', true);
+    expect(w.find('[data-testid="card-details"]').exists()).toBe(false);
+  });
+});
+
 describe('sheets stacked from links inside a sheet', () => {
   it('step back one at a time, then close', async () => {
     const w = await doMount('verkopen');
@@ -154,6 +169,11 @@ describe('a sheet pulled down by the finger', () => {
 async function doMount(id: string, secret = false) {
   const card = toStudyCard(cards.find(c => c.id === id)!);
   return mountSuspended(defineComponent(() => () => [h(Prompt, { card, secret }), h(CardSheet)]));
+}
+
+async function doMountAnswer(id: string, hidden = false) {
+  const card = toStudyCard(cards.find(c => c.id === id)!);
+  return mountSuspended(defineComponent(() => () => [h(Answer, { card, hidden, silent: true }), h(CardSheet)]));
 }
 
 const findPanel = (w: VueWrapper) => w.get('[data-testid="card-sheet"]');

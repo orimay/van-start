@@ -4,6 +4,8 @@ import { copyText } from '@/utils/copy';
 import { letterCount, noteLines, type StudyCard } from '@/utils/deck';
 import { speak } from '@/utils/speak';
 
+const sheet = useCardSheet();
+
 // Hidden answers still take their space, so revealing one does not shift the prompt.
 const props = defineProps<{ card: StudyCard; hidden?: boolean; silent?: boolean; right?: boolean; noTranscription?: boolean }>();
 /** An affix's example on this side is its Dutch word, with the affix marked; otherwise this is the side of its meaning. */
@@ -21,6 +23,7 @@ watch(() => props.hidden, hidden => hidden || props.silent || speak(props.card),
     <p v-if="card.answerExample" class="cursor-copy text-sm text-stone-500" data-testid="answer-example" @click="hidden || copyText(card.answerExample)"><AffixWord v-if="dutchExample" :word="card.answerExample" :affix="card.affix!.dutch" /><template v-else>{{ card.answerExample }}</template></p>
     <p v-if="card.affix && !dutchExample && card.breakdown" class="text-sm text-stone-500" data-testid="breakdown"><NoteText :text="card.breakdown" :self="card.id" breakdown /></p>
     </div>
+    <button v-if="!hidden" type="button" class="absolute top-1 right-1 flex size-7 items-center justify-center rounded-full border border-stone-300 text-sm text-stone-500 dark:border-stone-600 dark:text-stone-400" aria-label="Details" data-testid="card-details" @click.stop="sheet.open(card.id)">?</button>
     <div v-if="hidden && $slots.default" class="absolute inset-0 flex items-center justify-center px-3 text-center text-xl"><slot /></div>
   </div>
 </template>
