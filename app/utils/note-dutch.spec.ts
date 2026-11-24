@@ -67,3 +67,16 @@ describe('a word a note derives', () => {
     });
   }
 });
+
+/** A gloss inside a gloss: `mogen (мочь (иметь разрешение))`. */
+const NESTED = /\([^()]*\(/;
+
+describe('a gloss in a note', () => {
+  for (const lang of ['ru', 'en', 'es', 'pt', 'tr', 'ro']) {
+    it(`holds no brackets of its own in ${lang}`, () => {
+      const rows: Record<string, Row> = lang === 'ru' ? {} : JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
+      const nested = cardsOf(deck).flatMap(c => items(lang === 'ru' ? c.n : rows[c.id]?.[3]).filter(i => NESTED.test(i)).map(i => `${c.b}: ${i}`));
+      expect(nested).toEqual([]);
+    });
+  }
+});

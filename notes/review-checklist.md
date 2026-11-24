@@ -22,6 +22,10 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] A closed card's example stays hidden behind Show context (a tap anywhere on the card shows it), so the word is recalled on its own.
 - [ ] Examples use only words learned earlier (or about to come); an example sentence contains the word itself.
 - [ ] Grammar terms are said in plain words with an example (be- = action aimed at something: лечить кого-то).
+- [ ] No tense or verb-type names: `о будущем`, `op отрывается и уходит в конец`; the language is нидерландский.
+- [ ] A confusable pair says `не путать с:` both ways, in every language.
+- [ ] No gloss inside a gloss; a comma, never `; `, inside brackets.
+- [ ] An example's translation matches the card's meaning (afspreken met = назначать встречу, not договориться) and the real-world fact (groep 3 = первый класс).
 - [ ] No bare label stands in for a meaning: a particle says what it does (hoor: смягчает или успокаивает), an adverb label is used only where the word answers it (no `как «как? где?»` before `только`).
 - [ ] A Dutch example in a note reads `nl — перевод` and sits in its own item, apart from the meaning (`просить; ik vraag om iets — я прошу о чём-то`).
 - [ ] An affix's example is the first card built with it (a diminutive's `уменьш. от:` counts for -je).

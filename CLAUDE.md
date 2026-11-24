@@ -90,11 +90,15 @@ When two rules conflict, the one written further down wins.
   - adverb: `отвечает на «как? где?»`, only where the word does answer it (thuis: `отвечает на «где?»`); otherwise the meaning alone (echt: `в самом деле`), never a bare label;
   - particle: what it does, with an example (hoor: `в конце фразы смягчает или успокаивает; nee hoor — да нет же`), never a bare `частица`;
   - impersonal: `без того, кто делает`; passive: `с ним делают`, each likewise translated.
+  - separable verb: what the part does, `op отрывается и уходит в конец` / `op splits off and goes to the end` / `op se separa y va al final` / `op se separa e vai para o final` / `op ayrılıp sona gider` / `op se desparte și merge la final`; its plain twin `не разделяется` (ik bel);
+  - future: `о будущем` / `about the future` / `sobre el futuro` / `sobre o futuro` / `gelecek için` / `despre viitor`, never `будущее время`;
+  - the language is `нидерландский`, never `голландский`;
+  - a gloss holds no gloss of its own: `mogen (мочь, иметь разрешение)`, never `(мочь (иметь разрешение))`; inside brackets a comma, never `; ` (it splits note items). `note-dutch.spec.ts` checks every language.
 - **One card per prompt.** In each language no two cards share a prompt: translation plus note. Near synonyms get a telling hint in the translation: the register or nuance (`терять (куда-то деть)` / `терять; проигрывать`), the form (`как долго (одним словом)`, `сайт (коротко)`, `мама (другое написание)`), or the article (`утюг (de-слово)`). `app/utils/duplicate-prompts.spec.ts` checks it.
 - **Transcription.**
   - Per language, in that language's script.
   - Consistent across all cards, including -en forms: inside compounds, mid-word, and in comma variants (de zonen, de zoons).
-  - Dutch u/uu is ү/үү; ю only in English loans (interview, steward). No ы, ё, ː. `app/composables/transcriptions.spec.ts` checks it.
+  - Dutch u/uu is ү/үү; ю only in English loans (interview, steward). No ы, е, ё, ː (Cyrillic е leaks raw into every other language). ee is эй; ээ only before r (meer, keer). `app/composables/transcriptions.spec.ts` checks it.
   - The n of an unstressed -en, usually dropped in speech, is marked optional in every language: `лоо́пэ(н)`, `доосэ́нтэ(н)каамэр`. Never inside a root or before a d/t ending (`ви́ңкэлсэнтрүм`, `о́нбэкэндэ`), except before a tens word (`зэсэ(н)тви́нтэх`). Stress on a diphthong goes on its first letter: `э́й`, `ә́й`, `а́у`. A linking -en- said ң before k is still written `(н)` (`бу́рэ(н)каас`), only when the stem is a deck word; the ng/nk of a root stays (`брэ́ңэ(н)`, `наа́дэңкэ(н)`). Run `python3 -I scripts/mark-optional-n.py` after any transcription change.
   - Russian `tr` is the source: every other language's transcription is derived from it by `scripts/translit.py` (mark-optional-n rewrites them all). Edit ru, never another language's tr by hand. ij is spelled like ei in every language.
   - Tests: `python3 -I scripts/translit_test.py` (also checks the whole deck is derived), `python3 -I scripts/mark_optional_n_test.py`, `python3 -I scripts/sync_audio_test.py`, `python3 -I scripts/flag_kinds_test.py`.

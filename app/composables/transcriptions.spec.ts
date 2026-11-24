@@ -16,8 +16,8 @@ const walk = (node: Node) => {
 const ENGLISH_YU = /interview|new york|steward/i;
 
 describe('ru transcriptions', () => {
-  it('use no ы, ё or ː', () => {
-    expect(cards.filter(c => /[ыёː]/.test(c.tr)).map(c => `${c.b} /${c.tr}/`)).toEqual([]);
+  it('use no ы, е, ё or ː', () => {
+    expect(cards.filter(c => /[ыеёː]/.test(c.tr)).map(c => `${c.b} /${c.tr}/`)).toEqual([]);
   });
 
   it('stress a diphthong on its first letter', () => {
