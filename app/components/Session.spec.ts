@@ -1359,56 +1359,6 @@ describe('back', () => {
   });
 });
 
-describe('swipe', () => {
-  it('left moves on past an introduced card', async () => {
-    const w = await doMount({ cards: cards(3), stages: ['intro'] });
-    const first = promptOf(w);
-    await doSwipe(w, -100);
-    expect(promptOf(w)).not.toBe(first);
-  });
-
-  it('left does not check an unchecked answer', async () => {
-    const w = await doMount({ cards: cards(3), stages: ['type'] });
-    const first = promptOf(w);
-    await doSwipe(w, -100);
-    expect(promptOf(w)).toBe(first);
-    expect(w.emitted('answer')).toBeUndefined();
-  });
-
-  it('left does not miss a choice not picked yet', async () => {
-    const w = await doMount({ cards: cards(3), stages: ['choice'] });
-    const first = promptOf(w);
-    await doSwipe(w, -100);
-    expect(promptOf(w)).toBe(first);
-    expect(w.emitted('answer')).toBeUndefined();
-  });
-
-  it('left does not turn a right choice into a miss', async () => {
-    vi.useFakeTimers();
-    const w = await doMount({ cards: cards(3), stages: ['choice'] });
-    await doPick(w, answerFor(promptOf(w)));
-    await doSwipe(w, -100);
-    await vi.advanceTimersByTimeAsync(500);
-    expect(w.emitted('answer')?.map(a => a[2])).toEqual([true]);
-    vi.useRealTimers();
-  });
-
-  it('right steps back', async () => {
-    const w = await doMount({ cards: cards(3), stages: ['intro'] });
-    const first = promptOf(w);
-    await doClick(w, 'next');
-    await doSwipe(w, 100);
-    expect(promptOf(w)).toBe(first);
-  });
-
-  it('too short does nothing', async () => {
-    const w = await doMount({ cards: cards(3), stages: ['intro'] });
-    const first = promptOf(w);
-    await doSwipe(w, -30);
-    expect(promptOf(w)).toBe(first);
-  });
-});
-
 describe('resume', () => {
   it('continues at the exact card, without the ones already done', async () => {
     const deck = cards(5);
@@ -1523,7 +1473,7 @@ describe('back after a reload', () => {
     const at = before.emitted<[unknown]>('position')!.at(-1)![0];
 
     const after = await doMount({ cards: cards(40), stages: ['recall'], resumeAt: at });
-    for (let i = 0; i < 35; i++) await doSwipe(after, 100);
+    for (let i = 0; i < 35; i++) await doClick(after, 'previous');
     expect(promptOf(after)).toBe(first);
     expect(after.get('[data-testid="previous"]').attributes('disabled')).toBeDefined();
   });
@@ -1582,7 +1532,7 @@ describe('saved position', () => {
       history: [{ stage: 0, queue: [{ match: false, ids: ['c0'] }, { match: false, ids: ['c1'] }, { match: false, ids: ['c2'] }], size: 3, reported: [], answers: ['c0'] }],
     };
     const w = await doMount({ cards: cards(3), stages: ['recall'], resumeAt: at });
-    await doSwipe(w, 100);
+    await doClick(w, 'previous');
     expect(promptOf(w)).toBe('p0');
   });
 });
@@ -1593,8 +1543,8 @@ describe('back into matching', () => {
     const w = await doMount({ cards: deck, stages: ['match', 'recall'] });
     for (const id of ['c0', 'c1', 'c2', 'c3', 'c4']) await doMatch(w, id);
     await doStartNextGame(w);
-    await doSwipe(w, 100);
-    await doSwipe(w, 100);
+    await doClick(w, 'previous');
+    await doClick(w, 'previous');
     expect(visiblePairs(w)).toHaveLength(5);
   });
 
@@ -1606,8 +1556,8 @@ describe('back into matching', () => {
     const at = before.emitted<[unknown]>('position')!.at(-1)![0];
 
     const after = await doMount({ cards: deck, stages: ['match', 'recall'], resumeAt: at });
-    await doSwipe(after, 100);
-    await doSwipe(after, 100);
+    await doClick(after, 'previous');
+    await doClick(after, 'previous');
     expect(visiblePairs(after)).toHaveLength(5);
   });
 });
@@ -1746,6 +1696,19 @@ describe('review', () => {
     const w = await doMount({ cards: cards(2), stages: ['type'] });
     await doType(w, 'input', answerFor(promptOf(w)));
     await vi.advanceTimersByTimeAsync(10_000);
+    await doClick(w, 'submit');
+    expect(w.emitted('show')![0]![0]).toMatchObject({ answer: 'plus', ms: 0 });
+    vi.useRealTimers();
+  });
+
+  it('stops the clock while a sheet on a linked word is open', async () => {
+    vi.useFakeTimers();
+    const w = await doMount({ cards: cards(2), stages: ['type'] });
+    const sheet = useCardSheet();
+    sheet.open('c1');
+    await vi.advanceTimersByTimeAsync(10_000);
+    sheet.close();
+    await doType(w, 'input', answerFor(promptOf(w)));
     await doClick(w, 'submit');
     expect(w.emitted('show')![0]![0]).toMatchObject({ answer: 'plus', ms: 0 });
     vi.useRealTimers();
@@ -2045,15 +2008,6 @@ async function doType(w: VueWrapper, testId: string, text: string) {
   field.element.textContent = text;
   await field.trigger('input');
   await field.trigger('keydown', { key: 'Enter' });
-  await nextTick();
-}
-
-async function doSwipe(w: VueWrapper, dx: number) {
-  const touch = (type: string, x: number) => Object.assign(new Event(type, { bubbles: true }), { touches: [{ clientX: x, clientY: 200 }], changedTouches: [{ clientX: x, clientY: 200 }] });
-  const el = w.element as HTMLElement;
-  el.dispatchEvent(touch('touchstart', 200));
-  el.dispatchEvent(touch('touchmove', 200 + dx));
-  el.dispatchEvent(touch('touchend', 200 + dx));
   await nextTick();
 }
 

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useSwipe } from '@vueuse/core';
 import { computed, nextTick, provide, shallowRef, useTemplateRef, watch } from 'vue';
 import { flip, type StudyCard } from '@/utils/deck';
 import { pickIndex } from '@/utils/pick';
@@ -307,6 +306,17 @@ watch(view, () => {
   answeredAt = undefined;
 });
 
+// Reading a linked word's sheet is no thinking on the answer: the clock stops while one is open.
+let sheetOpenedAt: number | undefined;
+watch(
+  () => useCardSheet().layers.value.length > 0,
+  open => {
+    if (open) sheetOpenedAt = Date.now();
+    else if (sheetOpenedAt !== undefined && answeredAt === undefined) shownAt += Date.now() - sheetOpenedAt;
+    if (!open) sheetOpenedAt = undefined;
+  },
+);
+
 /** Keeps a match round's state on its item, so a reload comes back to the same pairs. */
 function onMatchProgress(matched: string[], mistakes: string[]) {
   const [first, ...rest] = queue.value;
@@ -325,18 +335,6 @@ provide('session', {
   back,
   canPutOff: computed(() => !announcing.value && current.value?.kind === 'card' && queue.value.length > 1),
   putOff,
-});
-
-// Swipe right steps back; swipe left presses whatever moves on (Next, or Check's Next once answered).
-const root = useTemplateRef('root');
-useSwipe(root, {
-  threshold: 60,
-  onSwipeEnd(_event, direction) {
-    if (direction === 'right') return back();
-    if (direction !== 'left') return;
-    const next = root.value?.querySelector<HTMLButtonElement>('[data-testid="next"], [data-testid="submit"]');
-    if (next && !next.disabled && next.textContent?.trim() !== 'Check') next.click();
-  },
 });
 
 function startStage(index: number): void {
@@ -565,7 +563,7 @@ function optionsFor(card: StudyCard): StudyCard[] {
 </script>
 
 <template>
-  <div ref="root" class="flex flex-1 touch-pan-y flex-col gap-2" @mousedown="keepTyping">
+  <div class="flex flex-1 flex-col gap-2" @mousedown="keepTyping">
     <ProgressBar :value="progress" data-testid="session-progress" />
     <div class="flex items-center justify-between text-xs text-stone-500">
       <span data-testid="stage">{{ STAGE_TITLES[game] }}<template v-if="stages.length > 1"> · {{ stageIndex + 1 }}/{{ stages.length }}</template></span>

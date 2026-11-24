@@ -15,7 +15,7 @@ watch(() => props.hidden, hidden => hidden || props.silent || speak(props.card),
     <slot name="above" />
     <p data-testid="answer" :class="right ? 'text-green-600' : 'text-orange-600'" class="cursor-copy text-xl font-semibold" @click="hidden || copyText(card.answer)">{{ card.answer }}</p>
     <p v-if="card.tr" class="text-stone-500" :class="{ invisible: noTranscription }" data-testid="transcription">[{{ card.tr }}]</p>
-    <p v-if="card.answerNote" class="text-sm italic text-stone-500" data-testid="answer-note"><span v-for="(line, i) in noteLines(card.answerNote)" :key="i" class="block" :class="{ 'text-[oklch(55.3%_0.2_25)]': line.exception }" :data-exception="line.exception" data-testid="answer-note-line">{{ line.text }}</span></p>
+    <p v-if="card.answerNote" class="text-sm italic text-stone-500" data-testid="answer-note"><span v-for="(line, i) in noteLines(card.answerNote)" :key="i" class="block" :class="{ 'text-[oklch(55.3%_0.2_25)]': line.exception }" :data-exception="line.exception" data-testid="answer-note-line"><NoteText :text="line.text" :self="card.id" /></span></p>
     <p v-if="card.answerExample" class="cursor-copy text-sm text-stone-500" @click="hidden || copyText(card.answerExample)">{{ card.answerExample }}</p>
     </div>
     <div v-if="hidden && $slots.default" class="absolute inset-0 flex items-center justify-center px-3 text-center text-xl"><slot /></div>

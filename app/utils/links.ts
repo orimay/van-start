@@ -1,0 +1,107 @@
+import type { DeckCard } from './deck';
+
+/** Note labels whose words a card derives from: `от: ver- (…) + kopen (…)`, `уменьш. от: het boek (…)`. */
+const ORIGIN = ['от', 'from', 'deriva de', 'kökü', 'de la', 'уменьш. от', 'diminutive of', 'diminutivo de', 'küçültme', 'diminutiv de la'];
+/** Note labels naming another card that is no origin: a plural's singular, a variant, a word not to confuse it with. */
+const OTHER = [
+  ...['мн. ч. от', 'форма от', 'повелительное от', 'имперфект от', 'вариант', 'не путать с', 'синоним', 'родственное'],
+  ...['plural of', 'form of', 'imperative of', 'also', "don't confuse with", 'synonym', 'related'],
+  ...['plural de', 'forma de', 'imperativo de', 'también', 'no confundir con', 'sinónimo', 'relacionado'],
+  ...['também', 'não confundir com', 'sinônimo'],
+  ...['çoğulu', 'biçimi', 'emir kipi', 'ayrıca', 'karıştırma', 'eş anlamlı', 'akraba kelime'],
+  ...['pluralul lui', 'forma lui', 'imperativul lui', 'variantă', 'a nu se confunda cu', 'sinonim'],
+];
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const labelsOf = (labels: string[]) => [...labels].sort((a, b) => b.length - a.length).map(escape).join('|');
+/** A gender mark may stand before the label: `pl. m. plural de: …`. */
+const LABEL = new RegExp(`^((?:pl\\. )?(?:[mfn]\\.(?:/[mfn]\\.)? )?)(${labelsOf([...ORIGIN, ...OTHER])}): `);
+const ORIGIN_LABEL = new RegExp(`^(${labelsOf(ORIGIN)})$`);
+
+export interface Segment {
+  text: string;
+  /** Id of the card the text names. */
+  link?: string;
+  /** The meaning the note gives the named word. */
+  gloss?: string;
+}
+
+export interface CardIndex {
+  byId: Map<string, DeckCard>;
+  bySide: Map<string, DeckCard[]>;
+  /** Cards whose origin note names the card, with the meaning it gives. */
+  derived: Map<string, Array<{ id: string; gloss?: string }>>;
+}
+
+const key = (dutch: string) => dutch.trim().toLowerCase();
+const ARTICLE = /^(de|het) /;
+
+/** Parts of a reference list, split at ` + `, `, ` and ` / ` outside the glosses. */
+function partsOf(list: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let from = 0;
+  for (let i = 0; i < list.length; i++) {
+    if (list[i] === '(') depth++;
+    else if (list[i] === ')') depth--;
+    else if (depth === 0) {
+      const separator = [' + ', ', ', ' / '].find(s => list.startsWith(s, i));
+      if (separator) {
+        parts.push(list.slice(from, i), separator);
+        i += separator.length - 1;
+        from = i + 1;
+      }
+    }
+  }
+  return [...parts, list.slice(from)];
+}
+
+function resolve(index: CardIndex, dutch: string, gloss: string | undefined, self: string | undefined) {
+  const bare = dutch.replace(ARTICLE, '');
+  // The spelling as written wins; another article or none only when no card has it.
+  const candidates = [dutch, bare, `de ${bare}`, `het ${bare}`].map(k => index.bySide.get(key(k))).find(Boolean)?.filter(c => c.id !== self);
+  if (!candidates?.length) return undefined;
+  const g = gloss?.toLowerCase();
+  return (g && candidates.find(c => c.f.toLowerCase().includes(g) || g.includes(c.f.toLowerCase())) || candidates[0]!).id;
+}
+
+/** A note item, its referenced words linked to their cards. */
+export function linkSegments(item: string, index: CardIndex, self?: string): Segment[] {
+  const label = item.match(LABEL);
+  if (!label) return [{ text: item }];
+  const segments: Segment[] = [{ text: label[0] }];
+  partsOf(item.slice(label[0].length)).forEach((part, i) => {
+    if (i % 2) return segments.push({ text: part });
+    const [, dutch = part, rest = ''] = part.match(/^([^(]*?)(\s*\(.*)?$/) ?? [];
+    const gloss = rest.match(/^\s*\((.*)\)$/)?.[1];
+    const link = dutch && resolve(index, dutch, gloss, self);
+    segments.push(link ? { text: dutch, link, ...(gloss && { gloss }) } : { text: dutch }, { text: rest });
+  });
+  // Neighbouring text runs merge, so a line reads as plain text between its links.
+  return segments.filter(s => s.text).reduce<Segment[]>((out, s) => {
+    const last = out.at(-1);
+    if (last && !last.link && !s.link) last.text += s.text;
+    else out.push({ ...s });
+    return out;
+  }, []);
+}
+
+/** Note items: a line per `; ` item, as `noteLines` splits them. */
+const itemsOf = (note: string) => note.split('\n').flatMap(line => line.replace(/^!/, '').split('; '));
+
+export function buildIndex(cards: DeckCard[]): CardIndex {
+  const index: CardIndex = { byId: new Map(), bySide: new Map(), derived: new Map() };
+  for (const card of cards) {
+    index.byId.set(card.id, card);
+    const k = key(card.b);
+    index.bySide.set(k, [...(index.bySide.get(k) ?? []), card]);
+  }
+  for (const card of cards) {
+    for (const item of itemsOf(card.n ?? '')) {
+      if (!ORIGIN_LABEL.test(item.match(LABEL)?.[2] ?? '')) continue;
+      for (const { link, gloss } of linkSegments(item, index, card.id)) {
+        if (link) index.derived.set(link, [...(index.derived.get(link) ?? []), { id: card.id, ...(gloss && { gloss }) }]);
+      }
+    }
+  }
+  return index;
+}
