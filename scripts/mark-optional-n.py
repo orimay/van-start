@@ -58,15 +58,27 @@ def deck_words():
 VOCAB = None
 
 
+def dutch_runs(word):
+    """Vowel runs as (start, end); a diphthong ending in i keeps its -e apart (aai-en, groei-en)."""
+    runs = []
+    for m in re.finditer(DUTCH_RUN, word):
+        s, e = m.start(), m.end()
+        if e - s > 2 and word[e - 2:e] == 'ie' and word[e - 3] in 'aeou':
+            runs += [(s, e - 1), (e - 1, e)]
+        else:
+            runs.append((s, e))
+    return runs
+
+
 def dutch_schwa_n(word):
     """Indexes of the vowel runs of `word` that are an -en whose n may drop: the ending, or -en- before a consonant."""
-    runs = [(m.start(), m.end()) for m in re.finditer(DUTCH_RUN, word)]
+    runs = dutch_runs(word)
     found = []
     for n, (s, e) in enumerate(runs):
-        if n == 0 or word[s:e] != 'e' or word[e:e + 1] != 'n' or word[s - 1] in DUTCH_VOWELS:
+        if n == 0 or word[s:e] != 'e' or word[e:e + 1] != 'n' or word[s - 1] in DUTCH_VOWELS and runs[n - 1][1] != s:
             continue
         after = word[e + 1:e + 2]
-        if after and (after in 'dt' and not re.match(TENS, word[e + 1:]) or word[s - 1:e + 2] == 'tens'):
+        if after and (after in 'dt' and not re.match(TENS, word[e + 1:]) or word[s - 1:e + 2] == 'tens' and word[e + 1:] not in deck_words()):
             continue
         if after == '' or (after not in DUTCH_VOWELS and after != 'n' and n + 1 < len(runs) and word[e + 1:e + 2].isalpha()):
             found.append((n, after == ''))
@@ -90,11 +102,11 @@ def mark(dutch, tr, lang):
             continue
         runs = groups(token, vowels)
         tail = (schwa + ('h' if lang == 'en' else '') + n_letter)
-        if len(runs) != len(re.findall(DUTCH_RUN, word)):
+        if len(runs) != len(dutch_runs(word)):
             if spots[-1][1] and token.endswith(tail):
                 tokens[i] = token[:-1] + f'({n_letter})'
             continue
-        starts = [m.start() for m in re.finditer(DUTCH_RUN, word)]
+        starts = [s for s, _ in dutch_runs(word)]
         for n, final in reversed(spots):
             s, e = runs[n]
             if not token[s:e].lower().endswith(schwa):

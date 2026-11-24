@@ -277,6 +277,11 @@ describe('a note of several kinds', () => {
     expect(texts(w, 'note-label')).toEqual(['не путать с', 'от']);
   });
 
+  it('sets apart only the Dutch of an example glossed after a dash', async () => {
+    const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard({ id: 'c11', f: 'явиться', b: 'melden', n: 'zich melden — явиться, отметиться' })), silent: true } });
+    expect(texts(w, 'note-dutch')).toEqual(['zich melden']);
+  });
+
   it('keeps the kinds of the Russian note in a translation', async () => {
     const en = { ...card, n: 'it splits off to the end; ik maak het af (I finish it); afmaken (to finish): to the end; don\'t confuse with: of (or); from: af (done)', nr: ru };
     const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(en)), silent: true } });

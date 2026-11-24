@@ -21,6 +21,15 @@ CASES = [
     # A mark left on a root ng earlier is taken back.
     ('terugbrengen', 'тэрү́хбрэ(н)ңэ(н)', 'тэрү́хбрэңэ(н)'),
     ('de boerenkaas', 'дэ бу́рэ(н)ңкаас', 'дэ бу́рэ(н)каас'),
+    # A diphthong ending in i glides into the -en: aai-en, aardbei-en, groei-en.
+    ('aaien', 'аа́йэн', 'аа́йэ(н)'),
+    ('de aardbeien', 'дэ аа́рдбәйэн', 'дэ аа́рдбәйэ(н)'),
+    ('groeien', 'хру́йэн', 'хру́йэ(н)'),
+    ('dienen', 'дии́нэн', 'дии́нэ(н)'),
+    # A -ten- links on when a deck word follows (tomaten-soep); in a root it stays (intensief).
+    ('de erwtensoep', 'дэ э́ртэнсуп', 'дэ э́ртэ(н)суп'),
+    ('de tomatensoep', 'дэ тоомаа́тэнсуп', 'дэ тоомаа́тэ(н)суп'),
+    ('intensief', 'интэнсии́ф', 'интэнсии́ф'),
 ]
 fails = 0
 for dutch, tr, want in CASES:

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { noteLines, toStudyCard, type DeckCard } from './deck';
+import { noteHead, noteKind, noteLines, toStudyCard, type DeckCard } from './deck';
 
 interface Card { id: string; b: string; n?: string }
 interface Node { cards?: Card[]; children?: Node[] }
@@ -26,6 +26,17 @@ function hidesMeaning(item: string) {
 describe('a Russian note item', () => {
   it('keeps its meaning apart from a Dutch example', () => {
     const offenders = cardsOf(deck).flatMap(c => items(c.n).filter(hidesMeaning).map(i => `${c.b}: ${i}`));
+    expect(offenders).toEqual([]);
+  });
+});
+
+describe('a Russian example item', () => {
+  // A rule written Dutch first ("dag (день), week (неделя): к отрезку времени") would show as an example of its first word.
+  it('sets apart one Dutch phrase, never Russian or a list', () => {
+    const offenders = cardsOf(deck).flatMap(c => items(c.n)
+      .filter(i => noteKind(i) === 'example')
+      .filter(i => /[а-яё]/i.test(noteHead(i, 'example')!) || /^[^(→]*\([^)]*\), [a-zà-ÿ]/i.test(i))
+      .map(i => `${c.b}: ${i}`));
     expect(offenders).toEqual([]);
   });
 });

@@ -31,7 +31,10 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] An affix's example is the first card built with it (a diminutive's `уменьш. от:` counts for -je).
 - [ ] Rules carry their exceptions per card, the exception marked red.
 - [ ] No `…` standing in for the headword; one item per line.
-- [ ] Transcription matches the audio and the spelling (optional n marked, één, maandelijks), in all 6 languages; audio is regenerated when text changes.
+- [ ] Transcription matches the audio and the spelling (optional n marked, also after a diphthong: aardbeien, and a linking -ten-: erwtensoep; final a as аа: oma, pasta; één, maandelijks), in all 6 languages; audio is regenerated when text changes.
+- [ ] Note items: a rule opens in plain words; an item opening with Dutch is an example, only its Dutch in bold (not a list like `dag (день), week (неделя): …`, not Russian).
+- [ ] One spelling per sound across the deck: -pje/-kje/-fje as йэ, -tje as ьэ; the same word transcribed the same in a phrase as on its own card (maat 38 = achtendertig).
+- [ ] A plural example agrees in number (de frites zijn); the example uses the card's own gloss (блузка, not блуза).
 - [ ] All 6 languages carry the same change.
 
 ## UX

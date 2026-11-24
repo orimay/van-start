@@ -28,6 +28,21 @@ describe('ru transcriptions', () => {
     expect(cards.filter(c => c.tr.includes('ю') && !ENGLISH_YU.test(c.b)).map(c => `${c.b} /${c.tr}/`)).toEqual([]);
   });
 
+  // tj is one soft sound (ть); nj is нь (Spanje)
+  it('write je after any other consonant as йэ', () => {
+    expect(cards.filter(c => /[бвгдзклмпрсфхңһ]ьэ/.test(c.tr)).map(c => `${c.b} /${c.tr}/`)).toEqual([]);
+  });
+
+  it('write a word-final a as аа', () => {
+    const shortFinalA = cards.filter(c => {
+      const words = c.b.split(' ');
+      const sounds = c.tr.split(' ');
+      return words.length === sounds.length
+        && words.some((w, i) => /[^aei]a[?,.!]*$/i.test(w) && /[^а]а[?,.!]*$/.test(sounds[i]!));
+    });
+    expect(shortFinalA.map(c => `${c.b} /${c.tr}/`)).toEqual([]);
+  });
+
   it('mark no optional n inside a root or before a participle ending', () => {
     const byFront = new Map(cards.map(c => [c.b, c.tr]));
     expect({
