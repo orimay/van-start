@@ -10,17 +10,17 @@ Decisions agreed with the user and not shipped yet. Tick an item only once it is
 
 ## Affix cards in pronounce
 
-- [ ] New field `xl`: breakdown of the example word in all 6 languages, e.g. `voor- (перед) + naam (имя): букв. «переднее имя»`.
+- [x] New field `xl`: breakdown of the example word in all 6 languages, e.g. `voor- (перед) + naam (имя): букв. «переднее имя»`.
   - Taken from the example word's `от:` where it exists; «букв. …» where it helps.
   - Written by hand where missing: be-, na-, uit-, mede-, onder-, -tie, -lijk, -ig, on-, -schap, -baar, -aar, -je, -nis, bij-, vast-.
-- [ ] (data done, not deployed) Replace examples that do not show the affix's meaning: `onder-` onderweg → de onderbroek, `na-` nadenken → nazeggen. Review all 48 for the same. `xf` must equal the word card's `f`; rebuild audio.
-- [ ] Own rendering in pronounce and the pronounce intro:
+- [x] Replace examples that do not show the affix's meaning: `onder-` onderweg → de onderbroek, `na-` nadenken → nazeggen. Review all 48 for the same. `xf` must equal the word card's `f`; rebuild audio.
+- [x] Own rendering in pronounce and the pronounce intro:
   - affix + meaning, small, on top;
   - the word: affix bright, rest grey, no caps;
   - the word's gloss;
   - the breakdown, shown at once.
-- [ ] Specs: every affix `xb` starts/ends with its affix; every affix has `xl` in every language.
-- [ ] Check the affix examples that have no word card of their own for ambiguous glosses (e.g. leraar «учитель»).
+- [x] Specs: every affix `xb` starts/ends with its affix; every affix has `xl` in every language.
+- [x] Check the affix examples that have no word card of their own for ambiguous glosses (e.g. leraar «учитель»).
 
 ## Settings: sentences and combinations
 
