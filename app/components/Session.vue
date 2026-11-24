@@ -178,7 +178,7 @@ let answeredAt: number | undefined;
 const stage = computed(() => props.stages[stageIndex.value]!);
 /** Pronouncing in the intro's place meets the cards: the meaning on top, the Dutch to say under it. */
 /** An affix is pronounced by its example word: the affix alone has no sound to compare with. */
-const sayable = (card: StudyCard): StudyCard => (card.affix ? { id: card.id, nl: card.nl, audio: card.audio, prompt: card.promptExample ?? card.prompt, answer: card.answerExample ?? card.answer } : card);
+const sayable = (card: StudyCard): StudyCard => (card.affix ? { id: card.id, nl: card.nl, audio: card.audio, prompt: card.promptExample ?? card.prompt, answer: card.answerExample ?? card.answer, breakdown: card.breakdown, affixShown: { affix: card.answer, meaning: card.prompt } } : card);
 const meeting = computed(() => props.introducing && stageIndex.value === 0 && stage.value === 'pronounce');
 const hint = computed(() => (meeting.value ? 'Remember the new cards: read the meaning, say the Dutch aloud, record yourself if you like, then listen and compare.' : STAGE_HINTS[stage.value]));
 const gameOf = (id: string, at = stage.value) => props.games?.[id] ?? at;

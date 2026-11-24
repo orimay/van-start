@@ -19,7 +19,7 @@ export type Language = keyof typeof LANGUAGES;
 /** Native side of every card and section name, keyed by id; the Dutch side is shared. */
 interface Overlay {
   names: Record<string, string>;
-  cards: Record<string, [f: string, xf: string, tr: string, n?: string, nx?: string]>;
+  cards: Record<string, [f: string, xf: string, tr: string, n?: string, nx?: string, xl?: string]>;
 }
 
 export interface Settings {
@@ -141,6 +141,7 @@ function localize(node: DeckNode, overlay: Overlay) {
     if (!native) continue;
     card.nr = card.n;
     [card.f, card.xf, card.tr, card.n, card.nx] = native;
+    if (native[5]) card.xl = native[5];
   }
   for (const child of node.children ?? []) localize(child, overlay);
 }

@@ -617,7 +617,7 @@ describe('listening', () => {
 });
 
 describe('an affix', () => {
-  const affix: StudyCard = { id: 'af', prompt: 'acting on someone', answer: 'be-', nl: 'bewonen', affix: true, promptExample: 'to inhabit', answerExample: 'bewonen' };
+  const affix: StudyCard = { id: 'af', prompt: 'acting on someone', answer: 'be-', nl: 'bewonen', affix: true, promptExample: 'to inhabit', answerExample: 'bewonen', breakdown: 'be- (on) + wonen (to live)' };
 
   it('sits out listening', async () => {
     const w = await doMount({ cards: [affix, ...cards(1)], stages: ['listen'] });
@@ -645,6 +645,33 @@ describe('an affix', () => {
     const w = await doMount({ cards: [affix], stages: ['pronounce', 'recall'], introducing: true });
     expect(promptOf(w)).toBe('to inhabit');
     expect(w.get('[data-testid="answer"]').text()).toBe('bewonen');
+  });
+
+  for (const introducing of [false, true]) {
+    describe(introducing ? 'met by pronouncing' : 'pronounced', () => {
+      it('names itself and its meaning', async () => {
+        const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
+        expect(w.get('[data-testid="affix"]').text()).toBe('be- acting on someone');
+      });
+
+      it('marks itself in its example word', async () => {
+        const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
+        expect(w.get('[data-testid="affix-part"]').text()).toBe('be');
+      });
+
+      it('shows the breakdown before the reveal', async () => {
+        const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
+        expect(w.get('[data-testid="breakdown"]').text()).toBe('be- (on) + wonen (to live)');
+        expect(w.get('[data-testid="breakdown"]').element.closest('.invisible')).toBeNull();
+      });
+    });
+  }
+
+  it('marks a suffix at the end of its example word', async () => {
+    const suffix: StudyCard = { id: 'sf', prompt: 'like, -ly', answer: '-lijk', nl: 'vriendelijk', affix: true, promptExample: 'friendly', answerExample: 'vriendelijk' };
+    const w = await doMount({ cards: [suffix], stages: ['pronounce'] });
+    expect(w.get('[data-testid="affix-part"]').text()).toBe('lijk');
+    expect(promptOf(w)).toBe('vriendelijk');
   });
 });
 

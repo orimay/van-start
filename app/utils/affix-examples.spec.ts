@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-interface Card { id: string; b: string; f: string; xb?: string; xf?: string }
+interface Card { id: string; b: string; f: string; xb?: string; xf?: string; xl?: string }
 interface Node { cards?: Card[]; children?: Node[] }
 type Overlay = Record<string, [string, string?, ...unknown[]]>;
 const deck: Node = JSON.parse(readFileSync('public/deck.json', 'utf8'));
@@ -28,6 +28,27 @@ describe("an affix's example word", () => {
       const overlay = overlayOf(lang);
       const wrong = pairs.filter(([affix, word]) => overlay[affix.id]?.[1] !== overlay[word.id]?.[0]).map(([affix]) => affix.b);
       expect(wrong).toEqual([]);
+    });
+  }
+});
+
+const affixes = cardsOf(deck).filter(c => isAffix(c.b) && c.xb);
+const stem = (affix: string) => affix.replace(/^-|-$/g, '');
+
+describe('an affix', () => {
+  it('shows itself in its example word', () => {
+    const wrong = affixes.filter(c => !(c.b.endsWith('-') ? c.xb!.startsWith(stem(c.b)) : c.xb!.endsWith(stem(c.b)))).map(c => `${c.b}: ${c.xb}`);
+    expect(wrong).toEqual([]);
+  });
+
+  it('breaks its example word down in Russian', () => {
+    expect(affixes.filter(c => !c.xl?.includes(c.b)).map(c => c.b)).toEqual([]);
+  });
+
+  for (const lang of ['en', 'es', 'pt', 'tr', 'ro']) {
+    it(`breaks its example word down in ${lang}`, () => {
+      const overlay = overlayOf(lang);
+      expect(affixes.filter(c => !String(overlay[c.id]?.[5] ?? '').includes(c.b)).map(c => c.b)).toEqual([]);
     });
   }
 });
