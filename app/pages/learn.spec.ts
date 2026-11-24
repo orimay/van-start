@@ -88,6 +88,37 @@ describe('a group left halfway', () => {
     expect(w.get('[data-testid="stage"]').text()).toContain('Speaking');
   });
 
+  it('continues listening with the word hidden', async () => {
+    useStore().updateSettings({ games: ['recallNative', 'listen'] });
+    const before = await doMount();
+    for (let i = 0; i < cards.length; i++) await doClick(before, 'next');
+    await doClick(before, 'start-game');
+    for (let i = 0; i < 40 && !before.find('[data-testid="start-game"]').exists(); i++) await doRecall(before);
+    await doClick(before, 'start-game');
+    await doRecall(before);
+    before.unmount();
+    const w = await doMount();
+    await doContinue(w);
+    expect(w.get('[data-testid="stage"]').text()).toContain('Listening');
+    expect(w.find('[data-testid="prompt"]').exists()).toBe(false);
+  });
+
+  it('goes on listening with the word hidden after an app update', async () => {
+    useStore().updateSettings({ games: ['recallNative', 'listen'] });
+    const before = await doMount();
+    for (let i = 0; i < cards.length; i++) await doClick(before, 'next');
+    await doClick(before, 'start-game');
+    for (let i = 0; i < 40 && !before.find('[data-testid="start-game"]').exists(); i++) await doRecall(before);
+    await doClick(before, 'start-game');
+    await doRecall(before);
+    history.replaceState(null, '', '/learn?path=all');
+    await doUpdate(before);
+    const w = await doMount();
+    if (w.find('[data-testid="start-game"]').exists()) await doClick(w, 'start-game');
+    expect(w.get('[data-testid="stage"]').text()).toContain('Listening');
+    expect(w.find('[data-testid="prompt"]').exists()).toBe(false);
+  });
+
   it('goes on at the page of the game it was left on after an app update', async () => {
     useStore().updateSettings({ games: ['recallNative', 'recall'] });
     const before = await doMount();

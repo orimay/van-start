@@ -540,8 +540,8 @@ function onMissAgain(card: StudyCard) {
 /** `guessed`: right by luck, so it comes back like a miss but is graded neither way. */
 /** `typingMs`: time spent typing, left out of the recall time. */
 function onCard(card: StudyCard, ok: boolean, guessed = false, typingMs = 0) {
-  // A right answer far slower than usual was dug up, not known: it comes back like a guess.
-  const slow = ok && (props.isSlow?.(gameOf(card.id), answerMs(typingMs)) ?? false);
+  // A right answer far slower than usual was dug up, not known: it comes back like a guess. An intro asks nothing.
+  const slow = ok && gameOf(card.id) !== 'intro' && (props.isSlow?.(gameOf(card.id), answerMs(typingMs)) ?? false);
   if (guessed || slow) skipGrade(card.id);
   else report(card.id, ok, true);
   const item = current.value?.kind === 'card' && current.value.card.id === card.id ? current.value : { kind: 'card' as const, card };

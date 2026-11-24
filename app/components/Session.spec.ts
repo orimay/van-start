@@ -592,6 +592,15 @@ describe('listening', () => {
     expect(w.text()).toContain('p0');
   });
 
+  it('keeps the next card hidden when continued', async () => {
+    const before = await doMount({ cards: cards(2), stages: ['listen'] });
+    await doRecall(before, true);
+    const after = await doMount({ cards: cards(2), stages: ['listen'], resumeAt: lastPosition(before), announce: true });
+    await doClick(after, 'start-game');
+    ensureHas(after, 'reveal');
+    ensureHas(after, 'listen-again');
+  });
+
   it('waits for the learner, however long they listen', async () => {
     vi.useFakeTimers();
     const w = await doMount({ cards: cards(1), stages: ['listen'] });
@@ -1769,6 +1778,12 @@ describe('review', () => {
     expect(w.emitted('answer')).toBeUndefined();
     expect(w.emitted('show')![0]![0]).toMatchObject({ answer: 'plus' });
     expect(await answerUntil(w, slow)).toBe(STEP);
+  });
+
+  it('passes an intro card however long it was looked at', async () => {
+    const w = await doMount({ cards: cards(3), stages: ['intro'], isSlow: () => true });
+    for (let i = 0; i < 3; i++) await doClick(w, 'next');
+    expect(w.emitted('passed')?.map(([id]) => id)).toEqual(['c0', 'c1', 'c2']);
   });
 
   it('times a recall to the reveal, so reading the answer long does not make it slow', async () => {

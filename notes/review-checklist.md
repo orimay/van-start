@@ -53,4 +53,5 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] Sheets have a visible title, a dark backdrop, block page scroll.
 - [ ] Tappable word links look tappable and open the word's sheet.
 - [ ] Continue shows the progress per game and starts at the first unfinished game.
+- [ ] A heuristic on answers (slow, guessed, missed) skips the games that ask nothing: intro.
 - [ ] Updates install quietly and land on the same step.
