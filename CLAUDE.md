@@ -131,6 +131,9 @@ When two rules conflict, the one written further down wins.
 
 - Clips are keyed by a hash of their text. Any text change requires a rebuild:
   `.venv/bin/python -I scripts/build-audio.py`, then delete orphan clips in `public/audio`.
+  Rebuild after the last `b`/`xb` edit: affix examples rewritten after a build kept their old keys,
+  so `be-` played «Kennismaken en begroeten.». `app/utils/clips.spec.ts` fails on any card whose
+  `au`/`axb` is not the hash of its own text.
 - The audio repo is `~/Projects/private/pages/van-start-audio`. `scripts/deploy.sh` syncs and pushes it before the site: `scripts/sync-audio.py` makes `public/audio` and the repo hold exactly the clips the deck references (refuses when one is missing locally: run build-audio.py), then the repo is committed and pushed. A clip missing there gave a 404 on the deployed site. Test: `python3 -I scripts/sync_audio_test.py`.
 - jj refuses to push past an empty undescribed commit; deploy.sh abandons them first.
 - Audio no card references is always deleted, locally and in the audio repo.
