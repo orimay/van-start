@@ -1,4 +1,5 @@
 import { isAffix } from '@/utils/games';
+import type { Kind } from '@/utils/kinds';
 
 export interface DeckCard {
   id: string;
@@ -22,6 +23,8 @@ export interface DeckCard {
   axb?: string;
   /** Affix cards: the example word broken into its parts. */
   xl?: string;
+  /** A card the learner can switch off: an example sentence or one of a rule-built series. */
+  k?: Kind;
 }
 
 export interface DeckNode {

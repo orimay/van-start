@@ -6,21 +6,39 @@ import { nextTick } from 'vue';
 import SectionTree from './SectionTree.vue';
 import { LONG_PRESS_MS } from '@/composables/useLongPress';
 import type { DeckNode } from '@/utils/deck';
+import type { KindSwitches } from '@/utils/kinds';
 
-const { navigate, learned, settings, reviewLog, forgetLearning, forgetReviews } = vi.hoisted(() => ({ forgetLearning: vi.fn(), forgetReviews: vi.fn(), navigate: vi.fn(), learned: new Set<string>(), settings: { value: { groupSize: 5, games: ['recall'] as string[] } }, reviewLog: { value: undefined as { day: string; ids: string[] } | undefined } }));
+const { navigate, learned, settings, library, reviewLog, forgetLearning, forgetReviews, updateSettings } = vi.hoisted(() => ({
+  forgetLearning: vi.fn(),
+  forgetReviews: vi.fn(),
+  updateSettings: vi.fn(),
+  navigate: vi.fn(),
+  learned: new Set<string>(),
+  settings: { value: { groupSize: 5, games: ['recall'] as string[], kinds: {} as KindSwitches, groupKinds: {} as Record<string, KindSwitches> } },
+  library: { value: undefined as DeckNode | undefined },
+  reviewLog: { value: undefined as { day: string; ids: string[] } | undefined },
+}));
 mockNuxtImport('navigateTo', () => navigate);
-mockNuxtImport('useStore', () => () => ({ isLearned: (id: string) => learned.has(id), isThrough: (id: string) => learned.has(id), settings, reviewLog, forgetLearning, forgetReviews }));
+mockNuxtImport('useStore', () => () => ({ isLearned: (id: string) => learned.has(id), isThrough: (id: string) => learned.has(id), settings, library, reviewLog, forgetLearning, forgetReviews, updateSettings }));
 
 const section: DeckNode = { id: 's', name: 'Lesson 1', cards: [{ id: 'a', f: 'f', b: 'b' }, { id: 'b', f: 'f', b: 'b' }] };
+const withSentences: DeckNode = {
+  id: 's',
+  name: 'Lesson 1',
+  cards: [{ id: 'a', f: 'f', b: 'b' }, { id: 'x', f: 'f', b: 'b', k: 'sentence' }],
+  children: [{ id: 's1', name: 'Part 2', cards: [{ id: 'y', f: 'f', b: 'b', k: 'sentence' }] }],
+};
 
 beforeEach(async () => {
   await useRouter().replace({ hash: '' });
   navigate.mockReset();
   forgetLearning.mockReset();
   forgetReviews.mockReset();
+  updateSettings.mockReset();
   learned.clear();
   reviewLog.value = undefined;
-  settings.value = { groupSize: 5, games: ['recall'] };
+  library.value = { id: 'root', name: 'root', children: [section] };
+  settings.value = { groupSize: 5, games: ['recall'], kinds: {}, groupKinds: {} };
 });
 
 describe('section progress', () => {
@@ -29,6 +47,73 @@ describe('section progress', () => {
     const w = await doMount();
     expect(w.get('[data-testid="learned-share"]').text()).toBe('50%');
     expect(w.get('[data-testid="learned-count"]').text()).toBe('1/2');
+  });
+
+  it('is 0% for a section with every card switched off', async () => {
+    const w = await doMount({ id: 's', name: 'Lesson 1', cards: [] });
+    expect(w.get('[data-testid="learned-share"]').text()).toBe('0%');
+  });
+});
+
+describe('a section with sentences', () => {
+  beforeEach(() => {
+    library.value = { id: 'root', name: 'root', children: [withSentences] };
+  });
+
+  it('offers its cards from the start menu, even with nothing learned', async () => {
+    const w = await doMount(withSentences);
+    await doStart(w);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(w.get('[data-testid="kinds"]').text()).toBe('Cards');
+  });
+
+  it('follows the settings until given its own switch', async () => {
+    const w = await doOpenKinds();
+    expect(w.get('[data-testid="kind-sentence-global"]').attributes('aria-pressed')).toBe('true');
+    expect(w.find('[data-testid="kind-combination-global"]').exists()).toBe(false);
+  });
+
+  it('keeps its own switch once given one', async () => {
+    const w = await doOpenKinds();
+    await w.get('[data-testid="kind-sentence-off"]').trigger('click');
+    expect(updateSettings).toHaveBeenCalledWith({ groupKinds: { s: { sentence: false } } });
+  });
+
+  it('is mixed while its subgroups differ', async () => {
+    settings.value.groupKinds = { s1: { sentence: false } };
+    const w = await doOpenKinds();
+    expect(w.get('[data-testid="kind-sentence-mixed"]').text()).toBe('Mixed: some groups keep their own');
+    expect(w.findAll('[aria-pressed="true"]')).toHaveLength(0);
+  });
+
+  it('names the subgroups it would override, and saves only on yes', async () => {
+    settings.value.groupKinds = { s1: { sentence: true } };
+    const w = await doOpenKinds();
+    await w.get('[data-testid="kind-sentence-off"]').trigger('click');
+    expect(w.get('[data-testid="kind-overrides"]').text()).toContain('Part 2: on → off');
+    expect(updateSettings).not.toHaveBeenCalled();
+    await w.get('[data-testid="kind-overrides-yes"]').trigger('click');
+    expect(updateSettings).toHaveBeenCalledWith({ groupKinds: { s: { sentence: false } } });
+  });
+
+  it('saves nothing when the override is cancelled', async () => {
+    settings.value.groupKinds = { s1: { sentence: true } };
+    const w = await doOpenKinds();
+    await w.get('[data-testid="kind-sentence-off"]').trigger('click');
+    await w.get('[data-testid="kind-overrides-no"]').trigger('click');
+    expect(updateSettings).not.toHaveBeenCalled();
+    expect(w.find('[data-testid="kind-overrides"]').exists()).toBe(false);
+  });
+
+  it('is marked in the list while it keeps its own switch', async () => {
+    settings.value.groupKinds = { s: { sentence: false } };
+    const w = await doMount(withSentences);
+    expect(w.get('[data-testid="kinds-own"]').exists()).toBe(true);
+  });
+
+  it('is not marked without its own switch', async () => {
+    const w = await doMount(withSentences);
+    expect(w.find('[data-testid="kinds-own"]').exists()).toBe(false);
   });
 });
 
@@ -204,6 +289,14 @@ async function doConfirm(w: VueWrapper) {
 
 function doMount(node = section) {
   return mountSuspended(SectionTree, { props: { nodes: [node], path: [] } });
+}
+
+async function doOpenKinds() {
+  const w = await doMount(withSentences);
+  await doStart(w);
+  await w.get('[data-testid="kinds"]').trigger('click');
+  await nextTick();
+  return w;
 }
 
 async function doStart(w: VueWrapper) {

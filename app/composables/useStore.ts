@@ -4,6 +4,7 @@ import { computed, shallowRef, triggerRef } from 'vue';
 import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
 import { cardsOf, type DeckNode, isAffixCard } from '@/utils/deck';
 import { applyEdits, type Edits, noEdits } from '@/utils/edits';
+import { type KindSwitches, shownCards } from '@/utils/kinds';
 import type { LexilizeCard } from '@/utils/lexilize';
 import type { GameScores, Score } from '@/utils/score';
 import { markReviewed, type ReviewLog } from '@/utils/today';
@@ -38,6 +39,10 @@ export interface Settings {
   ignoreCase: boolean;
   /** Typing: accept letters without accents and dots. */
   ignoreMarks: boolean;
+  /** Sentences and combinations: off leaves those cards out everywhere, their progress kept. */
+  kinds?: KindSwitches;
+  /** A group's own switches, by group id, over the global ones. */
+  groupKinds?: Record<string, KindSwitches>;
 }
 
 /** FSRS state per card id, as stored (dates as ISO strings). */
@@ -69,6 +74,12 @@ const configured = shallowRef(false);
 let loading: Promise<void> | undefined;
 /** Prefixes and suffixes of the deck: they sit out the games played by ear. */
 const affixes = computed(() => new Set(deck.value ? cardsOf(deck.value).filter(isAffixCard).map(c => c.id) : []));
+/** Course cards whose kind is switched off: learned ones keep their progress but are not reviewed. */
+const hidden = computed(() => {
+  if (!library.value || !deck.value) return new Set<string>();
+  const shown = new Set(cardsOf(deck.value).map(c => c.id));
+  return new Set(cardsOf(library.value).filter(c => !shown.has(c.id)).map(c => c.id));
+});
 /** The card plays the game. */
 const playedIn = (id: string, game: string) => playsIn(affixes.value.has(id), game);
 
@@ -122,7 +133,8 @@ function compose() {
   const loose = custom.value.cards?.length ? [{ id: CUSTOM_ID, name: custom.value.name, cards: custom.value.cards }] : [];
   const own = [...loose, ...(custom.value.children ?? [])];
   library.value = { ...edited, children: [...(edited.children ?? []), ...own] };
-  deck.value = { ...edited, children: [...(edited.children ?? []), ...own.filter(n => cardsOf(n).length)] };
+  const { kinds = {}, groupKinds = {} } = settings.value;
+  deck.value = shownCards({ ...edited, children: [...(edited.children ?? []), ...own.filter(n => cardsOf(n).length)] }, kinds, groupKinds);
 }
 
 /** Removed cards lose their progress. */
@@ -164,7 +176,7 @@ function schedule(game: ReviewGame, id: string, card: CardInput | undefined) {
 
 /** Due in a game: learned, played by the card, and either never asked in it or its time has come. */
 function isDueIn(id: string, game: ReviewGame, now: Date) {
-  if (!(id in progress.value) || !playedIn(id, game)) return false;
+  if (!(id in progress.value) || !playedIn(id, game) || hidden.value.has(id)) return false;
   const card = reviews.value[game]?.[id];
   return card === undefined || new Date(card.due) <= now;
 }
@@ -229,6 +241,8 @@ export function useStore() {
     },
 
     isLearned: (id: string) => id in progress.value,
+    /** Its kind is switched off where it sits. */
+    isHidden: (id: string) => hidden.value.has(id),
     isThrough,
     playedIn,
     /** Due in the game, or without one in any review game. */
@@ -242,6 +256,7 @@ export function useStore() {
       void set('settings', settings.value);
       configured.value = true;
       if (patch.language) void loadDeck();
+      else if (patch.kinds || patch.groupKinds) compose();
     },
 
     /** Records one answer. In a game, the card moves along that game's schedule; without, it is learned and every review game starts or moves its schedule. */

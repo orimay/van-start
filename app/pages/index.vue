@@ -14,7 +14,7 @@ await store.ready;
 const { deck, progress, settings } = store;
 const now = useNow({ interval: 60_000 });
 
-const learnedCount = computed(() => Object.keys(progress.value).filter(id => store.isThrough(id)).length);
+const learnedCount = computed(() => Object.keys(progress.value).filter(id => store.isThrough(id) && !store.isHidden(id)).length);
 /** Review games that have cards due, with how many. */
 const dueGames = computed(() => {
   void store.reviews.value;

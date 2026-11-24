@@ -6,6 +6,7 @@ import { GAMES as ALL_GAMES, GAME_HINTS, GAME_TITLES, toggled } from '@/utils/ga
 import { readLexilize } from '@/utils/lexilize';
 import { exportLog, importLog } from '@/db/backup';
 import { sessions } from '@/db/sessions';
+import { type Kind, KINDS } from '@/utils/kinds';
 
 const store = useStore();
 await store.ready;
@@ -67,6 +68,21 @@ importDialog.onChange(async files => {
     imported.value = `Could not read ${file.name}: ${(error as Error).message}`;
   }
 });
+
+const KIND_TITLES: Record<Kind, [string, string]> = {
+  sentence: ['Sentences', 'Example sentences and phrases that show a word in use.'],
+  combination: ['Combinations', 'Series built by one rule, like a day with a part of the day.'],
+};
+/** Groups with their own switch for the kind. */
+const ownGroups = (kind: Kind) => Object.values(draft.value.groupKinds ?? {}).filter(g => g[kind] !== undefined).length;
+function setKind(kind: Kind, on: boolean) {
+  draft.value = { ...draft.value, kinds: { ...draft.value.kinds, [kind]: on } };
+}
+/** The groups follow the global switch again. */
+function resetGroups(kind: Kind) {
+  const groups = Object.entries(draft.value.groupKinds ?? {}).map(([id, { [kind]: _, ...rest }]) => [id, rest] as const);
+  draft.value = { ...draft.value, groupKinds: Object.fromEntries(groups.filter(([, rest]) => Object.keys(rest).length)) };
+}
 
 function setGroupSize(input: HTMLInputElement) {
   const size = Math.floor(Number(input.value));
@@ -130,6 +146,20 @@ watch(draft, value => store.updateSettings(value));
         </select>
       </label>
       <p class="-mt-1 text-xs text-stone-500">In recall games, the answer shows by itself after this.</p>
+    </section>
+    <section class="flex flex-col gap-2 rounded-2xl bg-white p-4 text-sm dark:bg-stone-900">
+      <h2 class="font-semibold">Cards</h2>
+      <template v-for="kind in KINDS" :key="kind">
+        <label class="flex items-center justify-between gap-2">
+          <span class="flex flex-col">{{ KIND_TITLES[kind][0] }}<span class="text-xs text-stone-500">{{ KIND_TITLES[kind][1] }}</span></span>
+          <input type="checkbox" class="h-5 w-5 accent-orange-600" :checked="draft.kinds?.[kind] !== false" :data-testid="`kind-${kind}`" @change="setKind(kind, ($event.target as HTMLInputElement).checked)" />
+        </label>
+        <p v-if="ownGroups(kind)" class="-mt-1 flex items-center justify-between gap-2 text-xs text-stone-500" :data-testid="`kind-own-${kind}`">
+          {{ ownGroups(kind) === 1 ? '1 group keeps its own' : `${ownGroups(kind)} groups keep their own` }}
+          <button class="font-medium text-orange-600" :data-testid="`kind-reset-${kind}`" @click="resetGroups(kind)">Reset</button>
+        </p>
+      </template>
+      <p class="-mt-1 text-xs text-stone-500">Off leaves those cards out of learning and review; what was learned comes back when on. A section can keep its own choice from its menu.</p>
     </section>
     <section class="flex flex-col gap-2 rounded-2xl bg-white p-4 text-sm dark:bg-stone-900">
       <h2 class="font-semibold">Writing</h2>

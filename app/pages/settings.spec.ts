@@ -192,3 +192,28 @@ describe('recall time', () => {
     store.updateSettings({ recallSeconds: 10 });
   });
 });
+
+describe('sentences and combinations', () => {
+  afterEach(() => useStore().updateSettings({ kinds: {}, groupKinds: {} }));
+
+  it('are on by default and switch off each', async () => {
+    const store = useStore();
+    await store.ready;
+    store.updateSettings({ kinds: {}, groupKinds: {} });
+    const w = await mountSuspended(Settings);
+    expect(['kind-sentence', 'kind-combination'].map(id => (w.get(`[data-testid="${id}"]`).element as HTMLInputElement).checked)).toEqual([true, true]);
+    await w.get('[data-testid="kind-sentence"]').setValue(false);
+    expect(store.settings.value.kinds).toEqual({ sentence: false });
+  });
+
+  it('say when groups keep their own and reset them on ask', async () => {
+    const store = useStore();
+    await store.ready;
+    store.updateSettings({ kinds: {}, groupKinds: { g1: { sentence: true, combination: false }, g2: { sentence: false } } });
+    const w = await mountSuspended(Settings);
+    await w.get('[data-testid="kind-sentence"]').setValue(false);
+    expect(w.get('[data-testid="kind-own-sentence"]').text()).toContain('2 groups keep their own');
+    await w.get('[data-testid="kind-reset-sentence"]').trigger('click');
+    expect([store.settings.value.groupKinds, w.find('[data-testid="kind-own-sentence"]').exists()]).toEqual([{ g1: { combination: false } }, false]);
+  });
+});

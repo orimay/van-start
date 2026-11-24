@@ -6,10 +6,12 @@ import { reviewedOn } from '@/utils/today';
 import { GAME_TITLES, playsIn, type ReviewGame, REVIEW_GAMES } from '@/utils/games';
 import { longPress } from '@/composables/useLongPress';
 import type { ResetRequest } from '@/components/ResetSheet.vue';
+import { findSection } from '@/utils/custom';
+import { kindsIn } from '@/utils/kinds';
 
 /** `whole`: the nodes are the deck root itself, reached by the path `all`. */
 const props = defineProps<{ nodes: DeckNode[]; path: number[]; whole?: boolean }>();
-const { isLearned, isThrough, settings, reviewLog, forgetLearning, forgetReviews } = useStore();
+const { isLearned, isThrough, settings, library, reviewLog, forgetLearning, forgetReviews } = useStore();
 const open = shallowRef<number | undefined>(props.whole ? 0 : undefined);
 /** Row asking whether to learn new cards or review learned ones. */
 const menu = useMenu('start-menu');
@@ -33,16 +35,33 @@ function optionsOf(node: DeckNode, i: number) {
 const resetting = shallowRef<ResetRequest>();
 const askReset = (node: DeckNode, o: { label: string; reset: Omit<ResetRequest, 'title'> }) => (resetting.value = { title: `${node.name}: ${o.label}`, ...o.reset });
 
+/** The section as in the library, its switched-off cards included. */
+const fullOf = (node: DeckNode) => (library.value && findSection(library.value, node.id)) || node;
+/** Sentences or combinations it holds, to switch from its menu. */
+const switchable = (node: DeckNode) => kindsIn(fullOf(node)).length > 0;
+const ownKinds = (node: DeckNode) => Object.keys(settings.value.groupKinds?.[node.id] ?? {}).length > 0;
+const switching = shallowRef<DeckNode>();
+function openKinds(node: DeckNode) {
+  menu.hide();
+  switching.value = fullOf(node);
+}
+
 /** Goes straight in when only one thing is possible, else asks. */
 async function start(node: DeckNode, i: number) {
   const options = optionsOf(node, i);
-  if (options.length > 1) return void menu.show(keyOf(i));
+  if (options.length > 1 || switchable(node)) return void menu.show(keyOf(i));
   if (options[0]) await navigateTo(options[0].to);
 }
 
 function countsOf(node: DeckNode) {
   const cards = cardsOf(node);
   return { learned: cards.filter(c => isThrough(c.id)).length, total: cards.length };
+}
+
+/** Learned share, 0 for a section with every card switched off. */
+function shareOf(node: DeckNode) {
+  const { learned, total } = countsOf(node);
+  return total ? learned / total : 0;
 }
 
 /** Learning groups the section's new cards still make, out of all it makes. */
@@ -65,10 +84,10 @@ function linkTo(page: 'learn' | 'review', i: number, game?: ReviewGame) {
         <button class="flex flex-1 items-center gap-2 text-left" @click="open = open === i ? undefined : i">
           <span class="w-4 text-stone-400">{{ node.children ? (open === i ? '▾' : '▸') : '' }}</span>
           <span class="flex flex-1 flex-col gap-1">
-            <span>{{ node.name }}</span>
+            <span>{{ node.name }}<span v-if="ownKinds(node)" class="ml-2 rounded bg-orange-100 px-1.5 text-xs text-orange-800 dark:bg-orange-950 dark:text-orange-300" title="Keeps its own choice of cards" data-testid="kinds-own">own cards</span></span>
             <span class="flex items-center gap-2">
-              <ProgressBar :value="countsOf(node).learned / countsOf(node).total" class="max-w-40 flex-1" />
-              <span class="w-9 text-right text-xs font-semibold tabular-nums text-stone-700 dark:text-stone-300" data-testid="learned-share">{{ Math.round((100 * countsOf(node).learned) / countsOf(node).total) }}%</span>
+              <ProgressBar :value="shareOf(node)" class="max-w-40 flex-1" />
+              <span class="w-9 text-right text-xs font-semibold tabular-nums text-stone-700 dark:text-stone-300" data-testid="learned-share">{{ Math.round(100 * shareOf(node)) }}%</span>
               <span class="rounded bg-stone-100 px-1.5 text-xs tabular-nums text-stone-500 dark:bg-stone-800" data-testid="learned-count">{{ countsOf(node).learned }}/{{ countsOf(node).total }}</span>
             </span>
             <span v-if="groupsOf(node).left" class="text-xs text-stone-500" data-testid="groups-left">{{ groupsOf(node).left }}/{{ groupsOf(node).total }} groups left</span>
@@ -87,6 +106,7 @@ function linkTo(page: 'learn' | 'review', i: number, game?: ReviewGame) {
                 <span class="flex justify-between gap-2"><span>{{ o.label }}</span><span v-if="o.total" class="text-xs tabular-nums" :class="o.id === 'learn' ? 'text-orange-100' : 'text-stone-500'">{{ o.done }}/{{ o.total }}</span></span>
                 <ProgressBar v-if="o.total" :value="o.done / o.total" :inverted="o.id === 'learn'" />
               </NuxtLink>
+              <button v-if="switchable(node)" class="rounded-lg px-3 py-2 text-left hover:bg-stone-100 dark:hover:bg-stone-800" data-testid="kinds" @click="openKinds(node)">Cards</button>
             </div>
           </div>
           </Transition>
@@ -96,5 +116,6 @@ function linkTo(page: 'learn' | 'review', i: number, game?: ReviewGame) {
     </li>
   </ul>
   <ResetSheet :request="resetting" @close="resetting = undefined" />
+  <KindSheet :node="switching" @close="switching = undefined" />
   </div>
 </template>

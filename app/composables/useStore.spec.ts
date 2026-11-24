@@ -1,4 +1,5 @@
 import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
+import { cardsOf } from '@/utils/deck';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 beforeEach(async () => {
@@ -206,5 +207,39 @@ describe('saved progress', () => {
     store.scores.value = {};
     store.importProgress(json);
     expect(kept()).toEqual(before);
+  });
+});
+
+describe('a kind switched off', () => {
+  const later = () => new Date(Date.now() + 100 * 86_400_000);
+  beforeEach(() => {
+    const store = useStore();
+    store.saveCustom({ id: CUSTOM_ID, name: 'My cards', cards: [{ id: 'word', f: 'дом', b: 'het huis' }, { id: 'sent', f: 'Я дома.', b: 'Ik ben thuis.', k: 'sentence' }] });
+    for (const id of ['word', 'sent']) store.rate(id, store.Rating.Good);
+  });
+  afterEach(() => {
+    const store = useStore();
+    store.updateSettings({ kinds: {}, groupKinds: {} });
+    store.saveCustom(emptyCustom());
+  });
+  const shown = () => cardsOf(useStore().deck.value!).map(c => c.id).filter(id => ['word', 'sent'].includes(id));
+
+  it('takes its cards out of the deck and the reviews', () => {
+    const store = useStore();
+    store.updateSettings({ kinds: { sentence: false } });
+    expect([shown(), store.dueIn('recall', later())]).toEqual([['word'], ['word']]);
+  });
+
+  it('keeps their progress for when it is back on', () => {
+    const store = useStore();
+    store.updateSettings({ kinds: { sentence: false } });
+    store.updateSettings({ kinds: { sentence: true } });
+    expect([shown(), store.isLearned('sent'), store.dueIn('recall', later())]).toEqual([['word', 'sent'], true, ['word', 'sent']]);
+  });
+
+  it('follows a group switch', () => {
+    const store = useStore();
+    store.updateSettings({ kinds: { sentence: false }, groupKinds: { [CUSTOM_ID]: { sentence: true } } });
+    expect(shown()).toEqual(['word', 'sent']);
   });
 });

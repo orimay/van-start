@@ -6,6 +6,7 @@ import { nextTick } from 'vue';
 import Index from './index.vue';
 import { LONG_PRESS_MS } from '@/composables/useLongPress';
 import type { ReviewGame } from '@/utils/games';
+import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
 
 let store: ReturnType<typeof useStore>;
 
@@ -27,6 +28,16 @@ describe('learned count', () => {
     store.pass('k1', 'intro');
     const w = await mountSuspended(Index);
     expect(w.text()).toContain('Learned 1');
+  });
+
+  it('leaves out words switched off', async () => {
+    store.saveCustom({ id: CUSTOM_ID, name: 'My cards', cards: [{ id: 's', f: 'Я дома.', b: 'Ik ben thuis.', k: 'sentence' }] });
+    store.rate('s', Rating.Good);
+    store.updateSettings({ kinds: { sentence: false } });
+    const w = await mountSuspended(Index);
+    expect(w.text()).toContain('Learned 0');
+    store.updateSettings({ kinds: {} });
+    store.saveCustom(emptyCustom());
   });
 });
 
