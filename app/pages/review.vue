@@ -55,7 +55,7 @@ const balanceOf = (id: string) => (store.scores.value[id]?.[reviewGame]?.wrong ?
 const batch = saved
   ? saved.ids.map(id => toStudyCard(byId.get(id)!))
   : candidates
-      .filter(c => (section ? store.isLearned(c.id) : store.isDue(c.id, now, reviewGame)))
+      .filter(c => (section ? store.isLearned(c.id) && store.playedIn(c.id, reviewGame) : store.isDue(c.id, now, reviewGame)))
       // Hardest first, so they get the most chances to come back.
       .sort((a, b) => balanceOf(b.id) - balanceOf(a.id) || learnedAt.get(a.id)! - learnedAt.get(b.id)!)
       .map(c => toStudyCard(c));

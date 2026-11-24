@@ -611,6 +611,38 @@ describe('listening', () => {
   });
 });
 
+describe('an affix', () => {
+  const affix: StudyCard = { id: 'af', prompt: 'acting on someone', answer: 'be-', nl: 'bewonen', affix: true, promptExample: 'to inhabit', answerExample: 'bewonen' };
+
+  it('sits out listening', async () => {
+    const w = await doMount({ cards: [affix, ...cards(1)], stages: ['listen'] });
+    await doRecall(w, true);
+    expect(w.emitted('answer')).toEqual([['c0', 'listen', true]]);
+    expect(w.emitted('finished')).toBeTruthy();
+  });
+
+  it('sits out dictation', async () => {
+    const w = await doMount({ cards: [affix], stages: ['intro', 'dictation'] });
+    await doClick(w, 'next');
+    expect(w.emitted('finished')).toBeTruthy();
+  });
+
+  it('is pronounced by its example word', async () => {
+    vi.mocked(speak).mockClear();
+    const w = await doMount({ cards: [affix], stages: ['pronounce'] });
+    expect(promptOf(w)).toBe('bewonen');
+    await doClick(w, 'reveal');
+    expect(w.get('[data-testid="answer"]').text()).toBe('to inhabit');
+    expect(vi.mocked(speak)).toHaveBeenCalledWith(expect.objectContaining({ nl: 'bewonen' }));
+  });
+
+  it('is introduced by pronouncing its example word', async () => {
+    const w = await doMount({ cards: [affix], stages: ['pronounce', 'recall'], introducing: true });
+    expect(promptOf(w)).toBe('to inhabit');
+    expect(w.get('[data-testid="answer"]').text()).toBe('bewonen');
+  });
+});
+
 describe('dictation', () => {
   it('shows the transcription under the speaker', async () => {
     const w = await doMount({ cards: [{ ...cards(1)[0]!, tr: 'aa' }], stages: ['dictation'] });

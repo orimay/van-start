@@ -1,3 +1,4 @@
+import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 beforeEach(async () => {
@@ -28,6 +29,29 @@ describe('a word', () => {
     const store = useStore();
     store.rate('w', store.Rating.Good);
     expect(store.isThrough('w')).toBe(true);
+  });
+});
+
+describe('an affix', () => {
+  beforeEach(() => {
+    const store = useStore();
+    store.saveCustom({ id: CUSTOM_ID, name: 'My cards', cards: [{ id: 'af', f: 'acting on someone', b: 'be-', xb: 'bewonen' }] });
+    store.updateSettings({ games: ['listen', 'recall', 'dictation'], pronounceFirst: false });
+  });
+  afterEach(() => useStore().saveCustom(emptyCustom()));
+
+  it('is through without the games played by ear', () => {
+    const store = useStore();
+    store.pass('af', 'intro');
+    store.pass('af', 'recall');
+    expect(store.isThrough('af')).toBe(true);
+  });
+
+  it('is never due in the games played by ear', () => {
+    const store = useStore();
+    store.rate('af', store.Rating.Good);
+    const later = new Date(Date.now() + 100 * 86_400_000);
+    expect(['listen', 'dictation', 'recall'].map(g => store.isDue('af', later, g as 'recall'))).toEqual([false, false, true]);
   });
 });
 

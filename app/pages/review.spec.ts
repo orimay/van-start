@@ -92,6 +92,14 @@ describe('review', () => {
     expect(asked.sort()).toEqual(['p0', 'p2']);
   });
 
+  it('leaves the affixes of a section out of listening', async () => {
+    store.deck.value = { id: 'root', name: 'Root', children: [{ id: 's', name: 'Section', cards: [{ id: 'af', f: 'acting on someone', b: 'be-', xb: 'bewonen' }, ...structuredClone(cards)] }] };
+    givenLearned('af', 'k0');
+    const w = await doMount('0', 'listen');
+    await doRecall(w, true);
+    expect(w.get('[data-testid="done"]').text()).toBe('Done');
+  });
+
 });
 
 

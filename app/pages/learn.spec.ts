@@ -177,6 +177,19 @@ describe('a group left halfway', () => {
     ]);
   });
 
+  it('counts an affix through the games played by ear', async () => {
+    useStore().deck.value = { id: 'root', name: 'Root', cards: [{ id: 'af', f: 'acting on someone', b: 'be-', xb: 'bewonen' }, ...structuredClone(cards)] };
+    useStore().updateSettings({ games: ['listen', 'recall', 'dictation'] });
+    await doLeaveAfter(2);
+    const w = await doMount();
+    expect(readProgress(w)).toEqual([
+      { game: 'Intro', passed: '2', of: '5' },
+      { game: 'Listening', passed: '1', of: '5' },
+      { game: 'Speaking', passed: '0', of: '5' },
+      { game: 'Dictation', passed: '1', of: '5' },
+    ]);
+  });
+
   it('asks before dropping the games its words passed', async () => {
     await doLeaveAfter(2);
     const w = await doMount();

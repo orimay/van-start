@@ -1,8 +1,8 @@
 import { load as get, save as set } from '@/db/kv';
 import { type CardInput, createEmptyCard, fsrs, type Grade, Rating, State } from 'ts-fsrs';
-import { shallowRef, triggerRef } from 'vue';
+import { computed, shallowRef, triggerRef } from 'vue';
 import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
-import { cardsOf, type DeckNode } from '@/utils/deck';
+import { cardsOf, type DeckNode, isAffixCard } from '@/utils/deck';
 import { applyEdits, type Edits, noEdits } from '@/utils/edits';
 import type { LexilizeCard } from '@/utils/lexilize';
 import type { GameScores, Score } from '@/utils/score';
@@ -10,7 +10,7 @@ import { markReviewed, type ReviewLog } from '@/utils/today';
 
 const DAY = 86_400_000;
 
-import { DEFAULT_GAMES, GAMES, type Game, learnStages, REVIEW_GAMES, type ReviewGame, savedGames } from '@/utils/games';
+import { DEFAULT_GAMES, GAMES, type Game, learnStages, playsIn, REVIEW_GAMES, type ReviewGame, savedGames } from '@/utils/games';
 
 
 export const LANGUAGES = { en: 'English', es: 'Español', pt: 'Português', tr: 'Türkçe', ro: 'Română', ru: 'Русский' } as const;
@@ -67,11 +67,15 @@ const settings = shallowRef<Settings>({ language: 'en', groupSize: 15, games: [.
 /** False until the learner has saved settings once: the app then opens on them. */
 const configured = shallowRef(false);
 let loading: Promise<void> | undefined;
+/** Prefixes and suffixes of the deck: they sit out the games played by ear. */
+const affixes = computed(() => new Set(deck.value ? cardsOf(deck.value).filter(isAffixCard).map(c => c.id) : []));
+/** The card plays the game. */
+const playedIn = (id: string, game: string) => playsIn(affixes.value.has(id), game);
 
 /** Through every learning game on now, `stages` by default; a card learned before games were tracked counts as through. */
 function isThrough(id: string, stages: readonly string[] = learnStages(settings.value.games, settings.value.pronounceFirst)) {
   const games = passed.value[id];
-  return games ? stages.every(s => games.includes(s)) : id in progress.value;
+  return games ? stages.every(s => games.includes(s) || !playedIn(id, s)) : id in progress.value;
 }
 
 /** The cards start their learning games afresh. */
@@ -157,9 +161,9 @@ function schedule(game: ReviewGame, id: string, card: CardInput | undefined) {
   reviews.value[game] = card ? { ...others, [id]: card } : others;
 }
 
-/** Due in a game: learned, and either never asked in it or its time has come. */
+/** Due in a game: learned, played by the card, and either never asked in it or its time has come. */
 function isDueIn(id: string, game: ReviewGame, now: Date) {
-  if (!(id in progress.value)) return false;
+  if (!(id in progress.value) || !playedIn(id, game)) return false;
   const card = reviews.value[game]?.[id];
   return card === undefined || new Date(card.due) <= now;
 }
@@ -225,6 +229,7 @@ export function useStore() {
 
     isLearned: (id: string) => id in progress.value,
     isThrough,
+    playedIn,
     /** Due in the game, or without one in any review game. */
     isDue: (id: string, now = new Date(), game?: ReviewGame) => (game ? [game] : REVIEW_GAMES).some(g => isDueIn(id, g, now)),
     /** Learned cards due in the game. */

@@ -1,3 +1,5 @@
+import { isAffix } from '@/utils/games';
+
 export interface DeckCard {
   id: string;
   f: string;
@@ -47,7 +49,12 @@ export interface StudyCard {
   promptExample?: string;
   answerExample?: string;
   img?: string;
+  /** A prefix or a suffix: its voice is its example word's. */
+  affix?: boolean;
 }
+
+/** A prefix or a suffix with an example word to voice it. */
+export const isAffixCard = (card: DeckCard) => isAffix(card.b) && !!card.xb;
 
 export function cardsOf(node: DeckNode): DeckCard[] {
   return [...(node.cards ?? []), ...(node.children ?? []).flatMap(cardsOf)];
@@ -55,7 +62,8 @@ export function cardsOf(node: DeckNode): DeckCard[] {
 
 export function toStudyCard(card: DeckCard): StudyCard {
   const promptNote = [card.n, card.nx].filter(Boolean).join('\n') || undefined;
-  return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, id: card.id, audio: card.au, exampleAudio: card.axb, nl: card.b, nlExample: card.xb, prompt: card.f, answer: card.b, tr: card.tr, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, img: card.img };
+  const voice = isAffixCard(card) && card.xb ? { affix: true, nl: card.xb, audio: card.axb } : { nl: card.b, audio: card.au, nlExample: card.xb, exampleAudio: card.axb };
+  return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, id: card.id, ...voice, prompt: card.f, answer: card.b, tr: card.tr, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, img: card.img };
 }
 
 /** The same card asked the other way round: Dutch shown, native side recalled. */

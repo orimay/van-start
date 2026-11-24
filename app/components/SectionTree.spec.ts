@@ -83,6 +83,20 @@ describe('start button', () => {
     expect(w.get('[data-testid="review-type"]').attributes('href')).toContain('game=type');
   });
 
+  it('leaves affixes out of the games played by ear', async () => {
+    learned.add('a').add('b').add('c');
+    const w = await doMount({ ...section, cards: [{ id: 'c', f: 'f', b: 'be-', xb: 'bewonen' }, ...section.cards!] });
+    await doStart(w);
+    expect(w.findAll('[data-testid="start-menu"] a').map(a => a.findAll('span').filter(s => !s.find('span').exists()).map(s => s.text()).filter(Boolean).join(' '))).toEqual(['Review: Writing 0/3', 'Review: Dictation 0/2', 'Review: Speaking 0/3', 'Review: Listening 0/2', 'Review: Reading 0/3', 'Review: Pronouncing 0/3']);
+  });
+
+  it('offers no game played by ear to a section of affixes', async () => {
+    learned.add('c');
+    const w = await doMount({ ...section, cards: [{ id: 'c', f: 'f', b: 'be-', xb: 'bewonen' }] });
+    await doStart(w);
+    expect(w.findAll('[data-testid="start-menu"] a').map(a => a.attributes('data-testid'))).toEqual(['review-type', 'review-recall', 'review-recallNative', 'review-pronounce']);
+  });
+
   it('offers review and then learn in a popup when both apply, keeping the button', async () => {
     learned.add('a');
     const w = await doMount();

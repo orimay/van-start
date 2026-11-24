@@ -45,7 +45,7 @@ let passedAtStart = { ...store.passed.value };
 /** Through every game on; a card learned before games were tracked counts as through. */
 const isDone = (id: string) => {
   const games = passedAtStart[id];
-  return games ? stages.every(s => games.includes(s)) : store.isLearned(id);
+  return games ? stages.every(s => games.includes(s) || !store.playedIn(id, s)) : store.isLearned(id);
 };
 /** Started under the games on now, but not through them. */
 const isStarted = (id: string) => !isDone(id) && stages.some(s => passedAtStart[id]?.includes(s));
@@ -144,7 +144,7 @@ const passedGames = computed(() =>
 );
 /** Every game on, with how many words of the group to continue passed it. */
 const groupProgress = computed(() =>
-  stages.map(s => ({ title: GAME_TITLES[s], passed: group.value.filter(c => store.passed.value[c.id]?.includes(s)).length, of: group.value.length })),
+  stages.map(s => ({ title: GAME_TITLES[s], passed: group.value.filter(c => store.passed.value[c.id]?.includes(s) || !store.playedIn(c.id, s)).length, of: group.value.length })),
 );
 const confirmingStartOver = shallowRef(false);
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useMenu } from '@/composables/useMenu';
 import { shallowRef } from 'vue';
-import { cardsOf, type DeckNode } from '@/utils/deck';
+import { cardsOf, type DeckNode, isAffixCard } from '@/utils/deck';
 import { reviewedOn } from '@/utils/today';
-import { GAME_TITLES, type ReviewGame, REVIEW_GAMES } from '@/utils/games';
+import { GAME_TITLES, playsIn, type ReviewGame, REVIEW_GAMES } from '@/utils/games';
 import { longPress } from '@/composables/useLongPress';
 import type { ResetRequest } from '@/components/ResetSheet.vue';
 
@@ -22,10 +22,10 @@ function optionsOf(node: DeckNode, i: number) {
   const all = cardsOf(node).map(c => c.id);
   const learn = learned < total ? [{ id: 'learn', label: 'Learn', to: linkTo('learn', i), done: learned, total, reset: { what: 'learning', count: all.length, reset: () => forgetLearning(all) } }] : [];
   const reviewed = reviewedOn(reviewLog.value, new Date());
-  const ids = cardsOf(node).filter(c => isLearned(c.id)).map(c => c.id);
-  const review = ids.length
-    ? REVIEW_GAMES.map(game => ({ id: `review-${game}`, label: `Review: ${GAME_TITLES[game]}`, to: linkTo('review', i, game), done: ids.filter(id => reviewed.includes(`${game}:${id}`)).length, total: ids.length, reset: { what: `${GAME_TITLES[game]} reviews`, count: ids.length, reset: () => forgetReviews(ids, [game]) } }))
-    : [];
+  const known = cardsOf(node).filter(c => isLearned(c.id));
+  const review = REVIEW_GAMES.map(game => ({ game, ids: known.filter(c => playsIn(isAffixCard(c), game)).map(c => c.id) }))
+    .filter(({ ids }) => ids.length)
+    .map(({ game, ids }) => ({ id: `review-${game}`, label: `Review: ${GAME_TITLES[game]}`, to: linkTo('review', i, game), done: ids.filter(id => reviewed.includes(`${game}:${id}`)).length, total: ids.length, reset: { what: `${GAME_TITLES[game]} reviews`, count: ids.length, reset: () => forgetReviews(ids, [game]) } }));
   return [...review, ...learn];
 }
 
