@@ -12,7 +12,7 @@ When two rules conflict, the one written further down wins.
 - Run Python with `-I`.
 - Never extract or use the user's credentials from their folders. Push to the orimay repos with `~/.ssh/id_ed25519_github`.
 - Sources live in `orimay/van-start` (push with `GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github"`). Commit and push each finished step; `scripts/deploy.sh` also commits and pushes the sources. Commits use `dmitrii.a.baranov@gmail.com`: the shell's `JJ_EMAIL` is the work one, so set `JJ_EMAIL` on every committing jj call.
-- While a deploy runs its tests, commit or `pnpm build`, do not touch `app/`, `public/` or tests: the commit or the build would pick up unfinished changes. Docs (`CLAUDE.md`, `notes/`) are safe any time, and so is everything during the pushes and rsync.
+- Ship with `scripts/ship.sh "msg"`: it snapshots the working copy into the `build` jj workspace (`../van-start-build`, made on first run with `node_modules` and `public/audio` linked in) and runs `scripts/deploy.sh` there, then rebases the working copy onto the pushed `main`. Editing goes on during the build; only changes made before the snapshot ship.
 - Bugs follow TDD: failing test first, then the fix.
 - Tests are black-box only: assert what the user sees (DOM, `data-testid`), never internals.
 - Never claim audio sounds right without having heard it.
@@ -188,7 +188,8 @@ When two rules conflict, the one written further down wins.
   - In every mode (1:1, 5:5, 1:5, recall, typing) cards have notes and the same size.
   - Dividers do not jump.
   - A card too long for its half scrolls only its notes, example and breakdown (`prompt-scroll` / `answer-scroll`); the word and transcription stay in view. The word keeps clear of the corner badge and the `?` button (`px-7`). The half centres with `justify-center-safe`: plain `justify-center` cut the top off a card taller than its half.
-  - Under the word come its example and breakdown first, then the notes below a thin rule: a bulleted, left-aligned list when there are several items, so a centred wall of lines never forms.
+  - Under the word come its example and breakdown first, in a shaded box, apart from the notes below it: a bulleted, left-aligned list when there are several items, so a centred wall of lines never forms.
+- A derived word whose meaning does not follow plainly from its parts gets a literal bridge after its origin, in every language: `дословно «от-сказать», как «отказать»: сказать, что не придёшь` (afzeggen), `literally '…'` in en.
   - A closed card keeps its example back (it would prompt the word): `Show context` stands in its place and shows it, at no cost; the open card shows it as usual.
   - Text wraps balanced (`text-wrap: balance` on body): no last word left alone on its line.
   - 1:5 shows only examples from the current set.
@@ -248,7 +249,7 @@ When two rules conflict, the one written further down wins.
 1. Tests: `npx vitest run` (~25 s), plus the three Python tests under Transcription.
 2. Deploy:
    ```
-   rm -rf .output; sleep 1; rm -rf .output; scripts/deploy.sh "msg" > /private/tmp/claude-501/lx/deploy.log 2>&1
+   GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github -o IdentitiesOnly=yes" scripts/ship.sh "msg" > /private/tmp/claude-501/deploy.log 2>&1
    ```
 
 - An unfinished review is kept in the `session` table (`review-left:<path>:<game>`, via `sessions` in `app/db/sessions.ts`) after each answer and picked up on the next visit at the same card; a finished one is dropped.
