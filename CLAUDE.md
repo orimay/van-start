@@ -87,7 +87,9 @@ When two rules conflict, the one written further down wins.
   - simple past: `прошедшее (делал, был): рассказ о прошлом` / `past (did, was): telling about the past` / `pasado (hacía, fue): para contar el pasado` / `passado (fazia, foi): para contar o passado` / `geçmiş (yapardı, idi): geçmişi anlatırken` / `trecut (făcea, a fost): povestire despre trecut`;
   - imperative: `просьба/приказ, от:` / `request/order, of` / `petición/orden, de` / `pedido/ordem, de` / `rica/emir, kökü:` / `rugăminte/ordin, de la`;
   - participle: `форма «сделанный»` / `'done' form` / `forma «hecho»` / `forma «feito»` / `'yapılmış' biçimi` / `forma «făcut»`;
-  - adverb: `отвечает на «как? где?»`; impersonal: `без того, кто делает`; passive: `с ним делают`, each likewise translated.
+  - adverb: `отвечает на «как? где?»`, only where the word does answer it (thuis: `отвечает на «где?»`); otherwise the meaning alone (echt: `в самом деле`), never a bare label;
+  - particle: what it does, with an example (hoor: `в конце фразы смягчает или успокаивает; nee hoor — да нет же`), never a bare `частица`;
+  - impersonal: `без того, кто делает`; passive: `с ним делают`, each likewise translated.
 - **One card per prompt.** In each language no two cards share a prompt: translation plus note. Near synonyms get a telling hint in the translation: the register or nuance (`терять (куда-то деть)` / `терять; проигрывать`), the form (`как долго (одним словом)`, `сайт (коротко)`, `мама (другое написание)`), or the article (`утюг (de-слово)`). `app/utils/duplicate-prompts.spec.ts` checks it.
 - **Transcription.**
   - Per language, in that language's script.
