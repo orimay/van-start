@@ -617,7 +617,7 @@ describe('listening', () => {
 });
 
 describe('an affix', () => {
-  const affix: StudyCard = { id: 'af', prompt: 'acting on someone', answer: 'be-', nl: 'bewonen', affix: true, promptExample: 'to inhabit', answerExample: 'bewonen', breakdown: 'be- (on) + wonen (to live)' };
+  const affix: StudyCard = { id: 'af', prompt: 'acting on someone', answer: 'be-', nl: 'bewonen', affix: true, promptExample: 'to inhabit', answerExample: 'bewonen', breakdown: 'be- (on) + wonen (to live)', tr: 'bu', exampleTr: 'buvónun' };
 
   it('sits out listening', async () => {
     const w = await doMount({ cards: [affix, ...cards(1)], stages: ['listen'] });
@@ -639,6 +639,12 @@ describe('an affix', () => {
     await doClick(w, 'reveal');
     expect(w.get('[data-testid="answer"]').text()).toBe('to inhabit');
     expect(vi.mocked(speak)).toHaveBeenCalledWith(expect.objectContaining({ nl: 'bewonen' }));
+  });
+
+  it('shows its example word transcription, never its own', async () => {
+    const w = await doMount({ cards: [affix], stages: ['pronounce'] });
+    await doClick(w, 'reveal');
+    expect(w.get('[data-testid="transcription"]').text()).toBe('[buvónun]');
   });
 
   it('is introduced by pronouncing its example word', async () => {
@@ -678,6 +684,13 @@ describe('an affix', () => {
     const w = await doMount({ cards: [suffix], stages: ['pronounce'] });
     expect(w.get('[data-testid="affix-part"]').text()).toBe('lijk');
     expect(promptOf(w)).toBe('vriendelijk');
+  });
+
+  it('marks a prefix after the article of its example noun', async () => {
+    const prefix: StudyCard = { id: 'pf', prompt: 'in front', answer: 'voor-', nl: 'de voornaam', affix: true, promptExample: 'first name', answerExample: 'de voornaam' };
+    const w = await doMount({ cards: [prefix], stages: ['pronounce'] });
+    expect(w.get('[data-testid="affix-part"]').text()).toBe('voor');
+    expect(promptOf(w)).toBe('de voornaam');
   });
 });
 

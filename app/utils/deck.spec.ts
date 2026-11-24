@@ -6,7 +6,11 @@ import { speak } from './speak';
 vi.mock('./play', async importOriginal => ({ ...(await importOriginal<typeof import('./play')>()), play: vi.fn() }));
 
 describe('an affix card', () => {
-  const affix = toStudyCard({ id: 'be', f: 'acting on someone', b: 'be-', au: 'be-clip', xb: 'bewonen', xf: 'to inhabit', axb: 'bewonen-clip' });
+  const affix = toStudyCard({ id: 'be', f: 'acting on someone', b: 'be-', tr: 'bu', au: 'be-clip', xb: 'bewonen', xt: 'buvónun', xf: 'to inhabit', axb: 'bewonen-clip' });
+
+  it('carries its example word transcription', () => {
+    expect(affix.exampleTr).toBe('buvónun');
+  });
 
   it('shows the affix with its example word', () => {
     expect([affix.answer, affix.answerExample]).toEqual(['be-', 'bewonen']);

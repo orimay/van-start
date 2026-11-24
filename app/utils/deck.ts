@@ -23,6 +23,8 @@ export interface DeckCard {
   axb?: string;
   /** Affix cards: the example word broken into its parts. */
   xl?: string;
+  /** Affix cards: the example word's transcription. */
+  xt?: string;
   /** A card the learner can switch off: an example sentence or one of a rule-built series. */
   k?: Kind;
 }
@@ -56,6 +58,8 @@ export interface StudyCard {
   img?: string;
   /** A prefix or a suffix: its voice is its example word's. */
   affix?: boolean;
+  /** An affix's example word transcription: its voice. */
+  exampleTr?: string;
   /** An affix's example word broken into its parts. */
   breakdown?: string;
   /** Said by its example word: the affix it stands for, marked in the word. */
@@ -71,7 +75,7 @@ export function cardsOf(node: DeckNode): DeckCard[] {
 
 export function toStudyCard(card: DeckCard): StudyCard {
   const promptNote = [card.n, card.nx].filter(Boolean).join('\n') || undefined;
-  const voice = isAffixCard(card) && card.xb ? { affix: true, nl: card.xb, audio: card.axb } : { nl: card.b, audio: card.au, nlExample: card.xb, exampleAudio: card.axb };
+  const voice = isAffixCard(card) && card.xb ? { affix: true, nl: card.xb, audio: card.axb, exampleTr: card.xt } : { nl: card.b, audio: card.au, nlExample: card.xb, exampleAudio: card.axb };
   return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, id: card.id, ...voice, prompt: card.f, answer: card.b, tr: card.tr, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, breakdown: card.xl, img: card.img };
 }
 

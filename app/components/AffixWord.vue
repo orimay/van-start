@@ -2,7 +2,9 @@
 /** An affix's example word: the affix bright, the rest of the word grey. */
 const props = defineProps<{ word: string; affix: string }>();
 const stem = computed(() => props.affix.replace(/^-|-$/g, ''));
-const parts = computed(() => (props.affix.startsWith('-') ? [props.word.slice(0, -stem.value.length), stem.value, ''] : ['', stem.value, props.word.slice(stem.value.length)]));
+/** A noun's article stays grey before a prefix. */
+const article = computed(() => /^(de|het) /.exec(props.word)?.[0] ?? '');
+const parts = computed(() => (props.affix.startsWith('-') ? [props.word.slice(0, -stem.value.length), stem.value, ''] : [article.value, stem.value, props.word.slice(article.value.length + stem.value.length)]));
 </script>
 
 <template>

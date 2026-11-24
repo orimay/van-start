@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-interface Card { id: string; b: string; f: string; xb?: string; xf?: string; xl?: string }
+interface Card { id: string; b: string; f: string; tr?: string; xb?: string; xf?: string; xl?: string; xt?: string }
 interface Node { cards?: Card[]; children?: Node[] }
-type Overlay = Record<string, [string, string?, ...unknown[]]>;
+type Overlay = Record<string, [string, string?, string?, string?, string?, string?, string?]>;
 const deck: Node = JSON.parse(readFileSync('public/deck.json', 'utf8'));
 const cardsOf = (n: Node): Card[] => [...(n.cards ?? []), ...(n.children ?? []).flatMap(cardsOf)];
 const overlayOf = (lang: string): Overlay => JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
@@ -23,7 +23,24 @@ describe("an affix's example word", () => {
     expect(wrong).toEqual([]);
   });
 
+  it('is written as its own card, a noun with its article', () => {
+    expect(pairs.filter(([affix, word]) => affix.xb !== word.b).map(([affix, word]) => `${affix.xb} ≠ ${word.b}`)).toEqual([]);
+  });
+
+  it('is transcribed as its own card in Russian', () => {
+    expect(pairs.filter(([affix, word]) => affix.xt !== word.tr).map(([affix, word]) => `${affix.b}: ${affix.xt} ≠ ${word.tr}`)).toEqual([]);
+  });
+
+  it('is transcribed even without a card of its own', () => {
+    expect(cardsOf(deck).filter(c => isAffix(c.b) && c.xb && !c.xt).map(c => c.b)).toEqual([]);
+  });
+
   for (const lang of ['en', 'es', 'pt', 'tr', 'ro']) {
+    it(`is transcribed as its own card in ${lang}`, () => {
+      const overlay = overlayOf(lang);
+      expect(pairs.filter(([affix, word]) => overlay[affix.id]?.[6] !== overlay[word.id]?.[2]).map(([affix]) => affix.b)).toEqual([]);
+    });
+
     it(`is glossed as its own card in ${lang}`, () => {
       const overlay = overlayOf(lang);
       const wrong = pairs.filter(([affix, word]) => overlay[affix.id]?.[1] !== overlay[word.id]?.[0]).map(([affix]) => affix.b);
@@ -37,7 +54,7 @@ const stem = (affix: string) => affix.replace(/^-|-$/g, '');
 
 describe('an affix', () => {
   it('shows itself in its example word', () => {
-    const wrong = affixes.filter(c => !(c.b.endsWith('-') ? c.xb!.startsWith(stem(c.b)) : c.xb!.endsWith(stem(c.b)))).map(c => `${c.b}: ${c.xb}`);
+    const wrong = affixes.filter(c => !(c.b.endsWith('-') ? bare(c.xb!).startsWith(stem(c.b)) : c.xb!.endsWith(stem(c.b)))).map(c => `${c.b}: ${c.xb}`);
     expect(wrong).toEqual([]);
   });
 

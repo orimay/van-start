@@ -135,6 +135,18 @@ def main():
                 new = translit.convert(card['tr'], l, card['b'])
                 changed += new != row[2]
                 row[2] = new
+        # An affix card's example word transcription, the voice of the card.
+        if card.get('xt'):
+            new = mark(card['xb'], card['xt'], 'ru')
+            changed += new != card['xt']
+            card['xt'] = new
+            for l, data in langs.items():
+                row = data['cards'].get(card['id'])
+                if row:
+                    row.extend([''] * (6 - len(row)))
+                    new = translit.convert(card['xt'], l, card['xb'])
+                    changed += row[6:] != [new]
+                    row[6:] = [new]
     if '--dry' not in sys.argv:
         DECK.write_text(json.dumps(deck, ensure_ascii=False, separators=(',', ':')))
         for l, data in langs.items():
