@@ -54,3 +54,16 @@ describe('a translated note', () => {
     });
   }
 });
+
+/** A Dutch word after an arrow, not followed by its meaning in brackets. */
+const BARE_RESULT = /→ [a-zà-ÿ]{2,}(?! \()(?=[,;:]|$)/i;
+
+describe('a word a note derives', () => {
+  for (const lang of ['ru', 'en', 'es', 'pt', 'tr', 'ro']) {
+    it(`carries its meaning, like the word it comes from, in ${lang}`, () => {
+      const rows: Record<string, Row> = lang === 'ru' ? {} : JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
+      const bare = cardsOf(deck).flatMap(c => items(lang === 'ru' ? c.n : rows[c.id]?.[3]).filter(i => BARE_RESULT.test(i)).map(i => `${c.b}: ${i}`));
+      expect(bare).toEqual([]);
+    });
+  }
+});

@@ -211,3 +211,48 @@ describe('a verbal noun mark', () => {
     expect(await lines({ id: 'c9', f: 'мастерение', b: 'het knutselen', n: 'процесс: het + глагол (knutselen — мастерить)' }, false)).toEqual([{ text: 'процесс: het + глагол (knutselen — мастерить)', shown: true }]);
   });
 });
+
+describe('a long card', () => {
+  const card = toStudyCard({ id: 'c2', f: 'из, наружу', b: 'uit-', n: 'в предложении отрывается; ik kies het uit (я это выбираю)', xf: 'выбирать', xb: 'uitkiezen' });
+
+  it('scrolls its notes and keeps the word in view, on both sides', async () => {
+    const prompt = await mountSuspended(Prompt, { props: { card } });
+    const answer = await mountSuspended(Answer, { props: { card: flip(card) } });
+    for (const [w, side] of [[prompt, 'prompt'], [answer, 'answer']] as const) {
+      const scroll = w.get(`[data-testid="${side}-scroll"]`);
+      expect(scroll.find(`[data-testid="${side}"]`).exists()).toBe(false);
+      expect(scroll.find(`[data-testid="${side}-note"], [data-testid="${side}-example"]`).exists()).toBe(true);
+    }
+  });
+
+  it('gives the example with its meaning before the notes, each note its own list item, on both sides', async () => {
+    const prompt = await mountSuspended(Prompt, { props: { card } });
+    const answer = await mountSuspended(Answer, { props: { card: flip(card) } });
+    for (const [w, side] of [[prompt, 'prompt'], [answer, 'answer']] as const) {
+      const order = w.get(`[data-testid="${side}-scroll"]`).findAll('[data-testid]').map(e => e.attributes('data-testid'));
+      expect(order.indexOf(`${side}-example`)).toBeLessThan(order.indexOf(`${side}-note`));
+      expect(w.findAll(`li[data-testid="${side}-note-line"]`)).toHaveLength(2);
+      const context = w.get(`[data-testid="${side}-context"]`);
+      expect(context.find(`[data-testid="${side}-example"]`).exists()).toBe(true);
+      expect(context.find(`[data-testid="${side}-note"]`).exists()).toBe(false);
+    }
+  });
+});
+
+describe('the context of a closed card', () => {
+  const card = toStudyCard({ id: 'c3', f: 'бросать', b: 'werpen', xf: 'Он бросает мяч.', xb: 'Hij werpt de bal.' });
+
+  it('stays hidden until asked for, so the word is recalled on its own', async () => {
+    const w = await mountSuspended(Prompt, { props: { card: flip(card), secret: true } });
+    expect(w.get('[data-testid="prompt-example"]').classes()).toContain('invisible');
+    await w.get('[data-testid="show-context"]').trigger('click');
+    expect(w.get('[data-testid="prompt-example"]').classes()).not.toContain('invisible');
+    expect(w.find('[data-testid="show-context"]').exists()).toBe(false);
+  });
+
+  it('shows once the card is open', async () => {
+    const w = await mountSuspended(Prompt, { props: { card: flip(card) } });
+    expect(w.get('[data-testid="prompt-example"]').classes()).not.toContain('invisible');
+    expect(w.find('[data-testid="show-context"]').exists()).toBe(false);
+  });
+});

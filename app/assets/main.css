@@ -8,6 +8,8 @@ body {
   @apply bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
+  /* Lines share the words evenly: no last word left alone on its line. */
+  text-wrap: balance;
   /* Taps select nothing; a card text is copied by a tap instead. */
   user-select: none;
   -webkit-user-select: none;
