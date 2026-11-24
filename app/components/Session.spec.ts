@@ -1375,6 +1375,24 @@ describe('swipe', () => {
     expect(w.emitted('answer')).toBeUndefined();
   });
 
+  it('left does not miss a choice not picked yet', async () => {
+    const w = await doMount({ cards: cards(3), stages: ['choice'] });
+    const first = promptOf(w);
+    await doSwipe(w, -100);
+    expect(promptOf(w)).toBe(first);
+    expect(w.emitted('answer')).toBeUndefined();
+  });
+
+  it('left does not turn a right choice into a miss', async () => {
+    vi.useFakeTimers();
+    const w = await doMount({ cards: cards(3), stages: ['choice'] });
+    await doPick(w, answerFor(promptOf(w)));
+    await doSwipe(w, -100);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(w.emitted('answer')?.map(a => a[2])).toEqual([true]);
+    vi.useRealTimers();
+  });
+
   it('right steps back', async () => {
     const w = await doMount({ cards: cards(3), stages: ['intro'] });
     const first = promptOf(w);
@@ -1708,6 +1726,38 @@ describe('review', () => {
     expect(await answerUntil(w, missed)).toBe(STEP);
     await doRecall(w, true);
     expect(await answerUntil(w, missed)).toBe(STEP);
+  });
+
+  it('times a recall to the reveal, so reading the answer long does not make it slow', async () => {
+    vi.useFakeTimers();
+    const w = await doMount({ cards: cards(60), stages: ['recall'], retryGap: GROUP, isSlow: (_, ms) => ms > 3000 });
+    const missed = promptOf(w);
+    await doRecall(w, false);
+    await answerUntil(w, missed);
+    await doClick(w, 'reveal');
+    await vi.advanceTimersByTimeAsync(10_000);
+    await doClick(w, 'remembered');
+    expect(await answerUntil(w, missed)).toBeGreaterThan(STEP);
+    vi.useRealTimers();
+  });
+
+  it('times a typed answer to its check, so reading the result long does not make it slow', async () => {
+    vi.useFakeTimers();
+    const w = await doMount({ cards: cards(2), stages: ['type'] });
+    await doType(w, 'input', answerFor(promptOf(w)));
+    await vi.advanceTimersByTimeAsync(10_000);
+    await doClick(w, 'submit');
+    expect(w.emitted('show')![0]![0]).toMatchObject({ answer: 'plus', ms: 0 });
+    vi.useRealTimers();
+  });
+
+  it('times a choice to the pick, not to the move on', async () => {
+    vi.useFakeTimers();
+    const w = await doMount({ cards: cards(5), stages: ['choice'] });
+    await doPick(w, answerFor(promptOf(w)));
+    await vi.advanceTimersByTimeAsync(500);
+    expect(w.emitted('show')![0]![0]).toMatchObject({ answer: 'plus', ms: 0 });
+    vi.useRealTimers();
   });
 
   it('carries a miss left only waiting to the next group, unpassed, instead of filling its wait', async () => {

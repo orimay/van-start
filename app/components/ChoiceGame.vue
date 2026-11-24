@@ -9,6 +9,8 @@ const picked = shallowRef(props.state?.picked);
 /** Set before the pick: a right one is then counted as a guess. */
 const guessing = shallowRef(false);
 /** A prompt row and room for five options, so tiles keep their size when fewer are offered. */
+/** Next only moves past a miss; a right pick moves on by itself. */
+const missed = computed(() => picked.value !== undefined && picked.value !== props.card.answer);
 const rows = computed(() => Math.max(6, props.options.length + 1));
 
 function pick(option: string) {
@@ -38,7 +40,7 @@ function tone(option: string) {
     <div class="actions flex gap-2">
       <BackButton /><LaterButton />
       <button class="btn-ghost" :class="{ 'bg-stone-200 dark:bg-stone-700': guessing }" :aria-pressed="guessing" :disabled="picked !== undefined" data-testid="guessing" @click="guessing = !guessing">Guessing</button>
-      <button class="btn-primary flex-1" :class="{ invisible: picked === undefined || picked === card.answer }" data-testid="next" @click="emit('result', false)">Next</button>
+      <button class="btn-primary flex-1" :class="{ invisible: !missed }" :disabled="!missed" data-testid="next" @click="emit('result', false)">Next</button>
     </div>
   </div>
 </template>

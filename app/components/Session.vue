@@ -171,6 +171,8 @@ let answers: string[] = [];
 let shows: string[] = [];
 /** When the card on screen came up, to time the answer. */
 let shownAt = Date.now();
+/** An answer is timed to its reveal, pick or check: reading the result after it is no thinking. */
+let answeredAt: number | undefined;
 
 const stage = computed(() => props.stages[stageIndex.value]!);
 /** Pronouncing in the intro's place meets the cards: the meaning on top, the Dutch to say under it. */
@@ -300,7 +302,10 @@ function emitPosition(items = queue.value) {
 }
 
 watch(queue, items => emitPosition(items), { immediate: true });
-watch(view, () => (shownAt = Date.now()));
+watch(view, () => {
+  shownAt = Date.now();
+  answeredAt = undefined;
+});
 
 /** Keeps a match round's state on its item, so a reload comes back to the same pairs. */
 function onMatchProgress(matched: string[], mistakes: string[]) {
@@ -311,6 +316,7 @@ function onMatchProgress(matched: string[], mistakes: string[]) {
 /** Keeps a card's answer on its item; a retry later starts clean. */
 function onCardProgress(state: CardState) {
   const [first, ...rest] = queue.value;
+  if ((state.revealed || state.picked !== undefined || state.phase === 'done') && answeredAt === undefined) answeredAt = Date.now();
   if (first?.kind === 'card') queue.value = [{ ...first, state: { ...first.state, ...state, options: options.value.map(o => o.id) } }, ...rest];
 }
 
@@ -447,7 +453,7 @@ function putOff() {
 
 /** Reports a card's show to the log; the answer just given is timed from when the card came up. */
 function logShow(item: Item & { kind: 'card' }, answer: Given, typingMs = 0): number {
-  const ms = Date.now() - shownAt - typingMs;
+  const ms = (answeredAt ?? Date.now()) - shownAt - typingMs;
   const game = gameOf(item.card.id);
   shows.push(item.card.id);
   emit('show', { id: item.card.id, game, answer, ms, rung: item.rung ?? -1, source: item.rung === undefined ? 'new' : 'ladder' });

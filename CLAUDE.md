@@ -72,7 +72,7 @@ When two rules conflict, the one written further down wins.
   - Dutch u/uu is ү/үү; ю only in English loans (interview, steward). No ы, ё, ː. `app/composables/transcriptions.spec.ts` checks it.
   - The n of an unstressed -en, usually dropped in speech, is marked optional in every language: `лоо́пэ(н)`, `доосэ́нтэ(н)каамэр`. Never inside a root or before a d/t ending (`ви́ңкэлсэнтрүм`, `о́нбэкэндэ`), except before a tens word (`зэсэ(н)тви́нтэх`). Stress on a diphthong goes on its first letter: `э́й`, `ә́й`, `а́у`. A linking -en- said ң before k is still written `(н)` (`бу́рэ(н)каас`), only when the stem is a deck word; the ng/nk of a root stays (`брэ́ңэ(н)`, `наа́дэңкэ(н)`). Run `python3 -I scripts/mark-optional-n.py` after any transcription change.
   - Russian `tr` is the source: every other language's transcription is derived from it by `scripts/translit.py` (mark-optional-n rewrites them all). Edit ru, never another language's tr by hand. ij is spelled like ei in every language.
-  - Tests: `python3 -I scripts/translit_test.py` (also checks the whole deck is derived), `python3 -I scripts/mark_optional_n_test.py`.
+  - Tests: `python3 -I scripts/translit_test.py` (also checks the whole deck is derived), `python3 -I scripts/mark_optional_n_test.py`, `python3 -I scripts/sync_audio_test.py`.
 - **Confusable pairs.** Words a learner cannot tell apart from the translation alone (aanmelden/inschrijven) carry the telling context in the translation itself (`регистрироваться (в реестре)`, `заявляться, подавать заявку`), and each note says when to use it with a short `…` example and names the other as `не путать с: …` (don't confuse with / no confundir con / não confundir com / karıştırma), in every language and every card of the word (phrases, nouns too). The hint and the Dutch example are separate note items: an item opening with `…` or `zich …` is a Dutch usage example and stays hidden until the answer is out (`DUTCH_USAGE` in `deck.ts`), as does any item naming a Dutch word; the plain hint stays shown. These labels hide like variants, in every language. Edits go through a data file `{b: {lang: (new f, note items to prepend)}}`; -e adjective forms take the base's hint and pair link.
 - **Split cards.** Merge them unless the split is justified, e.g. een paar vs het paar.
 - **Realia and loanwords.**
@@ -121,16 +121,8 @@ When two rules conflict, the one written further down wins.
 
 - Clips are keyed by a hash of their text. Any text change requires a rebuild:
   `.venv/bin/python -I scripts/build-audio.py`, then delete orphan clips in `public/audio`.
-- The audio repo is `~/Projects/private/pages/van-start-audio`.
-  - Sync: `rsync -a --ignore-existing`, then delete orphan clips there too.
-  - Push:
-    ```
-    jj abandon 'mutable() & empty() & description(exact:"") & ~@'
-    JJ_EDITOR=true jj describe -m ...
-    jj bookmark set main -r @
-    GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_github" jj git push --bookmark main
-    ```
-- jj refuses to push past an empty undescribed commit; the abandon line above clears them first. No `jj new` after the push: jj already opens a fresh @ on the pushed commit.
+- The audio repo is `~/Projects/private/pages/van-start-audio`. `scripts/deploy.sh` syncs and pushes it before the site: `scripts/sync-audio.py` makes `public/audio` and the repo hold exactly the clips the deck references (refuses when one is missing locally: run build-audio.py), then the repo is committed and pushed. A clip missing there gave a 404 on the deployed site. Test: `python3 -I scripts/sync_audio_test.py`.
+- jj refuses to push past an empty undescribed commit; deploy.sh abandons them first.
 - Audio no card references is always deleted, locally and in the audio repo.
 - Audio loads lazily, in the background.
 - A card is spoken after it is picked. In the pronunciation game, the example audio is available once the answer is revealed.
@@ -140,6 +132,7 @@ When two rules conflict, the one written further down wins.
 
 - **Games.** Five games: reading, speaking, writing, listening/dictation, pronunciation. Each can be turned off in settings.
   - All are on by default. At least one always stays on.
+  - Recognizing (choice): Next shows and works only after a wrong pick; hidden it is disabled, so a swipe cannot press it and turn a right pick into a miss.
   - Review runs in the chosen game; if that game is off, the first enabled one is used.
 - **Learning.**
   - New words come in deck order.
@@ -198,7 +191,7 @@ When two rules conflict, the one written further down wins.
 
 ## Verify and ship
 
-1. Tests: `npx vitest run` (~25 s), plus the two Python tests under Transcription.
+1. Tests: `npx vitest run` (~25 s), plus the three Python tests under Transcription.
 2. Deploy:
    ```
    rm -rf .output; sleep 1; rm -rf .output; scripts/deploy.sh "msg" > /private/tmp/claude-501/lx/deploy.log 2>&1
@@ -226,7 +219,7 @@ When two rules conflict, the one written further down wins.
 - A saved session spot is taken only when every card id in its queue and history is in the group or the pool (`resumeFrom` returns false otherwise, and the game starts afresh): a stale id crashed the lesson to a blank page (`reading 'id'`).
 - Deploy keeps old `_nuxt` chunks (`rsync --exclude _nuxt`): a page still on the previous version loads its lazy chunks after the deploy; deleting them gave a black screen (NUXT_E1005) on opening a lesson. No `skipWaiting`/`clientsClaim`: a new worker must not take over an open old page.
 - Update on reload: the plugin checks for a new service worker at start; when one takes over (`controllerchange`, `reloadOnNewWorker`) the page reloads the first moment nothing holds the update, so one reload brings the new version. While the app is in view it also checks every minute and on coming back into view (`checkWhileOpen`): GitHub Pages serves `sw.js` with `max-age=600`, so a deploy can take ~10 min to reach a phone, and polling brings it without manual reloads.
-- Recall time: table `recall:[word, game]`, median of the card's last five timed pluses, kept by the `recall_ms` event on show create/delete; read into memory by `loadTypical`, served by `recallMs`. Migration 002 fills it from older shows. In the typing games a show's `ms` leaves out the typing: the typing is subtracted, so a long word is not timed as a slow recall. `utils/typing-pace.ts` learns the user's typical key gap (median of the last 200, localStorage `typing-gaps`, the answer being typed included from its third gap); a gap up to 4x typical (clamped 0.6-2.5 s: accents, long-press, fixes) is typing, a longer one is thinking of which one typical gap counts as typing. Gaps under 40 ms (paste, autocomplete) are not learned.
+- Recall time: table `recall:[word, game]`, median of the card's last five timed pluses, kept by the `recall_ms` event on show create/delete; read into memory by `loadTypical`, served by `recallMs`. Migration 002 fills it from older shows. A show's `ms` ends at the answer: the reveal (recall games), the pick (choice), the check (typing); reading the result before moving on is not timed, else a missed card read at length came back slow every time, stayed on its rung and circled. In the typing games a show's `ms` leaves out the typing: the typing is subtracted, so a long word is not timed as a slow recall. `utils/typing-pace.ts` learns the user's typical key gap (median of the last 200, localStorage `typing-gaps`, the answer being typed included from its third gap); a gap up to 4x typical (clamped 0.6-2.5 s: accents, long-press, fixes) is typing, a longer one is thinking of which one typical gap counts as typing. Gaps under 40 ms (paste, autocomplete) are not learned.
 - Update toast: `announceUpdate` (pwa-update plugin) compares the build version with `seen-version` in localStorage and shows "Updated to <version> UTC" for 3 s.
 - Jitter: gaps >= 8 get 0..floor(gap/4) extra, by the session seed.
 - Pick: due ladder card -> new card while the pool is not full -> end when nothing is pending -> filler (a passed card not shown in the last 10 shows, max (errors+0.5)/(shows+1) x age; a miss puts it back on the ladder, no limit) -> earliest ladder card.
