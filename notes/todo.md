@@ -32,20 +32,21 @@ Work through every item before stopping. Never stop on a question: pick the sens
 
 ## Settings: sentences and combinations
 
-- [ ] Two settings, both on by default: «Предложения» and «Комбинации».
+- [x] Two settings, both on by default: «Предложения» and «Комбинации».
   - Off: the cards vanish everywhere (learn, review, counts, progress bars). Learned progress is kept and comes back when switched on.
   - Switched on later: passed sections offer «Learn» again for just those cards.
   - Verb forms (`jij hebt gezien`) always stay. Fixed expressions (`het spijt me`) and compounds with an opaque meaning always stay.
-- [ ] Per-group override in the section menu, next to Learn/Review: a sheet with both toggles, three states each (as in settings / on / off).
+- [x] Per-group override in the section menu, next to Learn/Review: a sheet with both toggles, three states each (as in settings / on / off).
   - The effective value is the nearest own setting up the tree, else the global one.
   - A badge marks a group with its own setting.
   - A parent with mixed subgroups shows «смешано». Changing it lists what each subgroup gets and asks to confirm, then clears the subgroups' own settings.
   - Changing the global setting while groups have their own: say so and offer to reset them.
   - Learn and review check each card against its own group's setting.
-- [ ] Deck flags, by a candidate script plus manual review:
+- [x] Deck flags, by a candidate script plus manual review:
   - sentence: example sentences that only illustrate a word; `op zaterdagavond` counts as one;
   - combination: rule-built series. Day + day part: the first card stays and gets the note «так же с любым днём и частью дня: …», the rest are flagged. Check numerals (`zesentwintig`) and other series.
-- [ ] TDD black-box specs, CLAUDE.md, deploy.
+  - Decided: survival formulas (`kan ik pinnen?`, `met de fiets`, `in het weekend`) stay unflagged; `om half acht`, `om kwart over acht`, `om 12.30` are each their own pattern, not a series card. Result: 706 sentences, 70 combinations (`scripts/flag-kinds.py`).
+- [x] TDD black-box specs, CLAUDE.md, deploy.
 
 ## Deck
 
