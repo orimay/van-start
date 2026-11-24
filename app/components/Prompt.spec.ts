@@ -306,6 +306,13 @@ describe('a note of several kinds', () => {
     expect(w.findAll('[data-testid="unbroken"]').map(e => e.text())).toEqual(['(-ющий:']);
   });
 
+  /** Spacing ladder: lines of one group sit 4px apart, the next group 8px. */
+  it('sets each group of lines further apart than the lines within it', async () => {
+    const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(card)), silent: true } });
+    const gaps = w.findAll('[data-testid="answer-note-line"]').map(l => l.classes().find(c => /^mt-/.test(c)));
+    expect(gaps).toEqual([undefined, 'mt-1', 'mt-2', 'mt-2', 'mt-1']);
+  });
+
   it('shows each Dutch line of a Dutch note as an example', async () => {
     const w = await mountSuspended(Answer, { props: { card: toStudyCard({ id: 'c10', f: 'большой', b: 'grote', nb: 'de grote man\nhet grote huis' }), silent: true } });
     expect(kinds(w)).toEqual(['example', 'example']);
@@ -319,20 +326,20 @@ describe('an affix meaning', () => {
   const setLanguage = (language: 'en' | 'ru') => { const { settings } = useStore(); settings.value = { ...settings.value, language }; };
   afterEach(() => setLanguage('en'));
 
-  it('says it is a suffix', async () => {
+  it('says it is an affix', async () => {
     const w = await mountSuspended(Prompt, { props: { card: toStudyCard(suffix) } });
-    expect(w.get('[data-testid="prompt"]').text()).toBe('о женщине: после -er, -aar (suffix)');
+    expect(w.get('[data-testid="prompt"]').text()).toBe('о женщине: после -er, -aar (affix)');
   });
 
-  it('says it is a prefix on the answer', async () => {
+  it('says it is an affix on the answer', async () => {
     const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(prefix)), silent: true } });
-    expect(w.get('[data-testid="answer"]').text()).toBe('из глагола делает существительное (prefix)');
+    expect(w.get('[data-testid="answer"]').text()).toBe('из глагола делает существительное (affix)');
   });
 
   it('says so in the native language', async () => {
     setLanguage('ru');
     const w = await mountSuspended(Prompt, { props: { card: toStudyCard(suffix) } });
-    expect(w.get('[data-testid="prompt"]').text()).toBe('о женщине: после -er, -aar (суффикс)');
+    expect(w.get('[data-testid="prompt"]').text()).toBe('о женщине: после -er, -aar (аффикс)');
   });
 
   it('leaves the affix itself bare', async () => {
@@ -346,5 +353,55 @@ describe('an affix meaning', () => {
     const w = await mountSuspended(Prompt, { props: { card: toStudyCard(suffix) } });
     await w.get('[data-testid="prompt"]').trigger('click');
     expect(writeText.mock.calls).toEqual([['о женщине: после -er, -aar']]);
+  });
+});
+
+/** A phone's own scrollbar fades out after each swipe, so the card draws its own. */
+describe('a scrolling card', () => {
+  const card = { id: 's1', f: 'дом', b: 'het huis', tr: 'һөйс', n: 'длинное пояснение', xf: 'Мой дом.', xb: 'Mijn huis.' };
+  const next = { id: 's2', f: 'кот', b: 'de kat', tr: 'кат', n: 'другое пояснение', xf: 'Мой кот.', xb: 'Mijn kat.' };
+  function givenContentHeight(content: number, box = 100) {
+    vi.spyOn(Element.prototype, 'scrollHeight', 'get').mockReturnValue(content);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(box);
+  }
+  const findThumb = (w: VueWrapper, side: string) => w.find(`[data-testid="${side}-scroll-thumb"]`);
+  afterEach(() => vi.restoreAllMocks());
+
+  it('shows its thumb before any scroll on the answer', async () => {
+    givenContentHeight(400);
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard(card), silent: true } });
+    await flushPromises();
+    expect(findThumb(w, 'answer').attributes('style')).toContain('height: 25%');
+  });
+
+  it('shows its thumb on the prompt', async () => {
+    givenContentHeight(400);
+    const w = await mountSuspended(Prompt, { props: { card: toStudyCard(card) } });
+    await flushPromises();
+    expect(findThumb(w, 'prompt').exists()).toBe(true);
+  });
+
+  it('shows no thumb when everything fits', async () => {
+    givenContentHeight(100);
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard(card), silent: true } });
+    await flushPromises();
+    expect(findThumb(w, 'answer').exists()).toBe(false);
+  });
+
+  it('moves its thumb with the scroll', async () => {
+    givenContentHeight(400);
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard(card), silent: true } });
+    const scroll = w.get('[data-testid="answer-scroll"]');
+    scroll.element.scrollTop = 150;
+    await scroll.trigger('scroll');
+    expect(findThumb(w, 'answer').attributes('style')).toContain('top: 37.5%');
+  });
+
+  it('keeps its thumb on the next card', async () => {
+    givenContentHeight(400);
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard(card), silent: true } });
+    await w.setProps({ card: toStudyCard(next) });
+    await flushPromises();
+    expect(findThumb(w, 'answer').exists()).toBe(true);
   });
 });

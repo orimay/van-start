@@ -130,14 +130,14 @@ describe('choice', () => {
 describe('an affix meaning among options', () => {
   const affixes: StudyCard[] = ['-es', '-in', '-te', '-heid', 'ge-'].map((dutch, i) => ({ id: `x${i}`, prompt: dutch, answer: `m${i}`, nl: `w${i}`, affix: { dutch } }));
 
-  it('says what kind of affix it means in choice', async () => {
+  it('says it means an affix in choice', async () => {
     const w = await doMount({ cards: affixes, stages: ['choice'] });
-    expect(w.findAll('[data-testid="option"]').map(o => o.text()).sort()).toEqual(['m0 (suffix)', 'm1 (suffix)', 'm2 (suffix)', 'm3 (suffix)', 'm4 (prefix)']);
+    expect(w.findAll('[data-testid="option"]').map(o => o.text()).sort()).toEqual(['m0 (affix)', 'm1 (affix)', 'm2 (affix)', 'm3 (affix)', 'm4 (affix)']);
   });
 
-  it('says what kind of affix it means in match', async () => {
+  it('says it means an affix in match', async () => {
     const w = await doMount({ cards: affixes, stages: ['match'] });
-    expect(w.findAll('[data-testid="match-right"]').map(t => t.get('[data-testid="match-text"]').text()).sort()).toEqual(['m0 (suffix)', 'm1 (suffix)', 'm2 (suffix)', 'm3 (suffix)', 'm4 (prefix)']);
+    expect(w.findAll('[data-testid="match-right"]').map(t => t.get('[data-testid="match-text"]').text()).sort()).toEqual(['m0 (affix)', 'm1 (affix)', 'm2 (affix)', 'm3 (affix)', 'm4 (affix)']);
   });
 });
 
@@ -660,13 +660,13 @@ describe('an affix', () => {
     const w = await doMount({ cards: [affix], stages: ['pronounce'] });
     expect(promptOf(w)).toBe('be-');
     await doClick(w, 'reveal');
-    expect(w.get('[data-testid="answer"]').text()).toBe('acting on someone (prefix)');
+    expect(w.get('[data-testid="answer"]').text()).toBe('acting on someone (affix)');
     expect(vi.mocked(speak)).toHaveBeenCalledWith(expect.objectContaining({ nl: 'bewonen' }));
   });
 
   it('is introduced by pronouncing itself', async () => {
     const w = await doMount({ cards: [affix], stages: ['pronounce', 'recall'], introducing: true });
-    expect(promptOf(w)).toBe('acting on someone (prefix)');
+    expect(promptOf(w)).toBe('acting on someone (affix)');
     expect(w.get('[data-testid="answer"]').text()).toBe('be-');
   });
 
@@ -689,7 +689,7 @@ describe('an affix', () => {
         const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
         await doClick(w, 'reveal');
         const sides = w.findAll('[data-testid="prompt"], [data-testid="answer"], [data-testid="breakdown"]').map(e => e.text());
-        const meaning = sides.indexOf('acting on someone (prefix)');
+        const meaning = sides.indexOf('acting on someone (affix)');
         expect(sides.indexOf('be- (on) + wonen (to live)')).toBe(meaning + 1);
       });
     });

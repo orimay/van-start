@@ -1,23 +1,17 @@
 <script lang="ts">
 import type { Language } from '@/composables/useStore';
 
-const KIND: Record<Language, { suffix: string; prefix: string }> = {
-  ru: { suffix: 'суффикс', prefix: 'приставка' },
-  en: { suffix: 'suffix', prefix: 'prefix' },
-  es: { suffix: 'sufijo', prefix: 'prefijo' },
-  pt: { suffix: 'sufixo', prefix: 'prefixo' },
-  tr: { suffix: 'sonek', prefix: 'önek' },
-  ro: { suffix: 'sufix', prefix: 'prefix' },
-};
+/** Prefix or suffix alike: naming which would hint where the part goes. */
+const AFFIX: Record<Language, string> = { ru: 'аффикс', en: 'affix', es: 'afijo', pt: 'afixo', tr: 'ek', ro: 'afix' };
 </script>
 
 <script setup lang="ts">
 import type { StudyCard } from '@/utils/deck';
 
-/** An affix's meaning alone reads as a word of its own, so it says which part of a word it is. */
+/** An affix's meaning alone reads as a word of its own, so it says it is part of a word. */
 const props = defineProps<{ card: StudyCard; text: string }>();
 const { settings } = useStore();
-const kind = computed(() => props.card.affix && props.text !== props.card.affix.dutch ? KIND[settings.value.language][props.card.affix.dutch.endsWith('-') ? 'prefix' : 'suffix'] : undefined);
+const kind = computed(() => props.card.affix && props.text !== props.card.affix.dutch ? AFFIX[settings.value.language] : undefined);
 </script>
 
 <template>

@@ -61,4 +61,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] An adjective whose -e form shows up anywhere in the deck has its -e pair card; its base carries the rule and `nb`/`nx` examples.
 - [ ] An exception line (`!`) reads red on both sides, a Dutch line that is all head included.
 - [ ] Every `nb` line has its own translated `nx` line in every language, `!` kept, never the Dutch itself.
-- [ ] An affix meaning shown as the word (prompt, answer, option, tile) carries `(suffix)` / `(prefix)` in the native language.
+- [ ] An affix meaning shown as the word (prompt, answer, option, tile) carries `(affix)` in the native language, never `(suffix)` / `(prefix)`, which would hint where the part goes.
+- [ ] A card that scrolls shows its scroll thumb before, during and after a swipe.
+- [ ] Things that belong together sit closer than things that do not: word and transcription closest, note groups apart, blocks further.
+- [ ] Words sharing a root name it in their `от:` (onderwerp and voorwerp both from werpen).
