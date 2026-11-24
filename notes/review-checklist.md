@@ -36,7 +36,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] One spelling per sound across the deck: -pje/-kje/-fje as йэ, -tje as ьэ; the same word transcribed the same in a phrase as on its own card (maat 38 = achtendertig).
 - [ ] A plural example agrees in number (de frites zijn); the example uses the card's own gloss (блузка, not блуза).
 - [ ] An -en- after a vowel spelled with two Russian letters (eeuw → эйу) still gets its (н).
-- [ ] -ig/-ige reads `эх`/`эхэ`; a word inside a compound sounds as on its own card (auto `аутоо`, garage `хаараа́жэ`).
+- [ ] -ig/-ige reads `эх`/`эхэ`; a word inside a compound sounds as on its own card (auto `аутоо`, garage `хаараа́жэ`, machine `маашиинэ`); h inside a compound stays `һ` (huis, heid, honderd); -air is `эр`, ou `ау`, an unstressed open a `аа`.
 - [ ] All 6 languages carry the same change.
 
 ## UX

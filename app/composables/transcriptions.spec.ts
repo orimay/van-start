@@ -15,6 +15,15 @@ const walk = (node: Node) => {
 // liggen's root ig is stressed, never the suffix
 const ROOT_IG = /ligt$|liggen$/;
 
+// h stays һ and each root keeps its own vowels wherever it stands
+const ROOT_SOUNDS: Record<string, string> = {
+  hui: 'һөй',
+  heid: 'һәйт',
+  heden: 'һэйдэ',
+  honderd: 'һондэр',
+  machine: 'маашиинэ',
+};
+
 // English loans keep their English "you" sound
 const ENGLISH_YU = /interview|new york|steward/i;
 
@@ -71,6 +80,17 @@ describe('ru transcriptions', () => {
       'intensief': 'интэнсии́ф',
       'de werkzoekende': 'дэ вэ́ркзукэндэ',
     });
+  });
+
+  it('keep a root\'s own sound inside a compound', () => {
+    const count = (s: string, part: string) => s.split(part).length - 1;
+    // digits are read out whole; th and sch are their own sounds
+    const misread = cards.filter(c => !/\d/.test(c.b)).filter(c => {
+      const b = c.b.toLowerCase().replace(/\bthui|sch/g, '');
+      const tr = c.tr.replace(/\u0301/g, '');
+      return Object.entries(ROOT_SOUNDS).some(([root, sound]) => count(b, root) !== count(tr, sound));
+    });
+    expect(misread.map(c => `${c.b} /${c.tr}/`)).toEqual([]);
   });
 
   it('keep the optional n of a linking -en-', () => {
