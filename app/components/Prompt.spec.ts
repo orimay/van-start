@@ -289,6 +289,11 @@ describe('a note of several kinds', () => {
     expect(w.get('[data-testid="answer-scroll"]').find('[data-testid="transcription"]').exists()).toBe(true);
   });
 
+  it('never breaks an affix at its hyphen', async () => {
+    const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard({ ...card, n: 'не путать с: x (-ющий: делающий что-то)' })), silent: true } });
+    expect(w.findAll('[data-testid="unbroken"]').map(e => e.text())).toEqual(['(-ющий:']);
+  });
+
   it('shows each Dutch line of a Dutch note as an example', async () => {
     const w = await mountSuspended(Answer, { props: { card: toStudyCard({ id: 'c10', f: 'большой', b: 'grote', nb: 'de grote man\nhet grote huis' }), silent: true } });
     expect(kinds(w)).toEqual(['example', 'example']);

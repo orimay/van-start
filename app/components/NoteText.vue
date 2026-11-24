@@ -1,3 +1,8 @@
+<script lang="ts">
+/** A word opening with a hyphen (an affix, `(-ing`) and what clings to it, kept on one line: a break after the hyphen reads as a dash. */
+const AFFIX = /(?<!\p{L})([(«"']?-\p{L}[\p{L}'’]*[)»"':;,.]*)/u;
+</script>
+
 <script setup lang="ts">
 import { linkBreakdown, linkSegments } from '@/utils/links';
 
@@ -17,6 +22,6 @@ const segments = computed(() => {
   <template v-for="(segment, i) in segments" :key="i">
     <button v-if="segment.link" type="button" class="not-italic text-sky-700 underline decoration-dotted decoration-2 underline-offset-4 dark:text-sky-400" data-testid="note-link" @click.stop="sheet.open(segment.link, segment.gloss, secret ? self : undefined)">{{ segment.text }}</button>
     <span v-else-if="'head' in segment" :class="headClass" :data-testid="headTestid">{{ segment.text }}</span>
-    <template v-else>{{ segment.text }}</template>
+    <template v-else v-for="(part, j) in segment.text.split(AFFIX)" :key="`${i}-${j}`"><span v-if="j % 2" class="whitespace-nowrap" data-testid="unbroken">{{ part }}</span><template v-else>{{ part }}</template></template>
   </template>
 </template>

@@ -672,6 +672,13 @@ describe('an affix', () => {
     });
   }
 
+  it('puts the breakdown, where the example comes from, above the example', async () => {
+    const w = await doMount({ cards: [affix], stages: ['recall'] });
+    await doClick(w, 'reveal');
+    const context = w.get('[data-testid="breakdown"]').element.closest('[data-testid$="-context"]')!;
+    expect([...context.querySelectorAll('[data-testid]')].map(e => e.getAttribute('data-testid'))[0]).toBe('breakdown');
+  });
+
   it('hides the breakdown while its Dutch side is hidden', async () => {
     const w = await doMount({ cards: [affix], stages: ['recall'] });
     expect(w.get('[data-testid="breakdown"]').element.closest('.invisible')).not.toBeNull();
