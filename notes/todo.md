@@ -196,7 +196,8 @@ Work through every item before stopping. Never stop on a question: pick the sens
 ## Every sense, every origin, every -e pair (2026-11-25)
 - [x] zitten op lists one sense: every word lists all its common senses, in all 6 languages.
   - Done: zitten op holds учиться в; заниматься; сидеть на. Phrases gained opzoeken/zoek op (навещать), over zijn (остаться), pijn doen (причинять боль), vandaan komen (быть родом), letten op/let op (присматривать), gaan over (отвечать за), langer (длиннее; выше).
-- [ ] Every word links to its origin (verb, noun, affix, root) down the chain (ontbijt -> ontbijten -> ont- + bijten -> bijten); a missing origin word gets a card right before its first use.
+- [x] Every word links to its origin (verb, noun, affix, root) down the chain (ontbijt -> ontbijten -> ont- + bijten -> bijten); a missing origin word gets a card right before its first use.
+  - Done: ~90 compounds got `от:` down to the root in 6 languages; new part cards de machine, het veld, de drank, het varken, het rund before their first use. Opaque or false splits (weekend, slager, boterham, gewoon) stay unsplit.
 - [x] Every adjective has its with/without -e pair card (middelbaar/middelbare).
 - [x] van huis: `из дома; от дома`, note shows both uses (ga van huis, ver van huis).
 - [x] Deploy, verify live.
@@ -215,7 +216,8 @@ Work through every item before stopping. Never stop on a question: pick the sens
   - Done: de bode, de pad (toad), de aarde added before their words; paddenstoel, aardappel, sinaasappel and boodschap carry `от:` and a literal-meaning item; -schap gained the sense "task, office".
 
 ## Every word links to its parts (2026-11-25)
-- [ ] boodschap (bode + -schap) and paddenstoel (pad + stoel) had no `от:`; the links audit only finds splits into existing cards. Go over every word and set phrase without `от:`, add the missing part cards before the word, all 6 languages. Phrases too: every non-sentence card and every set expression names its parts (een douche nemen: de douche + nemen) and says why that verb.
+- [x] boodschap (bode + -schap) and paddenstoel (pad + stoel) had no `от:`; the links audit only finds splits into existing cards. Go over every word and set phrase without `от:`, add the missing part cards before the word, all 6 languages. Phrases too: every non-sentence card and every set expression names its parts (een douche nemen: de douche + nemen) and says why that verb.
+  - Done: words as above; phrases held by `phrase-parts.spec.ts`. Left without parts: words whose part has no card or no use alone (frisdrank, moestuin, stokbrood, luchthaven).
 
 ## Plurals lose meanings of their singular (2026-11-25)
 - [x] de bladeren showed only "листья" with no word on blad's other senses (bladen), and het blad lacked "magazine". Every plural of a multi-meaning word covers each meaning or says it has no plural / another plural; a spec holds it. Recheck singular descriptions for missing common senses deck-wide.
