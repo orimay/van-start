@@ -48,34 +48,36 @@ describe('isCorrect', () => {
 
 describe('diffLetters', () => {
   const show = (input: string, answer: string) =>
-    diffLetters(input, answer).map(l => ({ ok: l.char, extra: `{${l.char}}`, missing: '_', wrong: `[${l.char}]` })[l.kind]).join('').replace(/\}\{/g, '').replace(/\]\[/g, '');
+    diffLetters(input, answer).map(l => ({ ok: l.char, extra: `[${l.char}]`, missing: '_' })[l.kind]).join('').replace(/\]\[/g, '');
 
   it('keeps as many letters as can match', () => {
-    expect(show('inschrivingen', 'inschrijven')).toBe('inschri_v{ing}en');
+    expect(show('inschrivingen', 'inschrijven')).toBe('inschri_v[ing]en');
   });
 
-  it('marks a wrong letter against the closest variant', () => {
-    expect(show('de mael', 'de e-mail, de mail')).toBe('de ma[e]l');
+  it('strikes a wrong letter, then gives the right one, against the closest variant', () => {
+    expect(show('de mael', 'de e-mail, de mail')).toBe('de ma[e]_l');
   });
 
   it('keeps the letters after a missing one in line', () => {
-    expect(show('de anvraagvormuleeren', 'de aanvraagformulieren')).toBe('de a_nvraag[v]ormul[e]eren');
+    expect(show('de anvraagvormuleeren', 'de aanvraagformulieren')).toBe('de a_nvraag[v]_ormul[e]_eren');
   });
 
   it('keeps the letters after an extra one in line', () => {
-    expect(show('het huuis', 'het huis')).toBe('het hu{u}is');
+    expect(show('het huuis', 'het huis')).toBe('het hu[u]is');
   });
 
   it('marks what is missing at the end', () => {
     expect(show('het hu', 'het huis')).toBe('het hu__');
   });
 
-  it('marks a letter typed in place of another as wrong, in its place', () => {
-    expect(show('het hoes', 'het huis')).toBe('het h[oe]s');
-  });
-
-  it('pairs only as many wrong letters as the gap holds', () => {
-    expect(show('kxyzt', 'kat')).toBe('k[x]{yz}t');
+  it.each([
+    ['naar vakantie gaan', 'op vakantie gaan', '[naar]__ vakantie gaan'],
+    ['velicitieren', 'feliciteren', '[v]_elicit[i]eren'],
+    ['de doeche', 'de douche', 'de do[e]_che'],
+    ['de winkel', 'de wagen', 'de w[ink]__e[l]_'],
+    ['kxyzt', 'kat', 'k[xyz]_t'],
+  ])('strikes the wrong letters of %s, then gives the right ones of %s', (input, answer, shown) => {
+    expect(show(input, answer)).toBe(shown);
   });
 
   it('ignores letter case', () => {

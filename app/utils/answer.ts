@@ -33,9 +33,9 @@ export function isCorrect(input: string, answer: string, leniency: Leniency = ST
   return typed !== '' && variantsOf(answer, leniency).includes(typed);
 }
 
-export type LetterKind = 'ok' | 'extra' | 'missing' | 'wrong';
+export type LetterKind = 'ok' | 'extra' | 'missing';
 
-/** The input aligned to the closest variant on the most letters in common: right and extra typed letters, and gaps for missing ones. */
+/** The input aligned to the closest variant on the most letters in common: right and extra typed letters, each wrong run followed by the letters it misses. */
 export function diffLetters(input: string, answer: string): Array<{ char: string; kind: LetterKind }> {
   const typed = [...input.trim()];
   const candidates = [answer.trim(), ...answer.split(',').map(s => s.trim())].map(c => [...c]);
@@ -50,24 +50,6 @@ export function diffLetters(input: string, answer: string): Array<{ char: string
     if (i < typed.length && j < target.length && same(i, j) && costs[i + 1]![j + 1] === here) out.push({ char: typed[i++]!, kind: 'ok' }), j++;
     else if (i < typed.length && costs[i + 1]![j]! + 1 === here) out.push({ char: typed[i++]!, kind: 'extra' });
     else out.push({ char: target[j++]!, kind: 'missing' });
-  }
-  return withWrongLetters(out);
-}
-
-/** Each run between matches pairs its extra letters with its gaps: a typed letter standing for a missing one is wrong, not extra. */
-function withWrongLetters(letters: Array<{ char: string; kind: LetterKind }>): Array<{ char: string; kind: LetterKind }> {
-  const out: Array<{ char: string; kind: LetterKind }> = [];
-  for (let i = 0; i < letters.length; ) {
-    if (letters[i]!.kind === 'ok') {
-      out.push(letters[i++]!);
-      continue;
-    }
-    const run: typeof letters = [];
-    while (i < letters.length && letters[i]!.kind !== 'ok') run.push(letters[i++]!);
-    const extra = run.filter(l => l.kind === 'extra');
-    const missing = run.filter(l => l.kind === 'missing');
-    const paired = Math.min(extra.length, missing.length);
-    out.push(...extra.slice(0, paired).map(l => ({ char: l.char, kind: 'wrong' as const })), ...extra.slice(paired), ...missing.slice(paired));
   }
   return out;
 }

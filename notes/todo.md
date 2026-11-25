@@ -222,3 +222,7 @@ Work through every item before stopping. Never stop on a question: pick the sens
 ## Wrong answer shows a strike-through diff (2026-11-25)
 
 Wrong parts of the typed answer are struck through, the right ones follow them: ~~naar~~op vakantie gaan, ~~v~~felicit~~i~~eren, de do~~e~~uche, de w~~ink~~age~~l~~n.
+
+## Typecheck is red (2026-11-25)
+
+- [ ] `npm run typecheck` reports 15 errors, none from the diff/gloss work: plugins `$router` unknown, `NoteText.vue` segment union, `SectionTree.spec.ts` settings fixtures, `Session.spec.ts` `gameScores`, `useCardSheet.ts` `indexed`.

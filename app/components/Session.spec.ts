@@ -1248,7 +1248,7 @@ describe('typing', () => {
       const w = await doMount({ cards: cards(2), stages: ['type'] });
       await doType(w, 'input', 'wrong');
       const typed = w.get('[data-testid="typed"]');
-      expect(typed.text()).toBe('wrong');
+      expect(typed.text()).toBe('wrong__');
       expect(typed.element.closest('[data-testid="answer-card"]')).not.toBeNull();
       expect(w.get('[data-testid="answer"]').element.closest('[aria-hidden="true"]')).not.toBeNull();
     });
@@ -1257,7 +1257,7 @@ describe('typing', () => {
       const w = await doMount({ cards: cards(2), stages: ['type'] });
       await doType(w, 'input', 'typo');
       await doClick(w, 'show-answer');
-      expect(w.get('[data-testid="typed"]').text()).toBe('typo');
+      expect(w.get('[data-testid="typed"]').text()).toBe(`typo${answerFor(promptOf(w))}`);
       expect(w.get('[data-testid="typed"]').element.closest('[data-testid="answer-card"]')).not.toBeNull();
       expect(w.get('[data-testid="answer"]').element.closest('[aria-hidden="true"]')).toBeNull();
     });
@@ -1270,12 +1270,22 @@ describe('typing', () => {
       expect(typed.findAll('[data-kind="missing"]')).toHaveLength(1);
     });
 
-    it('marks a letter typed in place of another as wrong, without a gap', async () => {
+    it('strikes a letter typed in place of another, then leaves a gap for the right one', async () => {
       const w = await doMount({ cards: cards(2), stages: ['type'] });
       await doType(w, 'input', 'x' + answerFor(promptOf(w)).slice(1));
       const typed = w.get('[data-testid="typed"]');
-      expect(typed.text()).toBe('x' + answerFor(promptOf(w)).slice(1));
-      expect(typed.findAll('[data-kind="wrong"]').map(l => l.text())).toEqual(['x']);
+      expect(typed.text()).toBe('x_' + answerFor(promptOf(w)).slice(1));
+      expect(typed.findAll('[data-kind="extra"]').map(l => l.text())).toEqual(['x']);
+    });
+
+    it('fills each gap with its right letter once the answer is shown', async () => {
+      const w = await doMount({ cards: cards(2), stages: ['type'] });
+      const answer = answerFor(promptOf(w));
+      await doType(w, 'input', 'x' + answer.slice(1));
+      await doClick(w, 'show-answer');
+      const typed = w.get('[data-testid="typed"]');
+      expect(typed.text()).toBe('x' + answer);
+      expect(typed.findAll('[data-kind="missing"]').map(l => l.text())).toEqual([answer[0]]);
     });
 
     it('shows an extra space as a visible space mark, so its strike cannot pass for a hyphen', async () => {

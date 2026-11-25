@@ -9,7 +9,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] When the meaning does not follow plainly from the parts (af- + zeggen = отменять, af- + spreken = договариваться), a literal bridge links them: букв. «от-сказать», как «отказать». Each language writes it one way: ru `букв. «…»`, en `literally "…"`, es/pt `literalmente "…"`, tr `kelimesi kelimesine "…"`, ro `literal „…”`.
 - [ ] A loan root sounds the same in every card that holds it (apotheek, muziek, hotel, video); an unstressed open o is `оо`, an unstressed open i a plain `и`, a plural -ieën `ии́йэ(н)` and drieën- `дриийэ(н)` keep the optional n; no doubled consonant letters, even across a seam (afval `а́фал`).
 - [ ] The origin is the true one (gedachte = ge- + denken, not -te; leiding ← leiden; sleutel ← sluiten). An example given for an affix really uses that affix.
-- [ ] An affix named in another card carries the affix card's own gloss (or a piece of it), and the gloss is plain enough to tell it from a near affix (-end делающий vs -ig какой). No two affixes share a gloss: affixes making the same thing (-es/-in, -te/-heid) name what picks one after `: ` and point at each other under `не путать с:`, in all 6 languages.
+- [ ] An affix named in another card carries the affix card's own gloss (or a piece of it), and the gloss is plain enough to tell it from a near affix (-end делающий vs -ig какой). No two affixes share a gloss: affixes making the same thing (-es/-in, -te/-heid) name what picks one after `: ` and point at each other under `не путать с:`, in all 6 languages. Every sense of one gloss being a sense of another counts as shared (-tie `-ция: действие` was inside -ing's).
 - [ ] An affix gloss names the affix's real meaning (-lijks = еже-), with one example per sense, and the example's meaning shows the affix's sense (not opleiding for "руководство"). A gloss naming a Russian suffix (`-ция`) has an example word showing it, and the note names the other suffixes it takes (`-ение`). What it makes is named by its part of speech (`существительное`), never as `предмет`.
 - [ ] Note items read by kind: the rule about the card itself first, then where it comes from, then examples, each looking different.
 - [ ] Every meaning of the word is given (haakje, lid, stranden, bladeren, agent).
@@ -89,6 +89,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] A link up a page is an `UpLink`, never a `NuxtLink` push: back on home asks to leave, it never walks through earlier pages.
 - [ ] A sheet opened from a menu returns to that menu when it closes.
 - [ ] Home is the last stop: after home -> settings -> a lesson -> home, Back on home asks to leave, never walks back through pages.
+- [ ] A wrong typed answer strikes its wrong letters and puts the right ones after them (`_` until the answer shows), never a wrong letter standing in for a right one.
 - [ ] Every mark in the typed-letter diff reads as what was typed: a space typed in error shows as `␣`, never a blank that a strike turns into a hyphen.
 - [ ] Undoing a card's own answer (Later, Back) never drops the misses of the words it was mixed up with.
 - [ ] An update reloads only at a move (card to card, page to page), never mid-card.

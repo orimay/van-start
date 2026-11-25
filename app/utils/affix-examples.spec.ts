@@ -137,3 +137,19 @@ describe('a suffix naming its Russian match', () => {
     expect(wrong).toEqual([]);
   });
 });
+
+/** An affix's meaning past its own-language suffix: `-ция: действие` means `действие`. */
+const meaningGroups = (gloss: string) => gloss.replace(/^-\S+: /, '').split('; ');
+const everyAffix = cardsOf(deck).filter(c => isAffix(c.b));
+
+/** A prompt names the affix by its gloss alone, so two affixes must not read alike (-tie and -ing once both said «действие или его результат»). */
+describe("an affix's gloss", () => {
+  for (const lang of ['ru', 'en', 'es', 'pt', 'tr', 'ro']) {
+    it(`tells it apart from every other affix in ${lang}`, () => {
+      const overlay = lang === 'ru' ? undefined : overlayOf(lang);
+      const glossOf = (c: Card) => (overlay ? overlay[c.id]![0] : c.f);
+      const alike = everyAffix.flatMap(a => everyAffix.filter(b => b !== a && meaningGroups(glossOf(a)).every(g => meaningGroups(glossOf(b)).includes(g))).map(b => `${a.b} ≈ ${b.b}: ${glossOf(a)}`));
+      expect(alike).toEqual([]);
+    });
+  }
+});
