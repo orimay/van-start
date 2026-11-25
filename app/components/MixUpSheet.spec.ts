@@ -76,7 +76,7 @@ describe('the mix-up sheet', () => {
       await doSearch(w, 'спал');
       await doTap(w, 'de slaapkamer');
       expect(useStore().confusions.value.kamer).toEqual(['slaapkamer']);
-      expect(w.emitted('pick')).toEqual([['slaapkamer']]);
+      expect(w.emitted('pick')).toEqual([['slaapkamer', true]]);
       expect(readOptions(w)).toEqual(['de slaapkamer ✓']);
     });
 
@@ -87,6 +87,48 @@ describe('the mix-up sheet', () => {
       expect(useStore().confusions.value.kamer ?? []).toEqual([]);
       expect(w.emitted('drop')).toEqual([['kamp']]);
       expect(readOptions(w)).toContain('het kamp');
+    });
+  });
+
+  describe('in a step', () => {
+    it('lists the cards linked before first, not ticked until mixed up again', async () => {
+      useStore().confuse('kamer', 'koken');
+      using w = await doMount('kamer', undefined, []);
+      expect(readSections(w)[0]).toEqual(['Mixed up before', 'koken']);
+    });
+
+    it('counts a card linked before as mixed up again, its link kept', async () => {
+      useStore().confuse('kamer', 'koken');
+      using w = await doMount('kamer', undefined, []);
+      await doTap(w, 'koken');
+      expect(w.emitted('pick')).toEqual([['koken', false]]);
+      expect(w.emitted('drop')).toBeUndefined();
+      expect(useStore().confusions.value.kamer).toEqual(['koken']);
+    });
+
+    it('takes back that mix-up on another tap, its link kept', async () => {
+      useStore().confuse('kamer', 'koken');
+      using w = await doMount('kamer', undefined, ['koken']);
+      expect(readSections(w)[0]).toEqual(['Mixed up before', 'koken ✓']);
+      await doTap(w, 'koken');
+      expect(w.emitted('drop')).toEqual([['koken']]);
+      expect(useStore().confusions.value.kamer).toEqual(['koken']);
+    });
+
+    it('links a new card and says so', async () => {
+      using w = await doMount('kamer', undefined, []);
+      await doTap(w, 'het kamp');
+      expect(w.emitted('pick')).toEqual([['kamp', true]]);
+      expect(useStore().confusions.value.kamer).toEqual(['kamp']);
+    });
+
+    it('unlinks a card linked in this step when taken back', async () => {
+      using w = await doMount('kamer', undefined, []);
+      await doTap(w, 'het kamp');
+      await w.setProps({ mixed: ['kamp'], fresh: ['kamp'] });
+      await doTap(w, 'het kamp');
+      expect(w.emitted('drop')).toEqual([['kamp']]);
+      expect(useStore().confusions.value.kamer ?? []).toEqual([]);
     });
   });
 
@@ -112,8 +154,9 @@ describe('the mix-up sheet', () => {
 
 // declarative helpers
 
-async function doMount(id: string, typed?: string[]) {
-  const w = await mountSuspended(MixUpSheet, { props: { id, open: true, typed } });
+/** `mixed`: opened from a step, with these cards taken for it there. */
+async function doMount(id: string, typed?: string[], mixed?: string[]) {
+  const w = await mountSuspended(MixUpSheet, { props: { id, open: true, typed, mixed } });
   return Object.assign(w, { [Symbol.dispose]: () => w.unmount() });
 }
 

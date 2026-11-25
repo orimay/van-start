@@ -76,6 +76,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] Mix-up search lists the closest first: exact, then the query at a word's start, then further in.
 - [ ] One reload after a deploy reaches the new version: a waiting worker gets `SKIP_WAITING` from the registration, never through `$pwa` (its plugin runs after ours).
 - [ ] A mix-up keeps the card on screen; Remembered is off only for a mix-up picked on this step; a picked card can be unpicked; the other card comes back with cards between.
+- [ ] After the answer shows, "Mixed up before" names earlier links; the picker lists them first, unticked; picking one again misses both and keeps the link, taking it back keeps the link too.
 - [ ] Every dialog keeps its actions and inputs in the footer, in thumb reach.
 - [ ] Nothing hides under a notch or rounded corner: page edges, sticky bars and sheets keep `max(1rem, env(safe-area-inset-*))`; a bar at the page end replaces the frame's padding, not adds to it.
 - [ ] Every text colour reaches 4.5:1 on its background in light and dark (red/orange: -700 light, -400 dark).

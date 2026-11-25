@@ -9,9 +9,9 @@ import { speak } from '@/utils/speak';
  * `dutchShown`: the prompt is the Dutch side, voiced and playable from the start; `quiet`: only once revealed.
  * `listening`: it is only heard, untimed, until revealed; `pronouncing`: said aloud, untimed, optionally recorded.
  */
-const props = defineProps<{ card: StudyCard; dutchShown?: boolean; quiet?: boolean; listening?: boolean; pronouncing?: boolean; state?: { revealed?: 'self' | 'timeout'; mixed?: string[] } }>();
+const props = defineProps<{ card: StudyCard; dutchShown?: boolean; quiet?: boolean; listening?: boolean; pronouncing?: boolean; state?: { revealed?: 'self' | 'timeout'; mixed?: string[]; linked?: string[] } }>();
 /** `mixed`: the card was answered as taken for these others, linked on this step. */
-const emit = defineEmits<{ result: [ok: boolean, guessed?: boolean]; progress: [state: { revealed?: 'self' | 'timeout'; mixed?: string[] }]; mixed: [others: string[]] }>();
+const emit = defineEmits<{ result: [ok: boolean, guessed?: boolean]; progress: [state: { revealed?: 'self' | 'timeout'; mixed?: string[]; linked?: string[] }]; mixed: [others: string[]] }>();
 
 if (props.dutchShown && !props.quiet && !props.state?.revealed) speak(props.card);
 
@@ -25,14 +25,26 @@ const mine = shallowRef<string>();
 onBeforeUnmount(() => mine.value && URL.revokeObjectURL(mine.value));
 /** The picker for the card this one was taken for is open. */
 const mixing = shallowRef(false);
-/** Mix-ups linked on this step: while any stands, the card cannot pass as remembered. One linked earlier does not count. */
+/** Cards taken for this one on this step, linked now or picked again: while any stands, the card cannot pass as remembered. */
 const mixedHere = shallowRef(props.state?.mixed ?? []);
+/** Of `mixedHere`, the links this step made, so taking one back undoes only those. */
+const linkedHere = shallowRef(props.state?.linked ?? []);
 const { index } = useCardSheet();
 const mixedWords = computed(() => mixedHere.value.map(id => index.value.byId.get(id)?.b ?? id).join(', '));
 
+function pickMixUp(other: string, linked: boolean) {
+  if (linked) linkedHere.value = [...linkedHere.value, other];
+  setMixed([...mixedHere.value, other]);
+}
+
+function dropMixUp(other: string) {
+  linkedHere.value = linkedHere.value.filter(id => id !== other);
+  setMixed(mixedHere.value.filter(id => id !== other));
+}
+
 function setMixed(ids: string[]) {
   mixedHere.value = ids;
-  emit('progress', { mixed: ids });
+  emit('progress', { mixed: ids, linked: linkedHere.value });
 }
 
 /** A miss; with a mix-up standing, the cards it was taken for are missed too. */
@@ -94,6 +106,7 @@ function reveal(how: 'self' | 'timeout') {
         <ExampleButton class="flex-1" :card="card" :disabled="!revealed && (!dutchShown || quiet)" />
         <button v-if="revealed === 'self'" class="btn-ghost" :disabled="!!mixedHere.length" data-testid="guessed" @click="emit('result', false, true)">Guessed</button>
       </div>
+      <MixedBefore v-if="revealed" :id="card.id" :except="mixedHere" />
       <p v-if="mixedHere.length" class="text-center text-sm text-orange-700 dark:text-orange-400" data-testid="mixed-hint">Taken for {{ mixedWords }}: {{ mixedHere.length > 1 ? 'all' : 'both' }} come back as missed</p>
       <div class="actions flex gap-2"><BackButton /><LaterButton /><div class="grid min-w-0 flex-1">
       <button v-if="!revealed" class="btn-primary" data-testid="reveal" @click="reveal('self')">Reveal</button>
@@ -104,6 +117,6 @@ function reveal(how: 'self' | 'timeout') {
       <button v-else class="btn-primary" data-testid="next" @click="miss">Next</button>
       </div></div>
     </div>
-    <MixUpSheet :id="card.id" :open="mixing" @pick="other => setMixed([...mixedHere, other])" @drop="other => setMixed(mixedHere.filter(id => id !== other))" @close="mixing = false" />
+    <MixUpSheet :id="card.id" :open="mixing" :mixed="mixedHere" :fresh="linkedHere" @pick="pickMixUp" @drop="dropMixUp" @close="mixing = false" />
   </div>
 </template>

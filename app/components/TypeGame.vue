@@ -79,8 +79,8 @@ function lookForMixUp(text: string) {
   }
 }
 
-function pickMixUp(other: string) {
-  linkedHere.value = [...linkedHere.value, other];
+function pickMixUp(other: string, linked: boolean) {
+  if (linked) linkedHere.value = [...linkedHere.value, other];
   mixedHere.value = [...mixedHere.value, other];
   saveProgress();
 }
@@ -174,6 +174,7 @@ function giveUp() {
         >
           ≈<span class="max-w-40 truncate text-sm font-semibold">{{ mixedHere.length ? mixedWords : choices.length ? 'Which word?' : 'Mixed up' }}</span>
         </button>
+        <MixedBefore :id="card.id" :except="mixedHere" />
         <p v-if="mixedHere.length" class="text-center text-sm text-orange-700 dark:text-orange-400" data-testid="mixed-hint">Taken for {{ mixedWords }}: {{ mixedHere.length > 1 ? 'all' : 'both' }} come back as missed</p>
       </div>
     </div>
@@ -197,6 +198,6 @@ function giveUp() {
         </template>
       </div></div>
     </div>
-    <MixUpSheet :id="card.id" :open="mixing" :typed="choices" @pick="pickMixUp" @drop="dropMixUp" @close="mixing = false" />
+    <MixUpSheet :id="card.id" :open="mixing" :typed="choices" :mixed="mixedHere" :fresh="linkedHere" @pick="pickMixUp" @drop="dropMixUp" @close="mixing = false" />
   </div>
 </template>

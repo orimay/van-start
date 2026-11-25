@@ -94,7 +94,7 @@ type SavedItem = Position['queue'][number];
 type SavedStep = { stage: number; size: number; answers: string[] } & ({ queue: SavedItem[]; reported: string[] } | { runs: Runs<SavedItem>; reportedRuns: Runs<string> });
 
 /** A card game's state mid-answer, so a reload shows it as it was. */
-export type CardState = { revealed?: 'self' | 'timeout'; picked?: string; options?: string[]; input?: string; verdict?: boolean; phase?: 'typing' | 'missed' | 'shown' | 'done' | 'fixing'; retried?: boolean; again?: boolean; mixed?: string[] };
+export type CardState = { revealed?: 'self' | 'timeout'; picked?: string; options?: string[]; input?: string; verdict?: boolean; phase?: 'typing' | 'missed' | 'shown' | 'done' | 'fixing'; retried?: boolean; again?: boolean; mixed?: string[]; linked?: string[]; choices?: string[] };
 
 /** `round`: how many times the item was missed before; a later round waits for the earlier one to finish. */
 /** `skip`: passed before, so it goes by unasked yet keeps its place for Back. */

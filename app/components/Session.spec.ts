@@ -106,16 +106,44 @@ describe('a card mixed up with another', () => {
     expect(w.find('[data-testid="mixed-hint"]').exists()).toBe(false);
   });
 
-  it('keeps Remembered on for a mix-up linked earlier, also once unlinked', async () => {
-    givenDeck(cards(6));
-    const w = await doMount({ cards: cards(6), stages: ['recall'] });
-    const first = promptOf(w);
-    await doRecall(w, true);
-    useStore().confuse(idOf(promptOf(w)), idOf(first));
-    await doClick(w, 'reveal');
-    ensureDisabled(w, 'remembered', false);
-    await doMixUp(w, idOf(first));
-    ensureDisabled(w, 'remembered', false);
+  describe('linked earlier', () => {
+    it('is shown once the card is revealed', async () => {
+      givenDeck(cards(6));
+      const w = await doMount({ cards: cards(6), stages: ['recall'] });
+      const first = promptOf(w);
+      await doRecall(w, true);
+      useStore().confuse(idOf(promptOf(w)), idOf(first));
+      await nextTick();
+      ensureHas(w, 'mixed-before', false);
+      await doClick(w, 'reveal');
+      expect(w.get('[data-testid="mixed-before"]').text()).toBe(`Mixed up before: ${answerFor(first)}`);
+    });
+
+    it('keeps Remembered on', async () => {
+      givenDeck(cards(6));
+      const w = await doMount({ cards: cards(6), stages: ['recall'] });
+      const first = promptOf(w);
+      await doRecall(w, true);
+      useStore().confuse(idOf(promptOf(w)), idOf(first));
+      await doClick(w, 'reveal');
+      ensureDisabled(w, 'remembered', false);
+    });
+
+    it('counts as mixed up again when picked: both missed, the link kept', async () => {
+      givenDeck(cards(6));
+      const w = await doMount({ cards: cards(6), stages: ['recall'] });
+      const first = promptOf(w);
+      await doRecall(w, true);
+      const second = idOf(promptOf(w));
+      useStore().confuse(second, idOf(first));
+      await doMixUp(w, idOf(first));
+      ensureDisabled(w, 'remembered');
+      ensureHas(w, 'mixed-before', false);
+      await doClick(w, 'forgot');
+      expect(w.emitted('answer')).toContainEqual([idOf(first), 'recall', false]);
+      expect(w.emitted('answer')).toContainEqual([second, 'recall', false]);
+      expect(useStore().confusions.value[second]).toEqual([idOf(first)]);
+    });
   });
 
   it('keeps the mix-up picked on the card when continued', async () => {
@@ -201,6 +229,27 @@ describe('a typed answer that is another word', () => {
     await doType(w, 'input', 'a0');
     await doClick(w, 'submit');
     expect(w.emitted('answer')).toContainEqual(['c1', 'type', false]);
+  });
+
+  it('shows the words it was mixed up with before', async () => {
+    const w = await doMountTyping(words('terug', 'weg'));
+    useStore().confuse('c0', 'c2');
+    await doType(w, 'input', 'xyz');
+    expect(w.get('[data-testid="mixed-before"]').text()).toBe('Mixed up before: weg');
+  });
+
+  it('keeps an earlier link picked again once claimed right', async () => {
+    const w = await doMountTyping(words('terug', 'weg'));
+    useStore().confuse('c0', 'c2');
+    await doType(w, 'input', 'xyz');
+    await doClick(w, 'mixed-up');
+    await w.get('[data-testid="mix-up-option"]').trigger('click');
+    await doClick(w, 'mix-up-done');
+    ensureContains(w, 'mixed-hint', 'weg');
+    await doClick(w, 'show-answer');
+    await doClick(w, 'accept');
+    ensureHas(w, 'mixed-hint', false);
+    expect(useStore().confusions.value.c0).toEqual(['c2']);
   });
 
   it('is no mix-up once claimed right', async () => {

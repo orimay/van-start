@@ -128,7 +128,7 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [x] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
 
 ## Safe area everywhere, known mix-ups on reveal (2026-11-25)
-- [ ] The whole interface keeps clear of the safe area, not only sheets: the lesson's continue button is clipped by the screen's rounded corners. Every element at a screen edge (button rows, continue/next, toasts, headers) keeps its inset.
+- [x] The whole interface keeps clear of the safe area, not only sheets: the lesson's continue button is clipped by the screen's rounded corners. Every element at a screen edge (button rows, continue/next, toasts, headers) keeps its inset.
 - [ ] After a card is revealed, show the words it is already mixed up with (e.g. under the `≈` icon), so the user does not mark them again.
   - Open question from the user: should marking an already-linked word again be allowed, giving that card one more miss? Find the best UX.
   - Default: the linked words show by `≈` after reveal; the picker lists them first ("Mixed up before"), one tap counts this step as mixed up again (both missed again, link unchanged).

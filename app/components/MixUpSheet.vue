@@ -6,9 +6,12 @@ import { matching, suspects } from '@/utils/mix-up';
 /**
  * Links the cards `id` was mixed up with, and unlinks them: a tap toggles a card, which stays in the list ticked or not.
  * Before anything is typed it lists the cards a typed answer may be, the cards already linked, then its look-alikes; typing searches Dutch and native text.
+ * Opened from a step (`mixed` given), a tick means taken for it on this step: a card linked before is picked again with its link kept,
+ * and only a link this step made (`fresh`) is undone on taking it back.
  */
-const props = defineProps<{ id: string; open: boolean; typed?: readonly string[] }>();
-const emit = defineEmits<{ pick: [id: string]; drop: [id: string]; close: [] }>();
+const props = defineProps<{ id: string; open: boolean; typed?: readonly string[]; mixed?: readonly string[]; fresh?: readonly string[] }>();
+/** `pick`'s `linked`: the tap made a new link, not picked one again. */
+const emit = defineEmits<{ pick: [id: string, linked: boolean]; drop: [id: string]; close: [] }>();
 const store = useStore();
 const query = shallowRef('');
 
@@ -16,6 +19,7 @@ const cards = computed(() => (store.deck.value ? cardsOf(store.deck.value) : [])
 const self = computed(() => cards.value.find(c => c.id === props.id));
 const others = computed(() => cards.value.filter(c => c.id !== props.id));
 const linked = computed(() => new Set(store.confusions.value[props.id] ?? []));
+const ticked = (other: string) => (props.mixed ? props.mixed.includes(other) : linked.value.has(other));
 
 /** The lists as they were on opening, so a tap ticks a row without moving it. */
 const typedAtOpen = shallowRef<DeckCard[]>([]);
@@ -41,18 +45,19 @@ const sections = computed(() =>
     ? [{ title: '', cards: found.value }]
     : [
         { title: 'The typed answer is', cards: typedAtOpen.value, testid: 'mix-up-typed' },
-        { title: 'Mixed up with', cards: linkedAtOpen.value },
+        { title: props.mixed ? 'Mixed up before' : 'Mixed up with', cards: linkedAtOpen.value },
         { title: 'Looks alike', cards: suggested.value },
       ].filter(s => s.cards.length),
 );
 
 function toggle(other: string) {
-  if (linked.value.has(other)) {
-    store.unconfuse(props.id, other);
+  if (ticked(other)) {
+    if (!props.mixed || props.fresh?.includes(other)) store.unconfuse(props.id, other);
     emit('drop', other);
   } else {
+    const fresh = !linked.value.has(other);
     store.confuse(props.id, other);
-    emit('pick', other);
+    emit('pick', other, fresh);
   }
 }
 </script>
@@ -68,7 +73,7 @@ function toggle(other: string) {
           :key="card.id"
           type="button"
           class="flex items-center gap-3 border-b border-stone-100 py-2.5 text-left last:border-0 dark:border-stone-800"
-          :aria-pressed="linked.has(card.id)"
+          :aria-pressed="ticked(card.id)"
           data-testid="mix-up-option"
           @click="toggle(card.id)"
         >
@@ -77,7 +82,7 @@ function toggle(other: string) {
             <span class="text-stone-500">{{ card.f }}</span>
             <span v-if="!store.isLearned(card.id)" class="text-xs text-stone-400">new</span>
           </span>
-          <span class="flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-sm" :class="linked.has(card.id) ? 'border-orange-700 bg-orange-700 text-white' : 'border-stone-300 dark:border-stone-600'" aria-hidden="true">{{ linked.has(card.id) ? '✓' : '' }}</span>
+          <span class="flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-sm" :class="ticked(card.id) ? 'border-orange-700 bg-orange-700 text-white' : 'border-stone-300 dark:border-stone-600'" aria-hidden="true">{{ ticked(card.id) ? '✓' : '' }}</span>
         </button>
       </section>
       <div v-if="query.trim() && !found.length" class="flex flex-col items-center gap-2 py-6 text-center" data-testid="mix-up-none">
