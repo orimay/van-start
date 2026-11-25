@@ -4,7 +4,7 @@ import { holdUntilDone } from '@/utils/update-hold';
 
 /** Keys the store keeps; maps of words become one row per word. */
 const ROWS = { progress: 'word', gameScores: 'score', passed: 'passed' } as const;
-const DOCS = ['settings', 'custom', 'edits', 'reviewed'] as const;
+const DOCS = ['settings', 'custom', 'edits', 'reviewed', 'confusions'] as const;
 export type StoreKey = keyof typeof ROWS | (typeof DOCS)[number] | 'reviews';
 
 type Row = { id: unknown[] | string; pos: number; v: unknown };

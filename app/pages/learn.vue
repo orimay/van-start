@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue';
 import type { Position, Stage } from '@/components/Session.vue';
+import { withConfusions } from '@/utils/confusions';
 import { following, nextGroup as groupOf } from '@/utils/group';
 import { sessionScore } from '@/utils/score';
 import { cardsOf, nodeAt, toStudyCard } from '@/utils/deck';
@@ -53,8 +54,10 @@ const NO_RECORD = { lapses: 0, difficulty: 0 };
 /** Cards with nothing left to learn: the rest join groups. */
 const done = () => Object.fromEntries(pool.filter(c => isDone(c.id)).map(c => [c.id, store.progress.value[c.id] ?? NO_RECORD]));
 const followingCards = following(cardsOf(root), sectionCards);
-/** Cards a group of this section can hold: its own, and the following ones it is topped up with. */
-const reachable = new Map([...sectionCards, ...followingCards].map(c => [c.id, c]));
+/** Cards a group of this section can hold: its own, the following ones it is topped up with, and any a mix-up brings along. */
+const reachable = new Map(cardsOf(root).map(c => [c.id, c]));
+/** Cards linked to a mix-up: a group may hold them on top of its top-up. */
+const mixedUp = new Set(Object.keys(store.confusions.value));
 
 let saved = readResume();
 /** Words of the section started anywhere when the visit began; ones started during it must not bring the offer up. */
@@ -74,7 +77,11 @@ const carried = shallowRef(new Set<string>());
 const group = computed(() => {
   void round.value;
   const ids = resumeIds.value;
-  const cards = ids ? ids.map(id => reachable.get(id)!) : groupOf(sectionCards, done(), settings.value.groupSize, settings.value.topUp === 'next' ? followingCards : undefined);
+  const size = settings.value.groupSize;
+  const through = done();
+  const cards = ids
+    ? ids.map(id => reachable.get(id)!)
+    : withConfusions(groupOf(sectionCards, through, size, settings.value.topUp === 'next' ? followingCards : undefined), [...reachable.values()].filter(c => !through[c.id]), store.confusions.value, size);
   return cards.map(c => toStudyCard(c));
 });
 /** The section holds words started anywhere: a saved spot here, or games on passed in any section. */
@@ -94,7 +101,7 @@ function readResume(): Resume | undefined {
     const data = JSON.parse(sessions.get(resumeKey(pathKey)) ?? 'null') as Resume | null;
     // A top-up adds at most four words; more is a spot saved when top-ups filled a whole group.
     const sectionIds = new Set(sectionCards.map(c => c.id));
-    const valid = data?.path === pathKey && data.ids.every(id => reachable.has(id)) && data.ids.filter(id => !sectionIds.has(id)).length < 5 && data.ids.some(id => !isDone(id));
+    const valid = data?.path === pathKey && data.ids.every(id => reachable.has(id)) && data.ids.filter(id => !sectionIds.has(id) && !mixedUp.has(id)).length < 5 && data.ids.some(id => !isDone(id));
     return valid ? data : undefined;
   } catch {
     return undefined;

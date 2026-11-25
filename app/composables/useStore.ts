@@ -5,6 +5,7 @@ import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
 import { cardsOf, type DeckNode, isAffixCard } from '@/utils/deck';
 import { applyEdits, type Edits, noEdits } from '@/utils/edits';
 import { type KindSwitches, shownCards } from '@/utils/kinds';
+import { type Confusions, linked, unlinked } from '@/utils/confusions';
 import type { LexilizeCard } from '@/utils/lexilize';
 import type { GameScores, Score } from '@/utils/score';
 import { markReviewed, type ReviewLog } from '@/utils/today';
@@ -66,6 +67,8 @@ const reviews = shallowRef<Reviews>({});
 const scores = shallowRef<Record<string, GameScores>>({});
 /** Learning games each unlearned card has passed, so another group skips them. */
 const passed = shallowRef<Record<string, string[]>>({});
+/** Cards the learner mixed up with each other. */
+const confusions = shallowRef<Confusions>({});
 /** Cards reviewed while due today, for the day's progress. */
 const reviewLog = shallowRef<ReviewLog>();
 const settings = shallowRef<Settings>({ language: 'en', groupSize: 15, games: [...DEFAULT_GAMES], recallSeconds: 10, ignoreCase: true, ignoreMarks: true });
@@ -99,6 +102,7 @@ function forgetPassed(ids: string[]) {
 async function load() {
   const [saved, prefs, own, answered, reviewed, scheduled, changed] = await Promise.all([get<Progress>('progress'), get<Settings>('settings'), get<DeckNode>('custom'), get<Record<string, GameScores>>('gameScores'), get<ReviewLog>('reviewed'), get<Reviews>('reviews'), get<Edits>('edits')]);
   passed.value = (await get<Record<string, string[]>>('passed')) ?? {};
+  confusions.value = (await get<Confusions>('confusions')) ?? {};
   reviewLog.value = reviewed;
   scores.value = answered ?? {};
   progress.value = saved ?? {};
@@ -157,6 +161,11 @@ function localize(node: DeckNode, overlay: Overlay) {
     if (native[6]) card.xt = native[6];
   }
   for (const child of node.children ?? []) localize(child, overlay);
+}
+
+function saveConfusions(next: Confusions) {
+  confusions.value = next;
+  void set('confusions', next);
 }
 
 function saveProgress() {
@@ -277,6 +286,11 @@ export function useStore() {
       saveReviews();
     },
 
+    confusions,
+    /** Links two cards the learner mixed up. */
+    confuse: (a: string, b: string) => saveConfusions(linked(confusions.value, a, b)),
+    unconfuse: (a: string, b: string) => saveConfusions(unlinked(confusions.value, a, b)),
+
     passed,
     forgetPassed,
     /** The card passed this learning game. */
@@ -305,7 +319,7 @@ export function useStore() {
     },
 
     exportProgress(): string {
-      return JSON.stringify({ progress: progress.value, reviews: reviews.value, passed: passed.value, reviewed: reviewLog.value, settings: settings.value, gameScores: scores.value, custom: custom.value, edits: edits.value });
+      return JSON.stringify({ progress: progress.value, reviews: reviews.value, passed: passed.value, reviewed: reviewLog.value, settings: settings.value, gameScores: scores.value, custom: custom.value, edits: edits.value, confusions: confusions.value });
     },
 
     /** Puts a card's schedule in the game back as it was. */
@@ -345,7 +359,7 @@ export function useStore() {
     },
 
     importProgress(json: string) {
-      const data = JSON.parse(json) as { progress: Progress; reviews?: Reviews; passed?: Record<string, string[]>; reviewed?: ReviewLog; settings?: Settings; gameScores?: Record<string, GameScores>; custom?: DeckNode; edits?: Edits };
+      const data = JSON.parse(json) as { progress: Progress; reviews?: Reviews; passed?: Record<string, string[]>; reviewed?: ReviewLog; settings?: Settings; gameScores?: Record<string, GameScores>; custom?: DeckNode; edits?: Edits; confusions?: Confusions };
       progress.value = data.progress;
       saveProgress();
       reviews.value = data.reviews ?? Object.fromEntries(REVIEW_GAMES.map(g => [g, { ...data.progress }]));
@@ -362,6 +376,7 @@ export function useStore() {
         reviewLog.value = data.reviewed;
         void set('reviewed', reviewLog.value);
       }
+      if (data.confusions) saveConfusions(data.confusions);
       if (data.custom) this.saveCustom(data.custom);
       if (data.edits) this.saveEdits({ ...noEdits(), ...data.edits });
       if (data.settings) this.updateSettings(data.settings);

@@ -50,6 +50,24 @@ describe('the intro of a group with sections', () => {
   });
 });
 
+describe('a word mixed up with another', () => {
+  afterEach(() => useStore().unconfuse('a1', 'b1'));
+
+  it('brings the other into its group, from any section, right after it', async () => {
+    const store = useStore();
+    store.deck.value = {
+      id: 'root', name: 'Root',
+      children: [
+        { id: 'a', name: 'A', cards: [{ id: 'a1', f: 'a1', b: 'a1' }, { id: 'a2', f: 'a2', b: 'a2' }] },
+        { id: 'b', name: 'B', cards: [{ id: 'b1', f: 'b1', b: 'b1' }] },
+      ],
+    };
+    store.confuse('a1', 'b1');
+    const w = await doMount('0');
+    expect(await introPrompts(w, 3)).toEqual(['a1', 'b1', 'a2']);
+  });
+});
+
 describe('a hard word', () => {
   it('missed on the last card moves to the next group, as the summary says', async () => {
     useStore().updateSettings({ games: ['recall'] });

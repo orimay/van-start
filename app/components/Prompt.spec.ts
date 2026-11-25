@@ -342,6 +342,17 @@ describe('an affix meaning', () => {
     expect(w.get('[data-testid="prompt"]').text()).toBe('о женщине: после -er, -aar (аффикс)');
   });
 
+  /** A break after the hyphen reads `не после -` / `er`. */
+  it('never breaks an affix it names from its hyphen', async () => {
+    const w = await mountSuspended(Prompt, { props: { card: toStudyCard(suffix) } });
+    expect(w.get('[data-testid="prompt"]').findAll('[data-testid="unbroken"]').map(e => e.text())).toEqual(['-er,', '-aar']);
+  });
+
+  it('never breaks an affix it names from its hyphen on the answer', async () => {
+    const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(suffix)), silent: true } });
+    expect(w.get('[data-testid="answer"]').findAll('[data-testid="unbroken"]').map(e => e.text())).toEqual(['-er,', '-aar']);
+  });
+
   it('leaves the affix itself bare', async () => {
     const w = await mountSuspended(Prompt, { props: { card: flip(toStudyCard(suffix)) } });
     expect(w.get('[data-testid="prompt"]').text()).toBe('-es');
@@ -386,6 +397,15 @@ describe('a scrolling card', () => {
     const w = await mountSuspended(Answer, { props: { card: toStudyCard(card), silent: true } });
     await flushPromises();
     expect(findThumb(w, 'answer').exists()).toBe(false);
+    expect(w.find('[data-testid="answer-scroll-track"]').exists()).toBe(false);
+  });
+
+  /** A thumb alone reads as a stray line; the track shows it is a scrollbar and how far it went. */
+  it('draws its thumb on a track', async () => {
+    givenContentHeight(400);
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard(card), silent: true } });
+    await flushPromises();
+    expect(w.get('[data-testid="answer-scroll-track"]').find('[data-testid="answer-scroll-thumb"]').exists()).toBe(true);
   });
 
   it('moves its thumb with the scroll', async () => {

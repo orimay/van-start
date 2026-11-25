@@ -10,17 +10,26 @@ import { speak } from '@/utils/speak';
  * `listening`: it is only heard, untimed, until revealed; `pronouncing`: said aloud, untimed, optionally recorded.
  */
 const props = defineProps<{ card: StudyCard; dutchShown?: boolean; quiet?: boolean; listening?: boolean; pronouncing?: boolean; state?: { revealed?: 'self' | 'timeout' } }>();
-const emit = defineEmits<{ result: [ok: boolean, guessed?: boolean]; progress: [state: { revealed: 'self' | 'timeout' }] }>();
+const emit = defineEmits<{ result: [ok: boolean, guessed?: boolean]; progress: [state: { revealed: 'self' | 'timeout' }]; mixed: [other: string] }>();
 
 if (props.dutchShown && !props.quiet && !props.state?.revealed) speak(props.card);
 
-const SECONDS = useStore().settings.value.recallSeconds;
+const store = useStore();
+const SECONDS = store.settings.value.recallSeconds;
 const left = shallowRef(SECONDS * 10);
 /** `self`: the learner opened it and judges themselves; `timeout`: time ran out. */
 const revealed = shallowRef(props.state?.revealed);
 /** The learner's own try, played before the right one on reveal. */
 const mine = shallowRef<string>();
 onBeforeUnmount(() => mine.value && URL.revokeObjectURL(mine.value));
+/** The picker for the card this one was taken for is open. */
+const mixing = shallowRef(false);
+
+function mixUp(other: string) {
+  mixing.value = false;
+  store.confuse(props.card.id, other);
+  emit('mixed', other);
+}
 
 const timer = useIntervalFn(() => {
   left.value -= 1;
@@ -48,7 +57,11 @@ function reveal(how: 'self' | 'timeout') {
     <div class="relative flex flex-1 flex-col gap-2">
       <Prompt v-if="!listening || revealed" :card="card" :secret="!revealed && !pronouncing" />
       <ListenButton v-else :card="card" />
-      <Answer :card="card" :hidden="!revealed && !pronouncing" :no-transcription="pronouncing && !revealed" :silent="dutchShown" />
+      <Answer :card="card" :hidden="!revealed && !pronouncing" :no-transcription="pronouncing && !revealed" :silent="dutchShown">
+        <template v-if="revealed" #corner>
+          <button type="button" class="flex size-7 items-center justify-center rounded-full border border-stone-300 text-lg text-stone-500 dark:border-stone-600 dark:text-stone-400" aria-label="Mixed up" data-testid="mixed-up" @click="mixing = true">≈</button>
+        </template>
+      </Answer>
     </div>
     <div class="flex flex-col gap-2">
       <div class="h-1 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800" :class="{ invisible: revealed || listening || pronouncing }" data-testid="timer">
@@ -71,5 +84,6 @@ function reveal(how: 'self' | 'timeout') {
       <button v-else class="btn-primary" data-testid="next" @click="emit('result', false)">Next</button>
       </div></div>
     </div>
+    <MixUpSheet v-if="mixing" :id="card.id" @pick="mixUp" @close="mixing = false" />
   </div>
 </template>

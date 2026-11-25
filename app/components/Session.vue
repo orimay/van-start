@@ -531,22 +531,28 @@ function holdKeyboard() {
 }
 
 /** Wrong again after the answer was out: one more miss for the card. */
-function onMissAgain(card: StudyCard) {
-  mistakes.set(card.id, (mistakes.get(card.id) ?? 0) + 1);
-  answers.push(card.id);
-  emit('answer', card.id, gameOf(card.id), false);
+function onMissAgain(id: string) {
+  mistakes.set(id, (mistakes.get(id) ?? 0) + 1);
+  answers.push(id);
+  emit('answer', id, gameOf(id), false);
+}
+
+/** The learner took `card` for `other`: both are missed, and the other comes back too when the session holds it. */
+function onMixedUp(card: StudyCard, other: string) {
+  onMissAgain(other);
+  onCard(card, false, false, 0, props.cards.filter(c => c.id === other));
 }
 
 /** `guessed`: right by luck, so it comes back like a miss but is graded neither way. */
 /** `typingMs`: time spent typing, left out of the recall time. */
-function onCard(card: StudyCard, ok: boolean, guessed = false, typingMs = 0) {
+function onCard(card: StudyCard, ok: boolean, guessed = false, typingMs = 0, along: StudyCard[] = []) {
   // A right answer far slower than usual was dug up, not known: it comes back like a guess. An intro asks nothing.
   const slow = ok && gameOf(card.id) !== 'intro' && (props.isSlow?.(gameOf(card.id), answerMs(typingMs)) ?? false);
   if (guessed || slow) skipGrade(card.id);
   else report(card.id, ok, true);
   const item = current.value?.kind === 'card' && current.value.card.id === card.id ? current.value : { kind: 'card' as const, card };
   logShow(item, guessed ? 'guessed' : ok ? 'plus' : 'minus', typingMs);
-  advance(ok && !slow ? [] : [{ kind: 'card', card }]);
+  advance(ok && !slow ? [] : [card, ...along].map(c => ({ kind: 'card', card: c })));
 }
 
 function onMatch(cards: StudyCard[], mistakes: string[]) {
@@ -594,12 +600,12 @@ function optionsFor(card: StudyCard): StudyCard[] {
         <span v-if="cardColour && rungShown === undefined" class="absolute right-2 top-2 z-10 text-(--known)" :style="{ '--known': cardColour }" role="img" data-testid="known" aria-label="How well it is known" title="How well you know it in this game"><FillerIcon /></span>
         <span v-else-if="rungShown !== undefined" class="absolute right-2 top-2 z-10 text-(--known)" :style="{ '--known': cardColour }" role="img" data-testid="shows-left" :aria-label="`${steps.length - rungShown} left`" :title="`${steps.length - rungShown} more right answers to go`"><ProgressPie :done="rungShown" :total="steps.length" /></span>
         <IntroGame v-if="game === 'intro'" :key="view" :card="current.card" @result="ok => current?.kind === 'card' && onCard(current.card, ok)" />
-        <ChoiceGame v-else-if="game === 'choice'" :key="view" :card="current.card" :options="options" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
-        <RecallGame v-else-if="game === 'listen'" :key="view" :card="flip(current.card)" dutch-shown listening :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
-        <RecallGame v-else-if="game === 'pronounce'" :key="view" :card="meeting ? current.card : flip(current.card)" dutch-shown quiet pronouncing :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
-        <RecallGame v-else-if="game === 'recallNative'" :key="view" :card="flip(current.card)" dutch-shown quiet :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
-        <RecallGame v-else-if="game === 'recall'" :key="view" :card="current.card" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
-        <TypeGame v-else :key="view" :card="current.card" :lang="lang" :listening="game === 'dictation'" :state="current.state" @progress="onCardProgress" @miss="current?.kind === 'card' && onMissAgain(current.card)" @result="(ok, guessed, typingMs) => current?.kind === 'card' && onTyped(current.card, ok, guessed, typingMs)" />
+        <ChoiceGame v-else-if="game === 'choice'" :key="view" :card="current.card" :options="options" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(other: string) => current?.kind === 'card' && onMixedUp(current.card, other)" />
+        <RecallGame v-else-if="game === 'listen'" :key="view" :card="flip(current.card)" dutch-shown listening :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(other: string) => current?.kind === 'card' && onMixedUp(current.card, other)" />
+        <RecallGame v-else-if="game === 'pronounce'" :key="view" :card="meeting ? current.card : flip(current.card)" dutch-shown quiet pronouncing :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(other: string) => current?.kind === 'card' && onMixedUp(current.card, other)" />
+        <RecallGame v-else-if="game === 'recallNative'" :key="view" :card="flip(current.card)" dutch-shown quiet :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(other: string) => current?.kind === 'card' && onMixedUp(current.card, other)" />
+        <RecallGame v-else-if="game === 'recall'" :key="view" :card="current.card" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(other: string) => current?.kind === 'card' && onMixedUp(current.card, other)" />
+        <TypeGame v-else :key="view" :card="current.card" :lang="lang" :listening="game === 'dictation'" :state="current.state" @progress="onCardProgress" @miss="current?.kind === 'card' && onMissAgain(current.card.id)" @result="(ok, guessed, typingMs) => current?.kind === 'card' && onTyped(current.card, ok, guessed, typingMs)" />
       </div>
     </template>
     <TextField ref="keeper" aria-hidden="true" class="pointer-events-none fixed top-0 left-0 h-px w-px opacity-0" />

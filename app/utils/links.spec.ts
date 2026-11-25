@@ -50,6 +50,21 @@ describe('a reference in a note', () => {
     expect(links('înrudit: kopen (a cumpăra)')).toEqual([['kopen', 'kopen']]);
   });
 
+  it('reads a word after any label, one the linker never listed', () => {
+    expect(links('просьба/приказ, от: kopen (покупать)')).toEqual([['kopen', 'kopen']]);
+    expect(links('a woman: het boek')).toEqual([['het boek', 'boek']]);
+    expect(links('rugăminte/ordin, de la: kopen (a cumpăra)')).toEqual([['kopen', 'kopen']]);
+    expect(links('прошедшее (делал, был) от: kopen (покупать)')).toEqual([['kopen', 'kopen']]);
+  });
+
+  it('leaves an example glossed before its colon as text, a meaning following it', () => {
+    expect(linkSegments('verkopen (продавать): kopen', index)).toEqual([{ text: 'verkopen (продавать): kopen' }]);
+  });
+
+  it('leaves a label without a card after it as text', () => {
+    expect(linkSegments('i → a: zingen, zong', index)).toEqual([{ text: 'i → a: zingen, zong' }]);
+  });
+
   it('stays text when no card has that word', () => {
     expect(links('повелительное от: kiezen (выбирать)')).toEqual([]);
   });
@@ -96,6 +111,12 @@ describe('related words', () => {
   it("are the cards whose form, variant or don't-confuse note names the word", () => {
     expect(index.related.get('boek')).toEqual([{ id: 'boeken' }]);
     expect(index.related.get('weer-n')).toEqual([{ id: 'weer' }]);
+  });
+
+  it('are the cards any other label names the word under', () => {
+    const genote = { id: 'genote', f: 'товарищ (о женщине)', b: 'de genote', n: 'женский род от: de genoot (товарищ)' };
+    const related = buildIndex([...cards, { id: 'genoot', f: 'товарищ', b: 'de genoot' }, genote]).related;
+    expect(related.get('genoot')).toEqual([{ id: 'genote' }]);
   });
 
   it("leave out a card the word's own note already links", () => {

@@ -2,7 +2,7 @@ import { stopPlaying } from '@/utils/play';
 import { mountSuspended } from '@nuxt/test-utils/runtime';
 import type { VueWrapper } from '@vue/test-utils';
 import type { Score } from '@/utils/score';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { flushPromises } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import Session from './Session.vue';
@@ -52,6 +52,34 @@ describe('learning', () => {
     }
     expect(pass).not.toContain(missed);
     expect(promptOf(w)).toBe(missed);
+  });
+});
+
+describe('a card mixed up with another', () => {
+  /** The deck the mix-up sheet searches, holding the session's cards. */
+  function givenDeck(list: StudyCard[]) {
+    const { deck, unconfuse, confusions } = useStore();
+    const was = deck.value;
+    deck.value = { id: 'root', name: 'root', cards: list.map(c => ({ id: c.id, f: c.prompt, b: c.answer })) };
+    onTestFinished(() => {
+      deck.value = was;
+      for (const [a, others] of Object.entries(confusions.value)) for (const b of others) unconfuse(a, b);
+    });
+  }
+
+  it('brings the other back as missed too', async () => {
+    givenDeck(cards(6));
+    const w = await doMount({ cards: cards(6), stages: ['recall'] });
+    const first = promptOf(w);
+    await doRecall(w, true);
+    await doMixUp(w, idOf(first));
+    const seen: string[] = [];
+    while (!w.emitted('finished')) {
+      seen.push(promptOf(w));
+      await doRecall(w, true);
+    }
+    expect(seen).toContain(first);
+    expect(w.emitted('answer')).toContainEqual([idOf(first), 'recall', false]);
   });
 });
 
@@ -133,6 +161,14 @@ describe('an affix meaning among options', () => {
   it('says it means an affix in choice', async () => {
     const w = await doMount({ cards: affixes, stages: ['choice'] });
     expect(w.findAll('[data-testid="option"]').map(o => o.text()).sort()).toEqual(['m0 (affix)', 'm1 (affix)', 'm2 (affix)', 'm3 (affix)', 'm4 (affix)']);
+  });
+
+  it('never breaks an affix a meaning names from its hyphen', async () => {
+    const named = affixes.map(c => ({ ...c, answer: `${c.answer} не после -er` }));
+    const choice = await doMount({ cards: named, stages: ['choice'] });
+    expect(choice.findAll('[data-testid="option"]').map(o => o.find('[data-testid="unbroken"]').text())).toEqual(Array(5).fill('-er'));
+    const match = await doMount({ cards: named, stages: ['match'] });
+    expect(match.findAll('[data-testid="match-right"]').map(t => t.find('[data-testid="unbroken"]').text())).toEqual(Array(5).fill('-er'));
   });
 
   it('says it means an affix in match', async () => {
@@ -2119,6 +2155,19 @@ async function doClick(w: VueWrapper, testId: string) {
   await w.get(`[data-testid="${testId}"]`).trigger('click');
   await nextTick();
 }
+
+/** Takes the card on screen for card `other`, picked in the mix-up sheet stood in for by a button. */
+async function doMixUp(w: VueWrapper, other: string) {
+  await doClick(w, 'reveal');
+  await doClick(w, 'mixed-up');
+  const search = w.get('[data-testid="mix-up-search"]');
+  search.element.textContent = answerFor(promptOfId(other));
+  await search.trigger('input');
+  await w.get('[data-testid="mix-up-option"]').trigger('click');
+  await nextTick();
+}
+
+const promptOfId = (id: string) => 'p' + id.slice(1);
 
 async function doRecall(w: VueWrapper, remembered: boolean) {
   await doClick(w, 'reveal');

@@ -5,7 +5,7 @@ import { speak, speakExample } from '@/utils/speak';
 import { useEventListener } from '@vueuse/core';
 
 const sheet = useCardSheet();
-const { isLearned } = useStore();
+const { isLearned, confusions, confuse, unconfuse } = useStore();
 const layer = computed(() => sheet.layers.value.at(-1));
 const card = computed(() => layer.value && sheet.index.value.byId.get(layer.value.id));
 const study = computed(() => card.value && toStudyCard(card.value));
@@ -25,6 +25,16 @@ const related = computed(() => {
   if (!card.value) return [];
   return (sheet.index.value.related.get(card.value.id) ?? []).filter(r => r.id !== sheet.secret.value).map(r => ({ ...r, card: sheet.index.value.byId.get(r.id)! }));
 });
+
+/** Cards the learner mixed up with this one, the secret one left out. */
+const mixedUp = computed(() => (card.value ? (confusions.value[card.value.id] ?? []) : []).filter(id => id !== sheet.secret.value).flatMap(id => sheet.index.value.byId.get(id) ?? []));
+/** The search for a card to link as mixed up with this one is open. */
+const mixing = shallowRef(false);
+
+function mixUp(other: string) {
+  mixing.value = false;
+  confuse(card.value!.id, other);
+}
 
 // The panel follows the finger down; let go past a quarter of its height it closes, short of that it springs back.
 // The body owns the gesture while scrolled or moving up, so its own scroll still works.
@@ -127,11 +137,11 @@ useEventListener(
         <p class="text-xs text-stone-500" data-testid="card-sheet-status">{{ isLearned(card.id) ? 'Learned' : 'Not learned yet' }}</p>
         <section v-if="derived.length" class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-derived">
           <p class="text-xs font-semibold uppercase text-stone-500">Words built on it</p>
-          <button v-for="word in derived" :key="word.id" type="button" class="flex items-baseline gap-2 py-1 text-left" data-testid="card-sheet-derived-word" @click="sheet.open(word.id)">
+          <button v-for="word in derived" :key="word.id" type="button" class="flex flex-wrap items-baseline gap-x-2 gap-y-1 py-1 text-left" data-testid="card-sheet-derived-word" @click="sheet.open(word.id)">
             <span class="text-sky-700 underline decoration-dotted decoration-2 underline-offset-4 dark:text-sky-400">{{ word.card.b }}</span>
             <span class="flex-1 text-stone-500">{{ word.card.f }}</span>
             <span v-if="!isLearned(word.id)" class="text-xs text-stone-400">new</span>
-            <span v-if="word.sense" class="shrink-0 rounded bg-stone-100 px-1.5 text-xs text-stone-500 dark:bg-stone-800" :class="{ 'text-sky-700 dark:text-sky-400': layer?.gloss && same(layer.gloss, word.sense) }">{{ word.sense }}</span>
+            <span v-if="word.sense" class="basis-full"><span class="rounded bg-stone-100 px-1.5 text-xs text-stone-500 dark:bg-stone-800" :class="{ 'text-sky-700 dark:text-sky-400': layer?.gloss && same(layer.gloss, word.sense) }">{{ word.sense }}</span></span>
           </button>
         </section>
         <section v-if="related.length" class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-related">
@@ -142,9 +152,23 @@ useEventListener(
             <span v-if="!isLearned(word.id)" class="text-xs text-stone-400">new</span>
           </button>
         </section>
+        <section class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-mixed">
+          <div class="flex items-center">
+            <p class="flex-1 text-xs font-semibold uppercase text-stone-500">Mixed up with</p>
+            <button type="button" class="btn-ghost px-2 py-1 text-sm" data-testid="card-sheet-mixed-add" @click="mixing = true">+ Add</button>
+          </div>
+          <div v-for="word in mixedUp" :key="word.id" class="flex items-center gap-1">
+            <button type="button" class="flex flex-1 items-baseline gap-2 py-1 text-left" data-testid="card-sheet-mixed-word" @click="sheet.open(word.id)">
+              <span class="text-sky-700 underline decoration-dotted decoration-2 underline-offset-4 dark:text-sky-400">{{ word.b }}</span>
+              <span class="flex-1 text-stone-500">{{ word.f }}</span>
+            </button>
+            <button type="button" class="btn-ghost px-2" :aria-label="`Not mixed up with ${word.b}`" data-testid="card-sheet-mixed-remove" @click="unconfuse(card.id, word.id)">✕</button>
+          </div>
+        </section>
       </div>
     </div>
   </Transition>
+  <MixUpSheet v-if="mixing && card" :id="card.id" @pick="mixUp" @close="mixing = false" />
 </template>
 
 <style scoped>

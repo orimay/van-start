@@ -7,9 +7,11 @@ import CardSheet from './CardSheet.vue';
 import Answer from './Answer.vue';
 import Prompt from './Prompt.vue';
 import { toStudyCard, type DeckNode } from '@/utils/deck';
+import { type Confusions, linked, unlinked } from '@/utils/confusions';
 
 const { deck, learned } = vi.hoisted(() => ({ deck: { value: undefined as DeckNode | undefined }, learned: new Set<string>() }));
-mockNuxtImport('useStore', () => () => ({ deck, isLearned: (id: string) => learned.has(id), settings: { value: { language: 'en' } } }));
+mockNuxtImport('useStore', () => () => ({ deck, isLearned: (id: string) => learned.has(id), settings: { value: { language: 'en' } }, confusions: mixUps, confuse: (a: string, b: string) => (mixUps.value = linked(mixUps.value, a, b)), unconfuse: (a: string, b: string) => (mixUps.value = unlinked(mixUps.value, a, b)) }));
+const mixUps = shallowRef<Confusions>({});
 
 const cards = [
   { id: 'ver', f: 'пере-, изменение; прочь, от-', b: 'ver-', xb: 'verkopen, verhuizen' },
@@ -47,6 +49,7 @@ vi.stubGlobal('history', {
 afterEach(async () => {
   await doCloseAll();
   learned.clear();
+  mixUps.value = {};
 });
 
 describe('a word a note derives the card from', () => {
@@ -65,7 +68,7 @@ describe('a word a note derives the card from', () => {
     learned.add('kopen');
     const w = await doMount('verkopen');
     await findLinks(w)[1]!.trigger('click');
-    expect(readSheet(w)).toEqual({ word: 'kopen', transcription: '[ко:пэн]', senses: ['покупать'], example: ['Ik wil brood kopen.', 'Я хочу купить хлеб.'], status: 'Learned', derived: ['verkopen продавать new', 'de koper покупатель new'], related: [] });
+    expect(readSheet(w)).toEqual({ word: 'kopen', transcription: '[ко:пэн]', senses: ['покупать'], example: ['Ik wil brood kopen.', 'Я хочу купить хлеб.'], status: 'Learned', derived: ['verkopen продавать new', 'de koper покупатель new'], related: [], mixedUp: [] });
   });
 });
 
@@ -173,6 +176,49 @@ describe('a sheet pulled down by the finger', () => {
   });
 });
 
+describe('a word mixed up with this one', () => {
+  it('is listed with its meaning', async () => {
+    mixUps.value = linked({}, 'kopen', 'koper');
+    const w = await doOpenKopen();
+    expect(readSheet(w).mixedUp).toEqual(['de koper покупатель']);
+  });
+
+  it('opens on a tap', async () => {
+    mixUps.value = linked({}, 'kopen', 'koper');
+    const w = await doOpenKopen();
+    await w.get('[data-testid="card-sheet-mixed-word"]').trigger('click');
+    expect(readSheet(w).word).toBe('de koper');
+  });
+
+  it('comes off on its cross, on both cards', async () => {
+    mixUps.value = linked({}, 'kopen', 'koper');
+    const w = await doOpenKopen();
+    await w.get('[data-testid="card-sheet-mixed-remove"]').trigger('click');
+    expect(readSheet(w).mixedUp).toEqual([]);
+    expect(mixUps.value).toEqual({});
+  });
+
+  it('is added from the search', async () => {
+    const w = await doOpenKopen();
+    await w.get('[data-testid="card-sheet-mixed-add"]').trigger('click');
+    const search = w.get('[data-testid="mix-up-search"]');
+    search.element.textContent = 'покупатели';
+    await search.trigger('input');
+    await w.get('[data-testid="mix-up-option"]').trigger('click');
+    await flushPromises();
+    expect(readSheet(w).mixedUp).toEqual(['de kopers покупатели']);
+    expect(w.find('[data-testid="mix-up-sheet"]').exists()).toBe(false);
+  });
+
+  it('closes the search first on the back button', async () => {
+    const w = await doOpenKopen();
+    await w.get('[data-testid="card-sheet-mixed-add"]').trigger('click');
+    await doPressBack(w);
+    expect(w.find('[data-testid="mix-up-sheet"]').exists()).toBe(false);
+    expect(readSheet(w).word).toBe('kopen');
+  });
+});
+
 // declarative helpers
 
 async function doMount(id: string, secret = false) {
@@ -217,8 +263,9 @@ function readSheet(w: VueWrapper) {
     senses: w.findAll('[data-testid="card-sheet-sense"]').map(s => s.text()),
     example: w.findAll('[data-testid="card-sheet-example"] p').map(p => p.text()),
     status: text('card-sheet-status'),
-    derived: w.findAll('[data-testid="card-sheet-derived-word"]').map(d => d.findAll('span').map(s => s.text()).join(' ')),
+    derived: w.findAll('[data-testid="card-sheet-derived-word"]').map(d => d.findAll(':scope > span').map(s => s.text()).join(' ')),
     related: w.findAll('[data-testid="card-sheet-related-word"]').map(d => d.findAll('span').map(s => s.text()).join(' ')),
+    mixedUp: w.findAll('[data-testid="card-sheet-mixed-word"]').map(d => d.findAll('span').map(s => s.text()).join(' ')),
   };
 }
 

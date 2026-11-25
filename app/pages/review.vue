@@ -3,6 +3,7 @@ import type { CardInput } from 'ts-fsrs';
 import type { Score } from '@/utils/score';
 import { shallowRef } from 'vue';
 import type { Position, Stage } from '@/components/Session.vue';
+import { withConfusions } from '@/utils/confusions';
 import { cardsOf, nodeAt, toStudyCard } from '@/utils/deck';
 import { reviewGameOf, type ReviewGame } from '@/utils/games';
 import { sessionScore } from '@/utils/score';
@@ -52,13 +53,19 @@ const byId = new Map(all.map(c => [c.id, c]));
 const learnedAt = new Map(Object.keys(store.progress.value).map((id, i) => [id, i]));
 /** Misses over right answers in this game. */
 const balanceOf = (id: string) => (store.scores.value[id]?.[reviewGame]?.wrong ?? 0) - (store.scores.value[id]?.[reviewGame]?.right ?? 0);
+/** Learned cards anywhere a mixed-up card can bring along. */
+const askable = all.filter(c => store.isLearned(c.id) && store.playedIn(c.id, reviewGame) && !store.isHidden(c.id));
 const batch = saved
   ? saved.ids.map(id => toStudyCard(byId.get(id)!))
-  : candidates
-      .filter(c => (section ? store.isLearned(c.id) && store.playedIn(c.id, reviewGame) : store.isDue(c.id, now, reviewGame)))
-      // Hardest first, so they get the most chances to come back.
-      .sort((a, b) => balanceOf(b.id) - balanceOf(a.id) || learnedAt.get(a.id)! - learnedAt.get(b.id)!)
-      .map(c => toStudyCard(c));
+  : withConfusions(
+      candidates
+        .filter(c => (section ? store.isLearned(c.id) && store.playedIn(c.id, reviewGame) : store.isDue(c.id, now, reviewGame)))
+        // Hardest first, so they get the most chances to come back.
+        .sort((a, b) => balanceOf(b.id) - balanceOf(a.id) || learnedAt.get(a.id)! - learnedAt.get(b.id)!),
+      askable,
+      store.confusions.value,
+      Infinity,
+    ).map(c => toStudyCard(c));
 const finished = shallowRef(saved?.finished ?? false);
 /** Each card's score in this game as the session began: it orders the session and sets the card's odds. */
 /** Each card's score in this game as the session began: its misses raise its odds of coming up early. */
@@ -108,6 +115,8 @@ const before = new Map<string, CardInput | undefined>(saved?.before.map(([id, b]
 
 function onAnswer(id: string, stage: Stage, ok: boolean) {
   scoring.answer(id, stage, ok);
+  // A card mixed up with this one may not be learned yet: it has nothing to reschedule.
+  if (!store.isLearned(id)) return;
   before.set(id, store.scheduleOf(id, reviewGame));
   store.rate(id, ok ? store.Rating.Good : store.Rating.Again, reviewGame);
 }

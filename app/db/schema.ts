@@ -24,7 +24,7 @@ DEFINE TABLE IF NOT EXISTS score SCHEMAFULL;
 DEFINE FIELD IF NOT EXISTS pos ON score TYPE int;
 DEFINE FIELD IF NOT EXISTS v ON score TYPE object FLEXIBLE;
 
--- Single documents: settings, custom, edits, reviewed.
+-- Single documents: settings, custom, edits, reviewed, confusions.
 DEFINE TABLE IF NOT EXISTS doc SCHEMAFULL;
 DEFINE FIELD IF NOT EXISTS v ON doc TYPE any;
 

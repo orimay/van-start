@@ -16,6 +16,41 @@ Work through every item before stopping. Never stop on a question: pick the sens
   - [x] Other mentions and examples show only after reveal; mentioned words are links to the word sheet.
   - [x] Mechanism: a note line can be marked "after reveal" and stays invisible until the answer opens. Spec: no visible prompt-side line carries Dutch.
 
+## Batch 2026-11-25
+
+### Links between words (data, every card, all 6 languages, no agents)
+
+- [x] de genote has no link to its pair de genoot; words built on them aren't linked either (de echtgenoot, de echtgenote). Link every pair (m/f, sg/pl, base/-e…) and every parent-child (`от:`), as some already are.
+  - Found: labels the linker does not know, so their words never link: `просьба/приказ, от:` (114 cards), `женский род от:`, `превосходная степень от:`, `о женщине:`, `также сущ.:`, `иначе живёт в составных словах:`, and mid-item `— …, от:` (de jongere, voorstellen). Teach the linker every one of them in all 6 languages, or rewrite the item.
+- [x] tegenwoordig: linked to anything? If so, why is no link visible? -ig? tegenwoord? and that in turn? tegen? woord? The origin must be the true one (check the etymology; don't claim woord if it isn't; say so under `не путать с:` if useful).
+- [x] Every card built from parts links to those parts: make sure every link is built, nothing missed, including roots where the vowel changes (zingen → gezang, sluiten → sleutel).
+- [x] de zelfstandige exists. Is there a wrong `de zelfstandig`? If so fix it and link, and make sure the links work (render, tap opens the sheet). zelfstandig(e): neither the affix (-ig) nor the forming words (zelf, staan/stand) are linked.
+- [x] The same for all cards: likely more than half lack links. kletsnat is almost certainly not linked to nat, and klets (or whatever its first part is) isn't singled out.
+- [x] Mechanical audit script (parts of a word that are cards vs its `от:` refs; `от:` parts that resolve to no card), every hit reviewed by hand, then a spec that keeps links from being lost.
+
+### Card content
+
+- [x] op- says `смысл не меняется` with opbellen as the example. Not true: bellen is general / the process (`Ik bel je morgen`, `Hij is aan het bellen` = on the phone now; also ringing a doorbell); opbellen is the concrete act of calling someone up, dialling (`Ik bel je morgen op`, `Kun je de dokter even opbellen?`), separable op-, a bit more concrete / insistent; in 90% of everyday speech people just say bellen. Fix op-, opbellen (and bellen if needed) in all 6 languages; re-check every other card claiming `смысл не меняется`.
+
+### UI
+
+- [x] Scroll thumb: a slightly darker track behind it, so it is clearly a scrollbar and shows where it is scrolled to.
+- [x] Hyphenated affixes never break across lines: the -in meaning read `О женщине: не после -` / `er, -aar (аффикс)`. Everywhere: prompt, answer, choice options, match tiles, notes. Words may wrap, affix hyphens never.
+
+### Confusion links (feature)
+
+- [x] When I recall the wrong card (mixed up -tie and -ing), I can say I confused it with X, not just that I was wrong. Then X is marked wrong too.
+- [x] Picking X: a sheet with search by native AND by Dutch; choose the card to link.
+- [x] Links are editable (wrong one linked: remove / change). A card can link to several cards.
+- [x] Direction does not matter: A confused with B is B confused with A.
+- [x] Links chain: A~B, B~C, D~C make {A, B, C, D} one group.
+- [x] Whenever a card of a group lands in a deck, learning AND review, the whole group lands in the same deck.
+- [x] Not enough room: a group displaces unpaired cards.
+- [x] A group that still does not fit after displacing every single takes an arbitrary subset of itself.
+- [x] Several groups in and not all fit: drop the smallest group until all fit; fill the shortfall from singles.
+- [x] After building: check it visually (phone viewport, light and dark) and fix the UX until it is the best and most convenient it can be, no glitches. Shoot, fix, shoot again.
+- [ ] TDD black-box specs, CLAUDE.md + review checklist, deploy, verify live.
+
 ## Affix cards in pronounce
 
 - [x] New field `xl`: breakdown of the example word in all 6 languages, e.g. `voor- (перед) + naam (имя): букв. «переднее имя»`.

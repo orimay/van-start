@@ -2,19 +2,14 @@ import type { DeckCard } from './deck';
 
 /** Note labels whose words a card derives from: `от: ver- (…) + kopen (…)`, `уменьш. от: het boek (…)`. */
 const ORIGIN = ['от', 'from', 'deriva de', 'kökü', 'de la', 'уменьш. от', 'diminutive of', 'diminutivo de', 'küçültme', 'diminutiv de la'];
-/** Note labels naming another card that is no origin: a plural's singular, a variant, a word not to confuse it with. */
-const OTHER = [
-  ...['мн. ч. от', 'форма от', 'повелительное от', 'имперфект от', 'вариант', 'не путать с', 'синоним', 'родственное'],
-  ...['plural of', 'form of', 'imperative of', 'also', "don't confuse with", 'synonym', 'related'],
-  ...['plural de', 'forma de', 'imperativo de', 'también', 'no confundir con', 'sinónimo', 'relacionado'],
-  ...['também', 'não confundir com', 'sinônimo'],
-  ...['çoğulu', 'biçimi', 'emir kipi', 'ayrıca', 'karıştırma', 'eş anlamlı', 'akraba kelime'],
-  ...['pluralul lui', 'forma lui', 'imperativul lui', 'variantă', 'a nu se confunda cu', 'sinonim', 'înrudit'],
-];
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const labelsOf = (labels: string[]) => [...labels].sort((a, b) => b.length - a.length).map(escape).join('|');
-/** A gender mark may stand before the label: `pl. m. plural de: …`. */
-const LABEL = new RegExp(`^((?:pl\\. )?(?:[mfn]\\.(?:/[mfn]\\.)? )?)(${labelsOf([...ORIGIN, ...OTHER])}): `);
+const labelsOf = (labels: string[]) => labels.map(escape).join('|');
+/**
+ * Any label names a card, `женский род от: de genoot`: a label list would miss every new one.
+ * It may hold a gloss, `прошедшее (делал) от: …`, but never end on one: `invullen (заполнять): в, внутрь` is an example and its meaning.
+ * A gender mark may stand before it: `pl. m. plural de: …`.
+ */
+const LABEL = /^((?:pl\. )?(?:[mfn]\.(?:\/[mfn]\.)? )?)((?:[^:()]|\([^()]*\)){0,59}?[^:()\s]): /;
 const ORIGIN_LABEL = new RegExp(`^(${labelsOf(ORIGIN)})$`);
 
 export interface Segment {
@@ -30,7 +25,7 @@ export interface CardIndex {
   bySide: Map<string, DeckCard[]>;
   /** Cards whose origin note names the card, with the meaning it gives. */
   derived: Map<string, Array<{ id: string; gloss?: string }>>;
-  /** Cards whose other note labels name the card (a plural, a form, a word not to confuse it with), less those its own note links. */
+  /** Cards whose other note labels name the card (a plural, a feminine, a word not to confuse it with), less those its own note links. */
   related: Map<string, Array<{ id: string }>>;
 }
 

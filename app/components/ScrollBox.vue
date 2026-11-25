@@ -29,6 +29,8 @@ onUpdated(() => nextTick(measure));
     <div ref="box" :class="props.boxClass" class="flex min-h-0 w-full flex-col items-center overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" :data-testid="props.testid" @scroll.passive="measure">
       <slot />
     </div>
-    <div v-if="thumb" class="pointer-events-none absolute right-0 w-1 rounded-full bg-stone-400/60 dark:bg-stone-500/60" :style="thumb" :data-testid="`${props.testid}-thumb`" />
+    <div v-if="thumb" class="pointer-events-none absolute inset-y-0 right-0 w-1 rounded-full bg-stone-200 dark:bg-stone-700" :data-testid="`${props.testid}-track`">
+      <div class="absolute inset-x-0 rounded-full bg-stone-500 dark:bg-stone-400" :style="thumb" :data-testid="`${props.testid}-thumb`" />
+    </div>
   </div>
 </template>

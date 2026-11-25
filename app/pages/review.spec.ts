@@ -1,7 +1,7 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime';
 import type { VueWrapper } from '@vue/test-utils';
 import { Rating } from 'ts-fsrs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { effectScope, nextTick } from 'vue';
 import { installWhenIdle } from '@/utils/update-hold';
 import Review from './review.vue';
@@ -56,6 +56,38 @@ describe('review', () => {
     await doRecall(await doMount(undefined, 'recall'), true);
     expect(store.isDue('k0', new Date(), 'recall')).toBe(false);
     expect(store.isDue('k0', new Date(), 'type')).toBe(true);
+  });
+
+  describe('a card mixed up with another', () => {
+    beforeEach(() => onTestFinished(() => store.unconfuse('k1', 'k2')));
+
+    it('brings the other along, due or not', async () => {
+      givenLearned('k0', 'k1', 'k2');
+      givenDue('k1', 'recall');
+      store.confuse('k1', 'k2');
+      const w = await doMount(undefined, 'recall');
+      const asked = [promptOf(w)];
+      await doRecall(w, true);
+      asked.push(promptOf(w));
+      expect(asked.sort()).toEqual(['p1', 'p2']);
+    });
+
+    it('is linked from the answer, and both count as missed', async () => {
+      givenLearned('k1', 'k2');
+      givenDue('k1', 'recall');
+      const w = await doMount(undefined, 'recall');
+      await doMixUp(w, 'a2');
+      expect(store.confusions.value.k1).toEqual(['k2']);
+      expect([store.scores.value.k1?.recall?.wrong, store.scores.value.k2?.recall?.wrong]).toEqual([1, 1]);
+    });
+
+    it('leaves a card not learned yet off the schedule', async () => {
+      givenLearned('k1');
+      givenDue('k1', 'recall');
+      const w = await doMount(undefined, 'recall');
+      await doMixUp(w, 'a2');
+      expect(store.scheduleOf('k2', 'recall')).toBeUndefined();
+    });
   });
 
   it('says nothing is due when no card is', async () => {
@@ -159,6 +191,9 @@ describe('the order', () => {
   });
 
   it('starts with the hardest words of the game', async () => {
+    // A fixed day: the order comes from a seed holding the date, and on some days a hard word jumps ahead by its odds.
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-01-02T12:00:00') });
+    onTestFinished(() => vi.useRealTimers());
     givenLearned('k0', 'k1', 'k2');
     for (const id of ['k0', 'k1', 'k2']) givenDue(id, 'recall');
     store.saveScore('k1', 'recall', { right: 1, wrong: 2 });
@@ -255,6 +290,19 @@ function doMount(path?: string, game: ReviewGame = 'recall') {
 
 function promptOf(w: VueWrapper) {
   return w.get('[data-testid="prompt"]').text();
+}
+
+/** Reveals, then says the card was mixed up with the first one the query finds. */
+async function doMixUp(w: VueWrapper, query: string) {
+  await w.get('[data-testid="reveal"]').trigger('click');
+  await nextTick();
+  await w.get('[data-testid="mixed-up"]').trigger('click');
+  await nextTick();
+  const search = w.get('[data-testid="mix-up-search"]');
+  search.element.textContent = query;
+  await search.trigger('input');
+  await w.get('[data-testid="mix-up-option"]').trigger('click');
+  await nextTick();
 }
 
 async function doRecall(w: VueWrapper, remembered: boolean) {

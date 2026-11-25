@@ -13,7 +13,7 @@ const items = (note?: string) => (note ? noteLines(note).map(l => l.text) : []);
 const ALLOWED = new Set(['de', 'het', 'een', 'geen', 'e']);
 const firstDutch = (item: string) => [...item.matchAll(/[a-zà-ÿ]+/gi)].find(m => !ALLOWED.has(m[0].toLowerCase()))?.index;
 /** Items that only name a related form; the whole item is the mention. */
-const LABEL = /^(форма|мн\. ч\.|также|ед\. ч|прош\.|в речи|женский род|превосходная|мужчина|учительница|то же|от:|уменьш|причастие|прошедшее|просьба|процесс|синоним|вариант|родственное|не путать|слова на)/;
+const LABEL = /^(форма|мн\. ч\.|также|ед\. ч|прош\.|в речи|женский род|сравнительная|превосходная|порядковое|конкретнее|мужчина|учительница|то же|от:|уменьш|причастие|прошедшее|просьба|процесс|синоним|вариант|родственное|не путать|слова на)/;
 
 /** A Dutch word hides its whole item until the answer; a meaning before it would hide with it. */
 function hidesMeaning(item: string) {

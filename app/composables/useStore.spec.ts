@@ -193,6 +193,23 @@ describe('forgetting reviews', () => {
   });
 });
 
+describe('a mix-up', () => {
+  beforeEach(() => useStore().unconfuse('a', 'b'));
+
+  it('links both cards', () => {
+    const store = useStore();
+    store.confuse('a', 'b');
+    expect([store.confusions.value.a, store.confusions.value.b]).toEqual([['b'], ['a']]);
+  });
+
+  it('comes off both cards', () => {
+    const store = useStore();
+    store.confuse('a', 'b');
+    store.unconfuse('b', 'a');
+    expect(store.confusions.value).toEqual({});
+  });
+});
+
 describe('saved progress', () => {
   it('brings back everything kept', () => {
     const store = useStore();
@@ -200,11 +217,13 @@ describe('saved progress', () => {
     store.rate('a', store.Rating.Good, 'recall');
     store.pass('b', 'intro');
     store.saveScore('a', 'recall', { right: 3, wrong: 1 });
-    const kept = () => JSON.parse(JSON.stringify({ progress: store.progress.value, reviews: store.reviews.value, passed: store.passed.value, scores: store.scores.value, reviewLog: store.reviewLog.value, custom: store.custom.value, edits: store.edits.value }));
+    store.confuse('a', 'b');
+    const kept = () => JSON.parse(JSON.stringify({ confusions: store.confusions.value, progress: store.progress.value, reviews: store.reviews.value, passed: store.passed.value, scores: store.scores.value, reviewLog: store.reviewLog.value, custom: store.custom.value, edits: store.edits.value }));
     const before = kept();
     const json = store.exportProgress();
     store.forgetLearning(['a', 'b']);
     store.scores.value = {};
+    store.unconfuse('a', 'b');
     store.importProgress(json);
     expect(kept()).toEqual(before);
   });
