@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useIntervalFn } from '@vueuse/core';
-import { computed, onBeforeUnmount, shallowRef } from 'vue';
+import { computed, onBeforeUnmount, shallowRef, watch } from 'vue';
 import type { StudyCard } from '@/utils/deck';
 import { play } from '@/utils/play';
 import { speak } from '@/utils/speak';
@@ -41,6 +41,16 @@ function dropMixUp(other: string) {
   linkedHere.value = linkedHere.value.filter(id => id !== other);
   setMixed(mixedHere.value.filter(id => id !== other));
 }
+
+/** Linked or unlinked from the card sheet while revealed: taken for that word on this step, or no longer. */
+watch(() => store.confusions.value[props.card.id] ?? [], (now, was) => {
+  if (!revealed.value || mixing.value) return;
+  const added = now.filter(id => !was.includes(id) && !mixedHere.value.includes(id));
+  const removed = was.filter(id => !now.includes(id) && linkedHere.value.includes(id));
+  if (!added.length && !removed.length) return;
+  linkedHere.value = [...linkedHere.value.filter(id => !removed.includes(id)), ...added];
+  setMixed([...mixedHere.value.filter(id => !removed.includes(id)), ...added]);
+}, { flush: 'sync' });
 
 function setMixed(ids: string[]) {
   mixedHere.value = ids;

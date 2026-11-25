@@ -106,6 +106,41 @@ describe('a card mixed up with another', () => {
     expect(w.find('[data-testid="mixed-hint"]').exists()).toBe(false);
   });
 
+  describe('linked from the card sheet', () => {
+    it('turns Remembered off on the revealed card', async () => {
+      givenDeck(cards(6));
+      const w = await doMount({ cards: cards(6), stages: ['recall'] });
+      const first = promptOf(w);
+      await doRecall(w, true);
+      await doClick(w, 'reveal');
+      await doLinkInCardSheet(w, idOf(first));
+      ensureDisabled(w, 'remembered');
+      ensureContains(w, 'mixed-hint', answerFor(first));
+    });
+
+    it('turns Remembered back on once unlinked there', async () => {
+      givenDeck(cards(6));
+      const w = await doMount({ cards: cards(6), stages: ['recall'] });
+      const first = promptOf(w);
+      await doRecall(w, true);
+      await doClick(w, 'reveal');
+      await doLinkInCardSheet(w, idOf(first));
+      await doUnlinkInCardSheet(w, idOf(first));
+      ensureDisabled(w, 'remembered', false);
+    });
+
+    /** The card sheet's Add and ✕ write the link straight to the store. */
+    async function doLinkInCardSheet(w: VueWrapper, other: string) {
+      useStore().confuse(idOf(promptOf(w)), other);
+      await nextTick();
+    }
+
+    async function doUnlinkInCardSheet(w: VueWrapper, other: string) {
+      useStore().unconfuse(idOf(promptOf(w)), other);
+      await nextTick();
+    }
+  });
+
   describe('linked earlier', () => {
     it('is shown once the card is revealed', async () => {
       givenDeck(cards(6));
@@ -296,6 +331,15 @@ describe('a typed answer that is another word', () => {
     ensureHas(w, 'mixed-before', false);
     await doClick(w, 'show-answer');
     expect(readMixedBefore(w)).toEqual(['weg']);
+  });
+
+  it('is also a word linked in the card sheet once the answer shows', async () => {
+    const w = await doMountTyping(words('terug', 'weg'));
+    await doType(w, 'input', 'xyz');
+    await doClick(w, 'show-answer');
+    useStore().confuse('c0', 'c2');
+    await nextTick();
+    ensureContains(w, 'mixed-hint', 'weg');
   });
 
   it('keeps the word guessed out of the mix-up sheet until the answer shows', async () => {

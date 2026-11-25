@@ -26,6 +26,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] Grammar terms are said in plain words with an example (be- = action aimed at something: лечить кого-то).
 - [ ] No tense or verb-type names: `о будущем`, `op отрывается и уходит в конец`; the language is нидерландский.
 - [ ] A confusable pair says `не путать с:` both ways, in every language.
+- [ ] A verb and its light-verb phrase (douchen / een douche nemen) name each other as `синоним:` and each says in words when it is the natural pick, in every language.
 - [ ] No gloss inside a gloss; a comma, never `; `, inside brackets.
 - [ ] An example's translation matches the card's meaning (afspreken met = назначать встречу, not договориться) and the real-world fact (groep 3 = первый класс).
 - [ ] No bare label stands in for a meaning: a particle says what it does (hoor: смягчает или успокаивает), an adverb label is used only where the word answers it (no `как «как? где?»` before `только`).

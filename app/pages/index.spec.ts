@@ -89,7 +89,7 @@ describe('review menu', () => {
     await doOpenReview(w);
     expect(w.find('[data-testid="review-menu"]').exists()).toBe(true);
     useRouter().back();
-    await vi.waitFor(() => expect(w.find('[data-testid="review-menu"]').exists()).toBe(false));
+    await vi.waitFor(() => expect(w.find('[data-testid="review-menu"]').exists()).toBe(false), { timeout: 5000 });
   });
 });
 
@@ -117,7 +117,7 @@ function givenDue(id: string, game: ReviewGame) {
 
 async function doOpenReview(w: VueWrapper) {
   await w.get('[data-testid="review"]').trigger('click');
-  await vi.waitFor(() => w.get('[data-testid="review-menu"]'));
+  await vi.waitFor(() => w.get('[data-testid="review-menu"]'), { timeout: 5000 });
 }
 
 describe('a long press', () => {

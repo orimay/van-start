@@ -77,8 +77,8 @@ function lookForMixUp(text: string) {
   const found = typedAs(text, cards.filter(c => c.id !== props.card.id && !mixedHere.value.includes(c.id)), c => (dutch ? c.b : c.f), leniency());
   if (found.length === 1) {
     linkedHere.value = (store.confusions.value[props.card.id] ?? []).includes(found[0]!.id) ? linkedHere.value : [...linkedHere.value, found[0]!.id];
-    store.confuse(props.card.id, found[0]!.id);
     mixedHere.value = [...mixedHere.value, found[0]!.id];
+    store.confuse(props.card.id, found[0]!.id);
   } else if (found.length) {
     choices.value = found.map(c => c.id);
     mixing.value = true;
@@ -96,6 +96,17 @@ function dropMixUp(other: string) {
   mixedHere.value = mixedHere.value.filter(id => id !== other);
   saveProgress();
 }
+
+/** Linked or unlinked from the card sheet once the answer shows: taken for that word on this step, or no longer. */
+watch(() => store.confusions.value[props.card.id] ?? [], (now, was) => {
+  if (!answerShown.value || mixing.value) return;
+  const added = now.filter(id => !was.includes(id) && !mixedHere.value.includes(id));
+  const removed = was.filter(id => !now.includes(id) && linkedHere.value.includes(id));
+  if (!added.length && !removed.length) return;
+  linkedHere.value = [...linkedHere.value.filter(id => !removed.includes(id)), ...added];
+  mixedHere.value = [...mixedHere.value.filter(id => !removed.includes(id)), ...added];
+  saveProgress();
+}, { flush: 'sync' });
 
 /** Dictation can only judge what was heard: a spelling that sounds the same counts. */
 const sameSound = computed(() => props.listening && phase.value === 'done' && !matches(input.value) && soundsLike(input.value, props.card.answer));

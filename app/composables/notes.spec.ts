@@ -72,3 +72,20 @@ describe('a note naming where a word is used', () => {
     expect(notes.filter(n => LIVES_IN[lang]!.test(n))).toEqual([]);
   });
 });
+
+// ongetrouwd is about marriage, alleenstaand about living without a partner: one gloss for both hides that
+const CONFUSABLE: Array<[string, string]> = [['ongetrouwd', 'alleenstaand'], ['ongetrouwd', 'alleenstaande']];
+const DONT_CONFUSE: Record<string, string> = { ru: 'не путать с: ', en: "don't confuse with: ", es: 'no confundir con: ', pt: 'não confundir com: ', tr: 'karıştırma: ', ro: 'a nu se confunda cu: ' };
+describe('a confusable pair', () => {
+  const byFront = new Map(cards.map(c => [c.b, c]));
+  it.each(Object.keys(DONT_CONFUSE))('reads apart and names the other in %s', (lang) => {
+    const rows = lang === 'ru' ? {} : overlayCards(lang);
+    const side = (b: string) => {
+      const card = byFront.get(b)!;
+      return lang === 'ru' ? { f: card.f, n: card.n ?? '' } : { f: rows[card.id]![0]!, n: rows[card.id]![3] ?? '' };
+    };
+    const names = (b: string, other: string) => side(b).n.split('; ').some(i => i.startsWith(DONT_CONFUSE[lang]!) && i.includes(other.replace(/e$/, '')));
+    const blurred = CONFUSABLE.filter(([a, b]) => side(a).f === side(b).f || !names(a, b) || !names(b, a));
+    expect(blurred).toEqual([]);
+  });
+});
