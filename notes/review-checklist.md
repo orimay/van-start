@@ -96,3 +96,4 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] An update reloads only at a move (card to card, page to page), never mid-card.
 - [ ] A phrase with an article Russian does not show says it in words in every language (`(какой-нибудь)`, `(свой)`, `bir`, `(belirli)`).
 - [ ] Every article in a phrase has a closing ru/tr note item, Dutch first, saying why that article (any, known, own, set phrase, amount…); en/es/pt/ro show it with their own article.
+- [ ] A card's tint matches its kind: affix violet, noun sky, verb amber, else plain (`p` from `flag-kinds.py`), readable in light and dark.

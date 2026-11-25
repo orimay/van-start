@@ -29,6 +29,7 @@ When two rules conflict, the one written further down wins.
   - `xf`/`xb`: example translation and the Dutch example;
   - `nb`/`nx`: optional extras;
   - `k`: `sentence` or `combination`, a card the learner can switch off. Set only by `python3 -I scripts/flag-kinds.py` (idempotent; its `KEEP`/`SENTENCES` lists and `SERIES` rules are the decisions, `scripts/flag_kinds_test.py` checks them). Rerun it after any deck change.
+  - `p`: `noun` (it has its article) or `verb` (glossed by a Russian infinitive), set by the same `flag-kinds.py` (`part_of`). `surfaceOf` (`app/utils/surface.ts`) tints the prompt, answer and listen cards by it: an affix violet, a noun sky, a verb amber, anything else plain, in both themes, so one spelling as an affix, a noun or a verb looks apart (op-, de boeken, boeken).
 - `public/lang/{en,es,pt,tr,ro}.json`: `cards[id] = [f, xf, tr, n?, nx?, xl?, xt?]`; an affix carries its breakdown and example transcription at 5 and 6, and `scripts/proof.py` keeps them when it rewrites a row.
 - Write both compact: `ensure_ascii=False, separators=(',',':')`.
 - Deck order is learning order. Groups keep the book's order. Inside a group, where its cards allow: a singular comes before its plural, a diminutive (-je) or an irregular form after its base word, and a word before every card using it, in its phrase or its example. A group's own words come first, then its sections' words in order.

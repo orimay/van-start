@@ -2,6 +2,7 @@
 import { watch } from 'vue';
 import { copyText } from '@/utils/copy';
 import { letterCount, type StudyCard } from '@/utils/deck';
+import { surfaceOf } from '@/utils/surface';
 import { speak } from '@/utils/speak';
 
 const sheet = useCardSheet();
@@ -14,7 +15,7 @@ watch(() => props.hidden, hidden => hidden || props.silent || speak(props.card),
 </script>
 
 <template>
-  <div data-testid="answer-card" class="relative flex min-h-0 flex-1 basis-0 flex-col justify-center-safe overflow-hidden w-full self-stretch rounded-xl border border-stone-300 bg-white px-3 py-2 shadow-sm dark:border-stone-700 dark:bg-stone-900 border-dashed" :class="{ 'border-solid': !hidden }">
+  <div data-testid="answer-card" class="relative flex min-h-0 flex-1 basis-0 flex-col justify-center-safe overflow-hidden w-full self-stretch rounded-xl border px-3 py-2 shadow-sm border-dashed" :class="[surfaceOf(card), { 'border-solid': !hidden }]">
     <div class="flex min-h-0 flex-col items-center gap-1 text-center" :class="{ invisible: hidden }" :aria-hidden="hidden">
     <slot name="above" />
     <p data-testid="answer" :class="right ? 'text-green-700 dark:text-green-600' : 'text-orange-700 dark:text-orange-600'" class="cursor-copy px-7 text-xl font-semibold" @click="hidden || copyText(card.answer)"><KeepAffixes :text="card.answer" /><AffixTag :card="card" :text="card.answer" /></p>

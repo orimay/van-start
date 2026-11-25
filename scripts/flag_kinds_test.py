@@ -17,6 +17,12 @@ fails += [f'not a sentence: {b}' for b in SENTENCE if not m.is_sentence(b)]
 fails += [f'a sentence: {b}' for b in NOT_SENTENCE if m.is_sentence(b)]
 fails += [f'not in series {i}: {b}' for b, i in COMBINATION.items() if not m.SERIES[i].fullmatch(b)]
 
+# A part of speech: a noun by its article, a verb by its Russian infinitive; a look-alike stays untagged.
+PARTS = [('de boeken', 'книги (мн.)', 'noun'), ('boeken', 'бронировать (поездку)', 'verb'), ('pijn doen', 'болеть', 'verb'),
+         ('het kan', 'это возможно, можно', None), ('kwart over negen', 'четверть десятого', None), ('zesentwintig', 'двадцать шесть', None),
+         ('vraag', 'спроси!; попроси!', None), ('op-', 'вверх', None), ('weg', 'прочь', None)]
+fails += [f'{b}: {m.part_of({"b": b, "f": f})} not {part}' for b, f, part in PARTS if m.part_of({'b': b, 'f': f}) != part]
+
 # The applied deck: the first of a series stays and carries the rule.
 deck = list(m.cards(json.load(open(m.deck_path))))
 by_b = {c['b']: c for c in deck}
@@ -24,7 +30,7 @@ for first, series in [('de zaterdagmiddag', 0), ('eenentwintig', 1)]:
     card = by_b[first]
     if card.get('k') or not all(item in card.get('n', '') for item in m.RULES[series][0]):
         fails.append(f'first of the series lost its rule: {first}')
-if by_b['dinsdagochtend'].get('k') != 'combination':
+if by_b['dinsdagochtend'].get('k') != 'combination' or by_b['de boeken'].get('p') != 'noun':
     fails.append('deck not flagged: run python3 -I scripts/flag-kinds.py')
 
 print('\n'.join(fails) or 'ok')

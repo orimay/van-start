@@ -1,5 +1,8 @@
 """Flag the cards a learner can switch off: `k: 'sentence'` and `k: 'combination'` in public/deck.json.
 
+Also tags a noun or a verb with `p: 'noun'` / `p: 'verb'`, so one spelling as a noun, a verb or an affix
+looks apart (de boeken, boeken, op-). A noun has its article; a verb is glossed by a Russian infinitive.
+
 Sentence: a phrase or sentence that only shows words in use (`op zaterdagavond`, `de appel is groot`).
 Combination: one of a rule-built series (`dinsdagochtend`, `vierentwintig`, `om half tien`); the first
 of each series stays, and the first day + part of the day gets a note saying the rule.
@@ -189,10 +192,31 @@ def is_sentence(b):
     return words[0] in PREP
 
 
+INFINITIVE = re.compile(r'^(не )?[а-яё-]+(ть|ться|ти|тись|чь|чься)$')
+NUMERAL = re.compile(r'(пять|шесть|девять|десять|дцать)$')
+# Glossed like an infinitive, but not a verb.
+NOT_VERB = {'четверть', 'пусть', 'вплоть', 'поблизости', 'эти', 'ответь', 'кровать', 'память', 'часть', 'мать'}
+SUBJECT = re.compile(r'^(een|ik|je|jij|u|hij|zij|ze|we|wij|jullie|het|dat|er|daar|hier|wat|hoe)\b', re.I)
+
+
+def part_of(c):
+    """A noun or a verb, by its article or its Russian infinitive; anything else stays untagged."""
+    b, f = c['b'], c['f']
+    if c.get('k') == 'sentence' or b.startswith('-') or b.endswith('-'):
+        return None
+    head = re.sub(r'\([^)]*\)', '', re.split(r'[;,:]', f)[0]).split()
+    if re.fullmatch(r'(de|het) \S+', b) and not re.match(r'(оно|это|он|она)\b', f):
+        return 'noun'
+    if head and INFINITIVE.match(head[0]) and not NUMERAL.search(head[0]) and head[0] not in NOT_VERB and not SUBJECT.match(b) and '!' not in f and any(w.endswith('n') for w in b.split()):
+        return 'verb'
+    return None
+
+
 def main():
     all_cards = list(cards(deck))
     for c in all_cards:
         c.pop('k', None)
+        c.pop('p', None)
     firsts = {}
     for c in all_cards:
         series = None if c['b'] in OWN_PATTERN else next((i for i, rule in enumerate(SERIES) if rule.fullmatch(c['b'])), None)
@@ -204,8 +228,12 @@ def main():
         elif is_sentence(c['b']):
             c['k'] = 'sentence'
     add_rules(firsts)
+    for c in all_cards:
+        if part := part_of(c):
+            c['p'] = part
     json.dump(deck, open(deck_path, 'w'), ensure_ascii=False, separators=(',', ':'))
     counts = {k: sum(c.get('k') == k for c in all_cards) for k in ('sentence', 'combination')}
+    counts |= {p: sum(c.get('p') == p for c in all_cards) for p in ('noun', 'verb')}
     print(counts, {i: c['b'] for i, c in firsts.items()})
 
 

@@ -474,3 +474,34 @@ describe('a scrolling card', () => {
     expect(findThumb(w, 'answer').exists()).toBe(true);
   });
 });
+
+/** One spelling can be an affix, a noun and a verb (op-, de boeken, boeken): the card's own tint tells them apart. */
+describe('a card surface', () => {
+  const surfaces = async (cards: DeckCard[]) => Promise.all(cards.map(async card => {
+    const prompt = await mountSuspended(Prompt, { props: { card: toStudyCard(card) } });
+    const answer = await mountSuspended(Answer, { props: { card: toStudyCard(card), silent: true } });
+    const tint = (w: VueWrapper, id: string) => w.get(`[data-testid="${id}"]`).classes().filter(c => /^(dark:)?bg-/.test(c)).sort().join(' ');
+    return [tint(prompt, 'prompt-card'), tint(answer, 'answer-card')];
+  }));
+
+  it('differs for an affix, a noun, a verb and any other word, on both sides', async () => {
+    const [affix, noun, verb, other] = await surfaces([
+      { id: 's0', f: 'вверх', b: 'op-', xb: 'opstaan', xf: 'вставать' },
+      { id: 's1', f: 'книги (мн.)', b: 'de boeken', p: 'noun' },
+      { id: 's2', f: 'бронировать', b: 'boeken', p: 'verb' },
+      { id: 's3', f: 'на', b: 'op' },
+    ]);
+    expect(new Set([affix, noun, verb, other].map(s => s![0])).size).toBe(4);
+    for (const [prompt, answer] of [affix, noun, verb, other]) expect(answer).toBe(prompt);
+  });
+
+  it('has its own tint in the dark theme too', async () => {
+    const tints = await surfaces([
+      { id: 's0', f: 'вверх', b: 'op-', xb: 'opstaan', xf: 'вставать' },
+      { id: 's1', f: 'книги (мн.)', b: 'de boeken', p: 'noun' },
+      { id: 's2', f: 'бронировать', b: 'boeken', p: 'verb' },
+      { id: 's3', f: 'на', b: 'op' },
+    ]);
+    expect(new Set(tints.map(([prompt]) => prompt!.split(' ').filter(c => c.startsWith('dark:')).join(' '))).size).toBe(4);
+  });
+});
