@@ -298,15 +298,25 @@ describe('a typed answer that is another word', () => {
     expect(readMixedBefore(w)).toEqual(['weg']);
   });
 
-  it('keeps an earlier link picked again once claimed right', async () => {
+  it('keeps the word guessed out of the mix-up sheet until the answer shows', async () => {
     const w = await doMountTyping(words('terug', 'weg'));
     useStore().confuse('c0', 'c2');
     await doType(w, 'input', 'xyz');
     await doClick(w, 'mixed-up');
+    const sheet = w.get('[data-testid="mix-up-sheet"]').text();
+    expect(sheet).not.toContain('a0');
+    expect(sheet).not.toContain('weg');
+  });
+
+  it('keeps an earlier link picked again once claimed right', async () => {
+    const w = await doMountTyping(words('terug', 'weg'));
+    useStore().confuse('c0', 'c2');
+    await doType(w, 'input', 'xyz');
+    await doClick(w, 'show-answer');
+    await doClick(w, 'mixed-up');
     await w.get('[data-testid="mix-up-option"]').trigger('click');
     await doClick(w, 'mix-up-done');
     ensureContains(w, 'mixed-hint', 'weg');
-    await doClick(w, 'show-answer');
     await doClick(w, 'accept');
     ensureHas(w, 'mixed-hint', false);
     expect(useStore().confusions.value.c0).toEqual(['c2']);
@@ -319,6 +329,64 @@ describe('a typed answer that is another word', () => {
     await doClick(w, 'accept');
     ensureHas(w, 'mixed-hint', false);
     expect(useStore().confusions.value.c0 ?? []).toEqual([]);
+  });
+
+  describe('linked by hand', () => {
+    const list = words('de tocht', 'de wandeling', 'fietsen');
+
+    async function doLink(w: VueWrapper, word: string) {
+      const search = w.get('[data-testid="mix-up-search"]');
+      search.element.textContent = word;
+      await search.trigger('input');
+      await w.get('[data-testid="mix-up-option"]').trigger('click');
+    }
+
+    for (const [where, pool] of [['in the round', list], ['only in the deck', [list[0]!, list[3]!]]] as const) {
+      it(`counts every word picked as missed in this game, ${where}`, async () => {
+        givenDeck(list);
+        const w = await doMount({ cards: [list[0]!, list[3]!], pool: [...pool], stages: ['type'] });
+        const answer = list.find(c => c.prompt === promptOf(w))!.answer;
+        await doType(w, 'input', 'fietwandeling');
+        await doClick(w, 'mixed-up');
+        await doLink(w, 'tocht');
+        await doLink(w, 'wandeling');
+        await doClick(w, 'mix-up-done');
+        await doClick(w, 'try-again');
+        await doType(w, 'input', answer);
+        await doClick(w, 'submit');
+        expect(w.emitted('answer')).toEqual(expect.arrayContaining([['c1', 'type', false], ['c2', 'type', false]]));
+      });
+    }
+  });
+
+  describe('on a card put off', () => {
+    const list = words('terug', 'weg');
+    /** `terug` is in the deck but not in the round, so whichever card shows can be typed as it. */
+    async function doMountPair() {
+      givenDeck(list);
+      return doMount({ cards: [list[0]!, list[2]!], pool: list, stages: ['type'] });
+    }
+    const answerOf = (w: VueWrapper) => list.find(c => c.prompt === promptOf(w))!.answer;
+    const missesLeft = (w: VueWrapper, id: string) =>
+      (w.emitted('answer') ?? []).filter(([at, , ok]) => at === id && !ok).length - (w.emitted('undo') ?? []).filter(([at]) => at === id).length;
+
+    it('keeps that word missed', async () => {
+      const w = await doMountPair();
+      await doType(w, 'input', 'terug');
+      await doClick(w, 'later');
+      expect(missesLeft(w, 'c1')).toBe(1);
+    });
+
+    it('keeps that word missed when put off after stepping back to it', async () => {
+      const w = await doMountPair();
+      await doType(w, 'input', 'terug');
+      await doClick(w, 'try-again');
+      await doType(w, 'input', answerOf(w));
+      await doClick(w, 'submit');
+      await doClick(w, 'previous');
+      await doClick(w, 'later');
+      expect(missesLeft(w, 'c1')).toBe(1);
+    });
   });
 
   describe('matching several words', () => {
@@ -651,10 +719,11 @@ describe('pronouncing as the intro', () => {
 
 describe('a note giving the answer away', () => {
   const card: StudyCard = { id: 'c0', prompt: 'ты хочешь', answer: 'jij wil', nl: 'jij wil', promptNote: 'вариант: jij wilt' };
-  const noteHidden = (w: VueWrapper) => w.get('[data-testid="prompt-note-line"]').classes().includes('invisible');
+  // Attached: a hidden line is told by its computed style, which a detached element lacks.
+  const noteHidden = (w: VueWrapper) => !w.get('[data-testid="prompt-note-line"]').isVisible();
 
   it('waits for the reveal in recall', async () => {
-    const w = await doMount({ cards: [card], stages: ['recall'] });
+    const w = await doMount({ cards: [card], stages: ['recall'] }, true);
     expect(noteHidden(w)).toBe(true);
     await doClick(w, 'reveal');
     expect(noteHidden(w)).toBe(false);
@@ -666,7 +735,7 @@ describe('a note giving the answer away', () => {
   });
 
   it('waits for the answer in typing', async () => {
-    const w = await doMount({ cards: [card], stages: ['type'] });
+    const w = await doMount({ cards: [card], stages: ['type'] }, true);
     expect(noteHidden(w)).toBe(true);
   });
 });
@@ -1025,11 +1094,11 @@ describe('an affix', () => {
     expect([...context.querySelectorAll('[data-testid]')].map(e => e.getAttribute('data-testid'))[0]).toBe('breakdown');
   });
 
-  it('hides the breakdown while its Dutch side is hidden', async () => {
-    const w = await doMount({ cards: [affix], stages: ['recall'] });
-    expect(w.get('[data-testid="breakdown"]').element.closest('.invisible')).not.toBeNull();
+  it('takes the breakdown out of the layout while its Dutch side is hidden', async () => {
+    const w = await doMount({ cards: [affix], stages: ['recall'] }, true);
+    expect(w.get('[data-testid="breakdown"]').isVisible()).toBe(false);
     await doClick(w, 'reveal');
-    expect(w.get('[data-testid="breakdown"]').element.closest('.invisible')).toBeNull();
+    expect(w.get('[data-testid="breakdown"]').isVisible()).toBe(true);
   });
 
   it('marks a suffix at the end of its example word', async () => {
@@ -2261,6 +2330,28 @@ describe('a shown card', () => {
     const ms = (w.emitted('show')![0]![0] as { ms: number }).ms;
     expect(ms).toBeGreaterThanOrEqual(2000);
     expect(ms).toBeLessThan(2000 + 300 * 3);
+    vi.useRealTimers();
+  });
+
+  it('starts over on a replay in dictation, as a replay means the word was not caught', async () => {
+    vi.useFakeTimers();
+    const w = await doMount({ cards: cards(8), stages: ['dictation'], retryGap: 8 });
+    const answer = (vi.mocked(speak).mock.calls.at(-1)![0] as { nl: string }).nl;
+    await vi.advanceTimersByTimeAsync(3000);
+    const field = w.get('[data-testid="input"]');
+    for (const at of [0, 1, 2]) {
+      field.element.textContent = answer.slice(0, at + 1);
+      await field.trigger('input');
+      await vi.advanceTimersByTimeAsync(300);
+    }
+    await vi.advanceTimersByTimeAsync(5000);
+    await doClick(w, 'listen-again');
+    await vi.advanceTimersByTimeAsync(2000);
+    await doType(w, 'input', answer);
+    await doClick(w, 'submit');
+    const ms = (w.emitted('show')![0]![0] as { ms: number }).ms;
+    expect(ms).toBeGreaterThanOrEqual(2000);
+    expect(ms).toBeLessThan(2900);
     vi.useRealTimers();
   });
 

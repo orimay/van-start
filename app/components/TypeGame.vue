@@ -13,7 +13,7 @@ interface State { input?: string; verdict?: boolean; phase?: Phase | 'fixing'; r
 
 /** `listening`: the Dutch is only heard until its answer shows. */
 const props = defineProps<{ card: StudyCard; lang: string; listening?: boolean; state?: State }>();
-const emit = defineEmits<{ result: [ok: boolean, guessed?: boolean, typingMs?: number]; progress: [state: State]; miss: []; mixed: [others: string[], typingMs: number] }>();
+const emit = defineEmits<{ result: [ok: boolean, guessed?: boolean, typingMs?: number]; progress: [state: State]; miss: []; mixed: [others: string[], typingMs: number]; replay: [] }>();
 /** The answer was out since the last try, so a wrong one counts as another miss. */
 let sawAnswer = false;
 
@@ -32,6 +32,12 @@ watch(input, () => {
   }
   typedAt = now;
 });
+/** A replay means the word was not caught: what was typed so far does not count. */
+function startOver() {
+  typingMs = 0;
+  typedAt = undefined;
+  emit('replay');
+}
 /** The answer was shown before this try, so a typo in it is not claimable. */
 const retried = shallowRef(props.state?.retried ?? false);
 /** This is not the first try, so claiming it leaves the first one's miss. */
@@ -155,7 +161,7 @@ function giveUp() {
       <!-- Dictation: nothing to read until answered, so the ear does the work. -->
       <Prompt v-if="!listening || answerShown" :card="card" :secret="!answerShown" />
       <!-- Dictation: the speaker holds the hidden Dutch's place, and the Dutch shows without being voiced again. -->
-      <ListenButton v-if="listening && phase === 'typing'" :card="card" />
+      <ListenButton v-if="listening && phase === 'typing'" :card="card" @replay="startOver" />
       <Answer v-else :card="card" :hidden="!answerShown" :silent="listening" :right="phase === 'done'">
         <template #above>
           <p v-if="claimable" data-testid="typed" class="text-xl"><TypedLetters :letters="letters" /></p>
@@ -199,6 +205,6 @@ function giveUp() {
         </template>
       </div></div>
     </div>
-    <MixUpSheet :id="card.id" :open="mixing" :typed="choices" :mixed="mixedHere" :fresh="linkedHere" @pick="pickMixUp" @drop="dropMixUp" @close="mixing = false" />
+    <MixUpSheet :id="card.id" :open="mixing" :typed="choices" :mixed="mixedHere" :fresh="linkedHere" :secret="!answerShown" @pick="pickMixUp" @drop="dropMixUp" @close="mixing = false" />
   </div>
 </template>

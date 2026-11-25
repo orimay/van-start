@@ -16,6 +16,11 @@ describe('a search for a mixed-up card', () => {
     expect(found('kam')).toEqual(['1', '2', '4']);
   });
 
+  it('finds a Dutch word typed with its article', () => {
+    expect(found('de kamer')).toEqual(['1']);
+    expect(found('het caf')).toEqual(['3']);
+  });
+
   it('puts words that start with the query first', () => {
     expect(found('kamer')).toEqual(['1', '2', '4']);
     expect(found('slaap')).toEqual(['4']);
@@ -76,6 +81,25 @@ describe('the cards a word may have been taken for', () => {
 
   it('go on with the words looking most like it', () => {
     expect(suspected('1')).toHaveLength(4);
+  });
+
+  describe('looking alike', () => {
+    const words = [card('a', '-heid', '-ость'), card('b', '-tie', '-ция'), card('c', 'heit', 'жара'), card('d', 'tegen-', 'против-'), card('e', 'tegen', 'против'), card('f', 'tien', 'десять')];
+    const alike = (id: string) => suspects(words.find(c => c.id === id)!, words.filter(c => c.id !== id), () => false).map(c => c.id);
+
+    it('are affixes for an affix', () => {
+      expect(alike('a').sort()).toEqual(['b', 'd']);
+    });
+
+    it('are words for a word', () => {
+      expect(alike('c')).not.toContain('a');
+      expect(alike('f')).not.toContain('b');
+    });
+
+    it('take in an affix of the same stem all the same', () => {
+      expect(alike('e')).toContain('d');
+      expect(alike('d')).toContain('e');
+    });
   });
 });
 

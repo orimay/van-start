@@ -8,8 +8,9 @@ import { matching, suspects } from '@/utils/mix-up';
  * Before anything is typed it lists the cards a typed answer may be, the cards already linked, then its look-alikes; typing searches Dutch and native text.
  * Opened from a step (`mixed` given), a tick means taken for it on this step: a card linked before is picked again with its link kept,
  * and only a link this step made (`fresh`) is undone on taking it back.
+ * Before its answer shows (`secret`) it names neither the card nor what hints at it: its look-alikes and earlier mix-ups.
  */
-const props = defineProps<{ id: string; open: boolean; typed?: readonly string[]; mixed?: readonly string[]; fresh?: readonly string[] }>();
+const props = defineProps<{ id: string; open: boolean; typed?: readonly string[]; mixed?: readonly string[]; fresh?: readonly string[]; secret?: boolean }>();
 /** `pick`'s `linked`: the tap made a new link, not picked one again. */
 const emit = defineEmits<{ pick: [id: string, linked: boolean]; drop: [id: string]; close: [] }>();
 const store = useStore();
@@ -45,8 +46,12 @@ const sections = computed(() =>
     ? [{ title: '', cards: found.value }]
     : [
         { title: 'The typed answer is', cards: typedAtOpen.value, testid: 'mix-up-typed' },
-        { title: props.mixed ? 'Mixed up before' : 'Mixed up with', cards: linkedAtOpen.value },
-        { title: 'Looks alike', cards: suggested.value },
+        ...(props.secret
+          ? []
+          : [
+              { title: props.mixed ? 'Mixed up before' : 'Mixed up with', cards: linkedAtOpen.value },
+              { title: 'Looks alike', cards: suggested.value },
+            ]),
       ].filter(s => s.cards.length),
 );
 
@@ -64,7 +69,7 @@ function toggle(other: string) {
 
 <template>
   <BottomSheet :open="open" testid="mix-up-sheet" tall over @close="emit('close')">
-    <template #title>Mixed up <span class="text-orange-700 dark:text-orange-400">{{ self?.b }}</span> with…</template>
+    <template #title>Mixed up <span v-if="!secret" class="text-orange-700 dark:text-orange-400">{{ self?.b }}</span><template v-else>this word</template> with…</template>
     <div class="flex flex-col" data-testid="mix-up-options">
       <section v-for="section in sections" :key="section.title" class="flex flex-col" :data-testid="'testid' in section ? section.testid : 'mix-up-section'">
         <h3 v-if="section.title" class="pt-2 pb-1 text-xs font-semibold uppercase text-stone-500">{{ section.title }}</h3>

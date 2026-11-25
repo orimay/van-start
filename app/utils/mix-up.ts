@@ -13,7 +13,8 @@ function wordStartIn(meaning: string, query: string) {
 
 /** How far a card is from the query: where it starts in the Dutch (compounds) or at a word of a meaning, then how much more the text holds; Dutch first among equals. */
 function distanceOf(card: { b: string; f: string }, query: string): Distance | undefined {
-  const dutch = wordOf(card);
+  // Typed with its article, the query is read against the article too.
+  const dutch = ARTICLE.test(query) ? plain(card.b) : wordOf(card);
   const hits: Distance[] = [[dutch.indexOf(query), dutch.length - query.length, 0], ...plain(card.f).split(/[;,] /).map((m): Distance => [wordStartIn(m, query), m.length - query.length, 1])];
   return hits.filter(([at]) => at >= 0).sort(byDistance)[0];
 }
@@ -43,7 +44,9 @@ export function suspects<T extends { id: string; b: string }>(card: { b: string 
     const its = wordOf(other);
     return !/\s/.test(word + its) && Math.min(word.length, its.length) >= MIN_PART && (its.includes(word) || word.includes(its));
   };
-  const alike = lookalikes(card.b, cards.map(c => ({ ...c, answer: c.b })), { count: limit, isKnown, random: () => 0 });
+  const isAffix = (b: string) => /^-|-$/.test(b.trim());
+  // An affix looks like an affix, a word like a word: a shared stem (tegen, tegen-) is caught above.
+  const alike = lookalikes(card.b, cards.filter(c => isAffix(c.b) === isAffix(card.b)).map(c => ({ ...c, answer: c.b })), { count: limit, isKnown, random: () => 0 });
   const byId = new Map(cards.map(c => [c.id, c]));
   return [...new Set([...cards.filter(sharing).map(c => c.id), ...alike.map(c => c.id)])].slice(0, limit).map(id => byId.get(id)!);
 }

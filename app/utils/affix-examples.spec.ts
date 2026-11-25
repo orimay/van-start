@@ -122,3 +122,18 @@ describe('an affix meaning', () => {
     });
   }
 });
+
+/** A meaning that names Russian suffixes promises them: "-ция" over "поздравление" teaches the wrong match. */
+describe('a suffix naming its Russian match', () => {
+  const NAMED = /^(-\p{L}+(?:, -\p{L}+)*): /u;
+  const named = cardsOf(deck).filter(c => c.b.startsWith('-') && NAMED.test(c.f));
+
+  it('exists in the deck', () => {
+    expect(named.length).toBeGreaterThan(3);
+  });
+
+  it('shows one of them in its example word', () => {
+    const wrong = named.filter(c => !NAMED.exec(c.f)![1]!.split(', ').some(s => c.xf?.includes(s.slice(1)))).map(c => `${c.b}: ${c.f} → ${c.xf}`);
+    expect(wrong).toEqual([]);
+  });
+});

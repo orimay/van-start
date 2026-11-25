@@ -3,7 +3,7 @@ import type { VueWrapper } from '@vue/test-utils';
 import { Rating } from 'ts-fsrs';
 import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { effectScope, nextTick } from 'vue';
-import { installWhenIdle } from '@/utils/update-hold';
+import { installAtMove, noteMove } from '@/utils/update-hold';
 import Review from './review.vue';
 import type { DeckCard } from '@/utils/deck';
 import type { ReviewGame } from '@/utils/games';
@@ -272,7 +272,8 @@ describe('leaving and coming back', () => {
 
 /** Installs an update the way the app does, then leaves the page as the reload would. */
 function doUpdate(w: VueWrapper) {
-  effectScope().run(() => installWhenIdle(() => true, () => undefined));
+  noteMove();
+  effectScope().run(() => installAtMove(() => true, () => undefined));
   w.unmount();
 }
 

@@ -141,7 +141,7 @@ Work through every item before stopping. Never stop on a question: pick the sens
 
 ## Mix-up detection, affix look, context layout, derivation links (2026-11-25)
 - [x] Typed `-ste` was auto-detected as a mix-up with `de`: unacceptable. Auto-detect only on an exact match, or an obvious other form of the same (`terug` for the affix `terug-` means `terug-` or `-terug`). Not reproducible: auto-detect links only a card whose answer the leniency accepts or that lacks only marks or an affix hyphen; `-ste` links nothing in any of the 6 languages. Regression spec added.
-- [ ] An auto-detected mix-up, then Back, then Later instead of Forgot cancels the mix-up.
+- [x] An auto-detected mix-up, then Back, then Later instead of Forgot cancels the mix-up. Later now keeps the words it was taken for missed (and brings them back sooner); only the card's own answer is taken back.
 - [ ] Affix cards suggest other affixes as look-alikes (affix mixed up with affix, non-affix with non-affix); weigh the same heuristic for `tegen-` vs `tegen`.
 - [ ] Everything in the explanation under the divider leaves the layout while hidden.
 - [ ] Affix cards are not distinct enough: tint them (violet-ish background or text shade). Look at where the same word appears as different cards (parts of speech) and tint those apart too.
@@ -149,7 +149,7 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [ ] Derivation links are uneven (a word without -e linked, its -e pair only pointing to it; `volgend` and `volgende` both linked to `volgen`). Pick one logical rule across all cards, apply it, record it.
 - [ ] Before reveal the mix-up picker spoils the word being guessed. Decide: drop manual mix-up before reveal (once detection is exact), or keep it while hiding what the card is mixed up with and leaving it out of the matches (the card itself is always left out).
 - [x] Back on home still goes to the previous page. Home is the last stop: there the history holds only home, and Back offers to leave.
-- [ ] The affix card meaning `-ция` (ru) gives `поздравление` as its example, not one word in `-ция`; `-ение` is missing, or sits on another affix card, which would explain the mix-ups. Describe it better in all 6 languages; check the other affix cards for the same.
+- [x] The affix card meaning `-ция` (ru) gives `поздравление` as its example, not one word in `-ция`; `-ение` is missing, or sits on another affix card, which would explain the mix-ups. Describe it better in all 6 languages; check the other affix cards for the same.
 
 ## Earlier mix-ups: never before the answer, listed under ≈ (2026-11-25)
 - [x] No "mixed up before" hint before the answer shows (a typing retry included): seeing it, the user steers clear of the known-wrong word and the other card never gets its new miss.
@@ -159,13 +159,58 @@ Work through every item before stopping. Never stop on a question: pick the sens
 ## be- and etymology notes (2026-11-25)
 - [ ] be- says it changes the verb's meaning: is that so? betekening: is it be- + tekenen (to mark, to signify)? Research the etymology, explain it well on the linked words, and fix be-'s native description in all 6 languages so it is right.
 - [ ] Then go over every linked word: the etymology notes are right and the examples fit (not an affix about `-ость` giving `-ние` words as examples).
-- [ ] -end says `-ющий: делающий что-то`: it reads like an example, or like a verb, and confuses. `соответствующий` is not "doing something". Describe `-end` right in all 6 languages; check its examples and linked words.
+- [x] -end says `-ющий: делающий что-то`: it reads like an example, or like a verb, and confuses. `соответствующий` is not "doing something". Describe `-end` right in all 6 languages; check its examples and linked words. Now `-ющий, -ящий: который что-то делает` (en `-ing: that does something`), example `volgend (следующий: который следует)`, glosses updated, passend's note reads `который подходит`.
 
 ## Typed-letter diff: an extra space reads as a hyphen (2026-11-25)
 - [x] A struck-through extra space looks like a wrongly typed hyphen. An extra or wrong space is drawn as `␣`, so its strike reads as a space; the rest stays (extra: red box + strike, wrong: red box, missing: `_`).
 - [x] TDD black-box spec, CLAUDE.md + review checklist, check visually (phone, light/dark).
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## samen- vs mee- (2026-11-25)
 - [x] Both said `вместе`. Now mee- = `заодно с кем-то, с собой` (join what another does, or take along: meegaan, meenemen), samen- = `друг с другом, сообща` (two or more on equal terms: samenwerken); each note ends with `не путать с:` the other. All 6 languages, glosses on every linked word.
+- [x] Deploy, verify live.
+
+## Words linked by hand as mixed up (2026-11-25)
+- [x] Typed `fietwandeling` for `fietstochten`, linked de tocht and de wandeling: both must count as missed in the current game. Session already did; regression specs added. The real gap: the mix-up search found nothing for a query with its article (`de tocht`); fixed.
 - [ ] Deploy, verify live.
+
+## Affix look-alikes (2026-11-25)
+- [x] An affix card suggests affixes under "Looks alike", a word suggests words; tegen- and tegen still find each other through the shared stem.
+
+## Update only at a move (2026-11-25)
+- [x] An update never reloads mid-card (a cursor may be in a field). It installs only within 2 s of a move: card to card in a game, or page to page. Holds still apply; one released between moves waits for the next.
+- [ ] Deploy, verify live.
+
+## Article hints in every phrase (2026-11-25)
+- [x] `совершить велопрогулку` did not say een. Every phrase whose article Russian does not show now says it: `(какой-нибудь)` / `(какой-то)` / `один` for een, `(конкретный)` / `(свой)` for de/het; tr `bir` / `(belirli)`; en/es/pt/ro articles fixed. Terms, quantities, set prepositional phrases and definite sentence topics exempt. Data spec on every `een … <verb>` phrase.
+- [ ] Deploy, verify live.
+
+## Affix examples show the named suffix (2026-11-25)
+- [x] -tie: `-ция: действие или его результат`, example informatie, note adds reactie and felicitatie (`-ение`); -ing: `-ение: …`, example oefening; each under the other's `не путать с:`. -schap example lidmaatschap, mede- medewerker, ont- adds `от-`.
+- [ ] Deploy, verify live.
+
+## Dictation replay (2026-11-25)
+- [x] Replaying the word or phrase resets the countdown: a replay means the learner did not catch it.
+- [ ] Deploy, verify live.
+
+## Every sense, every origin, every -e pair (2026-11-25)
+- [ ] zitten op lists one sense: every word lists all its common senses, in all 6 languages.
+- [ ] Every word links to its origin (verb, noun, affix, root) down the chain (ontbijt -> ontbijten -> ont- + bijten -> bijten); a missing origin word gets a card right before its first use.
+- [x] Every adjective has its with/without -e pair card (middelbaar/middelbare).
+- [x] van huis: `из дома; от дома`, note shows both uses (ga van huis, ver van huis).
+- [ ] Deploy, verify live.
+
+## Comparative and superlative affixes (2026-11-25)
+- [ ] Affix cards for the comparative -er and the superlative -ste; their notes tell -er of degree (ouder) from -er of the doer (bakker), both ways. Every comparative and superlative links to its affix, in all 6 languages.
+- [ ] Deploy, verify live.
+
+## Why the article, in every phrase (2026-11-25)
+- [x] `совершить велопрогулку (какую-нибудь)` still does not say where the article comes from: Russian (and Turkish) has none, and a bike ride can be specific or any. Every phrase card with an article gets a note saying why that article, in all 6 languages. A noun's own card always shows its definite article.
+  - Decided: every article in a phrase gets a closing note item in ru and tr (Russian and Turkish have no articles): why this one (any of many / named first vs. known, own, unique, season or time of day...) and the other form, -e included. en, es, pt, ro have a/the of their own, so their translation shows the article; 30 en/es/pt and 3 ro translations that dropped it were fixed (in class -> in the classroom). Idioms where those languages drop it too stay (ce idee buna, acum cateva zile).
+- [ ] Deploy, verify live.
+
+## boodschap has no links to its parts (2026-11-25)
+- [ ] boodschap = bode (messenger) + -schap (task): link both, explain how message, groceries and the toilet euphemism all come from "a messenger's errand". All 6 languages.
+
+## Every word links to its parts (2026-11-25)
+- [ ] boodschap (bode + -schap) and paddenstoel (pad + stoel) had no `от:`; the links audit only finds splits into existing cards. Go over every word and set phrase without `от:`, add the missing part cards before the word, all 6 languages.

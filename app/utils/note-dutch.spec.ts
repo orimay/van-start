@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { noteHead, noteKind, noteLines, toStudyCard, type DeckCard } from './deck';
+import { articlesOf, explainsArticle, noteHead, noteKind, noteLines, toStudyCard, type DeckCard } from './deck';
 
 interface Card { id: string; b: string; n?: string }
 interface Node { cards?: Card[]; children?: Node[] }
@@ -8,6 +8,11 @@ type Row = [string, string?, string?, string?, string?];
 const deck: Node = JSON.parse(readFileSync('public/deck.json', 'utf8'));
 const cardsOf = (n: Node): Card[] => [...(n.cards ?? []), ...(n.children ?? []).flatMap(cardsOf)];
 const items = (note?: string) => (note ? noteLines(note).map(l => l.text) : []);
+/** Trailing Russian items explaining the phrase's articles, which a language with its own articles leaves out. */
+const articleTail = (c: Card) => {
+  const tail = items(c.n).reverse().findIndex(i => !articlesOf(c.b).some(a => explainsArticle(i, a)));
+  return tail < 0 ? items(c.n).length : tail;
+};
 
 /** Latin words a Russian note may show before the answer: articles and the -e ending. */
 const ALLOWED = new Set(['de', 'het', 'een', 'geen', 'e']);
@@ -59,7 +64,7 @@ describe('a translated note', () => {
     it(`has as many items as the Russian one in ${lang}, so each hides by its twin`, () => {
       const rows: Record<string, Row> = JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
       const misaligned = cardsOf(deck)
-        .filter(c => c.n && rows[c.id]?.[3] && items(rows[c.id]![3]).length !== items(c.n).length)
+        .filter(c => c.n && items(c.n).length > articleTail(c) && rows[c.id]?.[3] && ![items(c.n).length, items(c.n).length - articleTail(c)].includes(items(rows[c.id]![3]).length))
         .map(c => `${c.b}: ${c.n} | ${rows[c.id]![3]}`);
       expect(misaligned).toEqual([]);
     });

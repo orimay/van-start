@@ -26,17 +26,17 @@ const HEAD: Record<NoteKind, string> = {
 </script>
 
 <script setup lang="ts">
-/** A card's note, a line per item; `hidden`: per line, kept back in place until the answer is out. */
+/** A card's note, a line per item; `hidden`: per line, taken out of the layout until the answer is out. */
 const props = defineProps<{ note: string; kinds?: NoteKind[]; self: string; secret?: boolean; hidden?: boolean[]; testid: string }>();
 const lines = computed(() => noteLines(props.note).map((line, i) => {
   const kind = props.kinds?.[i] ?? 'rule';
   return { ...line, kind, head: noteHead(line.text, kind), headClass: line.exception ? `${HEAD[kind]} ${EXCEPTION}` : HEAD[kind], hidden: props.hidden?.[i] };
-}).sort((a, b) => RANK[a.kind] - RANK[b.kind]).map((line, i, all) => ({ ...line, gap: gapBefore(all[i - 1]?.kind, line.kind) })));
+}).sort((a, b) => RANK[a.kind] - RANK[b.kind]).map((line, i, all) => ({ ...line, gap: gapBefore(all.slice(0, i).findLast(l => !l.hidden)?.kind, line.kind) })));
 </script>
 
 <template>
   <ul class="mx-auto w-fit max-w-full text-sm" :class="{ 'pl-5 text-left': lines.length > 1 }" :data-testid="testid">
-    <li v-for="line in lines" :key="line.text" :class="[lines.length > 1 ? LOOK[line.kind] : 'text-stone-600 dark:text-stone-300', line.gap, { [EXCEPTION]: line.exception, invisible: line.hidden }]" :data-kind="line.kind" :data-exception="line.exception" :data-testid="`${testid}-line`">
+    <li v-for="line in lines" :key="line.text" v-show="!line.hidden" :class="[lines.length > 1 ? LOOK[line.kind] : 'text-stone-600 dark:text-stone-300', line.gap, { [EXCEPTION]: line.exception }]" :data-kind="line.kind" :data-exception="line.exception" :data-testid="`${testid}-line`">
       <NoteText :text="line.text" :self="self" :secret="secret" :head="line.head" :head-class="line.headClass" :head-testid="line.kind === 'example' ? 'note-dutch' : 'note-label'" />
     </li>
   </ul>

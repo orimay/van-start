@@ -1,7 +1,7 @@
 import { effectScope } from 'vue';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { holdUpdateWhile } from './update-hold';
-import { reloadOnNewWorker, takeOverWhenIdle } from './new-worker';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { holdUpdateWhile, noteMove } from './update-hold';
+import { reloadOnNewWorker, takeOverAtMove } from './new-worker';
 import { takeUpdateReload } from './update-reload';
 
 const scopes: ReturnType<typeof effectScope>[] = [];
@@ -10,6 +10,7 @@ function inScope(run: () => void) {
   scopes.push(scope);
   scope.run(run);
 }
+beforeEach(noteMove);
 afterEach(() => {
   scopes.splice(0).forEach(s => s.stop());
   takeUpdateReload(location.pathname + location.search);
@@ -77,13 +78,13 @@ const SKIP_WAITING = { type: 'SKIP_WAITING' };
 describe('a newer service worker waiting', () => {
   it('takes over right away when found on start', () => {
     const worker = makeWorker('installed');
-    inScope(() => takeOverWhenIdle(makeRegistration(worker)));
+    inScope(() => takeOverAtMove(makeRegistration(worker)));
     expect(worker.postMessage).toHaveBeenCalledWith(SKIP_WAITING);
   });
 
   it('takes over once it finishes installing', () => {
     const registration = makeRegistration();
-    inScope(() => takeOverWhenIdle(registration));
+    inScope(() => takeOverAtMove(registration));
     const worker = doInstall(registration);
     expect(worker.postMessage).toHaveBeenCalledWith(SKIP_WAITING);
   });
@@ -92,7 +93,7 @@ describe('a newer service worker waiting', () => {
     const worker = makeWorker('installed');
     inScope(() => {
       holdUpdateWhile(() => true);
-      takeOverWhenIdle(makeRegistration(worker));
+      takeOverAtMove(makeRegistration(worker));
     });
     expect(worker.postMessage).not.toHaveBeenCalled();
   });

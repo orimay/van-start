@@ -31,3 +31,20 @@ describe('an affix card', () => {
     expect(vi.mocked(play).mock.calls.map(([url]) => url.split('/').at(-1))).toEqual(['bewonen-clip.mp3']);
   });
 });
+
+/** English, Spanish, Portuguese and Romanian show the article in the translation, so their note leaves out the Russian article items. */
+describe('a translated phrase note without the article items', () => {
+  const card = toStudyCard({
+    id: 'tocht', f: 'to go on a bike ride', b: 'een fietstocht maken',
+    n: 'cycling tour; from: tocht (trip)',
+    nr: 'велопрогулка; от: de fiets (велосипед) + de tocht (поездка); een fietstocht: одно из многих или названо впервые, а уже известное — de fietstocht',
+  });
+
+  it('reads its items by their Russian twins', () => {
+    expect(card.promptKinds).toEqual(['rule', 'origin']);
+  });
+
+  it('hides an item whose Russian twin names Dutch', () => {
+    expect(card.promptSecret).toEqual([false, true]);
+  });
+});

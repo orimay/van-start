@@ -1,5 +1,5 @@
 import { useEventListener, useIntervalFn } from '@vueuse/core';
-import { installWhenIdle } from '@/utils/update-hold';
+import { installAtMove, noteMove } from '@/utils/update-hold';
 
 /** Asks the browser to fetch the service worker again; a newer one raises the Update button. */
 export function checkForUpdate() {
@@ -10,7 +10,7 @@ export function checkForUpdate() {
 export function applyUpdates() {
   const pwa = useNuxtApp().$pwa;
   checkForUpdate();
-  if (pwa) installWhenIdle(() => pwa.needRefresh, () => void pwa.updateServiceWorker(true));
+  if (pwa) installAtMove(() => pwa.needRefresh, () => void pwa.updateServiceWorker(true));
 }
 
 const MINUTE = 60_000;
@@ -18,8 +18,11 @@ const MINUTE = 60_000;
 const STEP_CHECK_GAP = 5_000;
 
 const steps = new EventTarget();
-/** A step in a game or a move to another page: an update gets looked for right away. */
-export const noteStep = () => void steps.dispatchEvent(new Event('step'));
+/** A step in a game or a move to another page: an update gets looked for right away, and one waiting may install. */
+export function noteStep() {
+  noteMove();
+  steps.dispatchEvent(new Event('step'));
+}
 
 /** While the app is in view, checks every minute, on coming back and on every step, so an update arrives without reloads. */
 export function checkWhileOpen(check = checkForUpdate) {

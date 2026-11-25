@@ -309,6 +309,8 @@ watch(view, () => {
   shownAt = Date.now();
   answeredAt = undefined;
 });
+/** A replay in dictation means the word was not caught, so its answer is timed from the replay. */
+const startClockOver = () => (shownAt = Date.now());
 
 // Reading a linked word's sheet is no thinking on the answer: the clock stops while one is open.
 let sheetOpenedAt: number | undefined;
@@ -449,7 +451,14 @@ function putOff() {
   shown.set(first.card.id, step.value);
   step.value++;
   view.value++;
-  queue.value = [...pickFront(rest), { ...first, state: undefined, missedAt: step.value, spacing: gapOf(0) }];
+  // The words it was taken for stay missed: putting the card off takes back only its own answer.
+  const mixed = first.state?.mixed ?? [];
+  for (const id of mixed) onMissAgain(id);
+  const sooner = Math.max(1, Math.floor(gapOf(0) / 2));
+  const along = mixed.flatMap(id => byId.get(id) ?? []).filter(c => playsIn(!!c.affix, gameOf(c.id)))
+    .map((card): Item => ({ kind: 'card', card, round: 0, rung: 0, missedAt: step.value, spacing: sooner }));
+  const others = rest.filter(i => i.kind !== 'card' || !mixed.includes(i.card.id));
+  queue.value = [...pickFront([...others, ...along]), { ...first, state: undefined, missedAt: step.value, spacing: gapOf(0) }];
   skipPassed();
 }
 
@@ -619,7 +628,7 @@ function optionsFor(card: StudyCard): StudyCard[] {
         <RecallGame v-else-if="game === 'pronounce'" :key="view" :card="meeting ? current.card : flip(current.card)" dutch-shown quiet pronouncing :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(others: string[]) => current?.kind === 'card' && onMixedUp(current.card, others)" />
         <RecallGame v-else-if="game === 'recallNative'" :key="view" :card="flip(current.card)" dutch-shown quiet :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(others: string[]) => current?.kind === 'card' && onMixedUp(current.card, others)" />
         <RecallGame v-else-if="game === 'recall'" :key="view" :card="current.card" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(others: string[]) => current?.kind === 'card' && onMixedUp(current.card, others)" />
-        <TypeGame v-else :key="view" :card="current.card" :lang="lang" :listening="game === 'dictation'" :state="current.state" @progress="onCardProgress" @miss="current?.kind === 'card' && onMissAgain(current.card.id)" @result="(ok, guessed, typingMs) => current?.kind === 'card' && onTyped(current.card, ok, guessed, typingMs)" @mixed="(others: string[], typingMs: number) => current?.kind === 'card' && (holdKeyboard(), onMixedUp(current.card, others, typingMs))" />
+        <TypeGame v-else :key="view" :card="current.card" :lang="lang" :listening="game === 'dictation'" :state="current.state" @progress="onCardProgress" @replay="startClockOver" @miss="current?.kind === 'card' && onMissAgain(current.card.id)" @result="(ok, guessed, typingMs) => current?.kind === 'card' && onTyped(current.card, ok, guessed, typingMs)" @mixed="(others: string[], typingMs: number) => current?.kind === 'card' && (holdKeyboard(), onMixedUp(current.card, others, typingMs))" />
       </div>
     </template>
     <TextField ref="keeper" aria-hidden="true" class="pointer-events-none fixed top-0 left-0 h-px w-px opacity-0" />

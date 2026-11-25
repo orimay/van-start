@@ -5,7 +5,7 @@ import { effectScope, nextTick } from 'vue';
 import MatchGame from './MatchGame.vue';
 import TextField from './TextField.vue';
 import { toStudyCard } from '@/utils/deck';
-import { installWhenIdle } from '@/utils/update-hold';
+import { installAtMove, noteMove } from '@/utils/update-hold';
 import { takeUpdateReload } from '@/utils/update-reload';
 
 vi.mock('@/utils/speak');
@@ -46,7 +46,8 @@ describe('a waiting update', () => {
 
 function whenUpdateWaits() {
   const update = vi.fn();
-  scope.run(() => installWhenIdle(() => true, update));
+  noteMove();
+  scope.run(() => installAtMove(() => true, update));
   return update;
 }
 

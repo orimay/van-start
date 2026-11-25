@@ -138,12 +138,47 @@ export function givesAway(item: string, answer: string) {
 /** In a Russian note item (a note with no Cyrillic is someone's own, in another script), any Latin word beyond the article and the -e ending is Dutch. */
 const namesDutch = (russian: string) => (russian.toLowerCase().match(/[a-zà-ÿ]+/g) ?? []).some(w => !ALLOWED_DUTCH.has(w));
 
+/** Words after het that make it the pronoun "it", not an article: `is het zo goed?`, `hoe gaat het met je?`. */
+const IT = new Set('is was zijn ben bent heb hebt heeft niet ook wel nog al leuk goed in uit op aan af mee na weg terug klaar fijn mooi jammer klopt regent sneeuwt gaat duurt kost lukt geeft zit staat ligt zo maar met gepast gesmaakt een even koud altijd nu over begonnen'.split(' '));
+
+/** Each article in a phrase, as the article and the word after it; a noun card's own leading article is not one. */
+export function articlesOf(phrase: string): string[] {
+  const words = phrase.match(/[\p{L}'-]+/gu) ?? [];
+  const from = /^(de|het)$/i.test(words[0] ?? '') ? 1 : 0;
+  return words.slice(0, -1).flatMap((word, i) => {
+    const article = word.toLowerCase();
+    const next = words[i + 1]!.toLowerCase();
+    if (i < from || next === 'meeste' || !(article === 'de' || article === 'een' || (article === 'het' && !IT.has(next)))) return [];
+    return [`${article} ${next}`];
+  });
+}
+
+/** A note item saying why a phrase takes an article: Dutch first, naming the article and the word after it, so it hides until the answer. */
+export function explainsArticle(item: string, article: string) {
+  const head = item.split(': ')[0]!;
+  return item.includes(': ') && ` ${head.toLowerCase()} `.includes(` ${article} `);
+}
+
+/** Russian items a translation leaves out: the trailing ones explaining the articles, which en, es, pt and ro show in the translation. */
+function articleTail(russian: Array<{ text: string }>, answer: string) {
+  const articles = articlesOf(answer);
+  let tail = 0;
+  while (tail < russian.length && articles.some(a => explainsArticle(russian[russian.length - 1 - tail]!.text, a))) tail++;
+  return tail;
+}
+
+/** The Russian items lined up with a translated note's, or none when they do not line up. */
+function twinItems(card: DeckCard, own: number) {
+  const twin = card.nr ?? card.n ?? '';
+  const russian = /[а-яё]/i.test(twin) ? noteLines(twin) : [];
+  return russian.length === own || russian.length - articleTail(russian, card.b) === own ? russian.slice(0, own) : [];
+}
+
 /** A translated note item is judged by its Russian twin too, when the items line up. */
 function secretLines(card: DeckCard, promptNote: string): boolean[] {
   const own = noteLines(card.n ?? '').length;
-  const twin = card.nr ?? card.n ?? '';
-  const russian = /[а-яё]/i.test(twin) ? noteLines(twin) : [];
-  return noteLines(promptNote).map(({ text }, i) => givesAway(text, card.b) || (i < own && russian.length === own && (namesDutch(russian[i]!.text) || givesAway(russian[i]!.text, card.b))));
+  const russian = twinItems(card, own);
+  return noteLines(promptNote).map(({ text }, i) => givesAway(text, card.b) || (i < russian.length && (namesDutch(russian[i]!.text) || givesAway(russian[i]!.text, card.b))));
 }
 
 /** A rule in plain words, a Dutch example, a labelled item (`не путать с: …`) or the word's origin (`от: …`). */
@@ -158,12 +193,11 @@ export function noteKind(russian: string): NoteKind {
 
 /** A translated item takes the kind of its Russian twin when the items line up; one with no twin is labelled or a rule. */
 function kindsOf(card: DeckCard, note: string): NoteKind[] {
-  const twin = card.nr ?? card.n ?? '';
-  const russian = /[а-яё]/i.test(twin) ? noteLines(twin) : [];
   const own = noteLines(card.n ?? '').length;
+  const russian = twinItems(card, own);
   return noteLines(note).map(({ text }, i) => {
     if (i >= own) return 'example';
-    if (russian.length === own) return noteKind(russian[i]!.text);
+    if (russian.length) return noteKind(russian[i]!.text);
     return /[а-яё]/i.test(text) ? noteKind(text) : /^[^:()]{1,30}:\s/.test(text) ? 'label' : 'rule';
   });
 }

@@ -152,11 +152,31 @@ describe('the mix-up sheet', () => {
   });
 });
 
+describe('the mix-up sheet before the answer is shown', () => {
+  it('does not name the word being guessed', async () => {
+    using w = await doMount('kamer', undefined, [], true);
+    expect(w.text()).not.toContain('de kamer');
+  });
+
+  it('offers neither its look-alikes nor its earlier mix-ups, as both hint at it', async () => {
+    useStore().confuse('kamer', 'koken');
+    using w = await doMount('kamer', undefined, [], true);
+    expect(readSections(w)).toEqual([]);
+  });
+
+  it('still lists what the typed answer may be, and finds any other card', async () => {
+    using w = await doMount('kamer', ['kamp'], [], true);
+    expect(readSections(w)).toEqual([['The typed answer is', 'het kamp']]);
+    await doSearch(w, 'kam');
+    expect(optionsOf(w).toSorted()).toEqual(['de kameraad', 'de slaapkamer', 'het kamp']);
+  });
+});
+
 // declarative helpers
 
-/** `mixed`: opened from a step, with these cards taken for it there. */
-async function doMount(id: string, typed?: string[], mixed?: string[]) {
-  const w = await mountSuspended(MixUpSheet, { props: { id, open: true, typed, mixed } });
+/** `mixed`: opened from a step, with these cards taken for it there; `secret`: its answer not shown yet. */
+async function doMount(id: string, typed?: string[], mixed?: string[], secret?: boolean) {
+  const w = await mountSuspended(MixUpSheet, { props: { id, open: true, typed, mixed, secret } });
   return Object.assign(w, { [Symbol.dispose]: () => w.unmount() });
 }
 

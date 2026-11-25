@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { effectScope, nextTick } from 'vue';
 import Learn from './learn.vue';
 import type { DeckCard } from '@/utils/deck';
-import { installWhenIdle } from '@/utils/update-hold';
+import { installAtMove, noteMove } from '@/utils/update-hold';
 import { markUpdateReload } from '@/utils/update-reload';
 import { sessions } from '@/db/sessions';
 
@@ -539,7 +539,8 @@ function ensureExists(w: VueWrapper, testId: string) {
 async function doUpdate(w: VueWrapper) {
   const scope = effectScope();
   let installed = false;
-  scope.run(() => installWhenIdle(() => true, () => (installed = true)));
+  noteMove();
+  scope.run(() => installAtMove(() => true, () => (installed = true)));
   await vi.waitFor(() => expect(installed).toBe(true));
   scope.stop();
   w.unmount();
