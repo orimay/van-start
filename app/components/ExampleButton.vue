@@ -9,9 +9,9 @@ const emit = defineEmits<{ compare: [] }>();
 </script>
 
 <template>
-  <div class="flex gap-2">
-    <PlayButton v-if="comparing" class="btn-ghost" :class="card.nlExample ? 'w-1/3' : 'flex-1'" data-testid="play" :disabled="disabled" sound="mine" @play="emit('compare')">Compare</PlayButton>
-    <PlayButton v-else class="btn-ghost" :class="card.nlExample ? 'w-1/3' : 'flex-1'" data-testid="play-card" :disabled="disabled" :sound="cardKey(card)" @play="speak(card)">Card</PlayButton>
-    <PlayButton v-if="card.nlExample" class="btn-ghost flex-1" data-testid="play-example" :disabled="disabled" :sound="exampleKey(card)" @play="speakExample(card)">Example</PlayButton>
+  <div class="flex gap-2 *:whitespace-nowrap">
+    <PlayButton v-if="comparing" class="btn-ghost" :class="card.nlExample ? 'flex-2' : 'flex-1'" data-testid="play" :disabled="disabled" sound="mine" @play="emit('compare')">Compare</PlayButton>
+    <PlayButton v-else class="btn-ghost" :class="card.nlExample ? 'flex-2' : 'flex-1'" data-testid="play-card" :disabled="disabled" :sound="cardKey(card)" @play="speak(card)">Card</PlayButton>
+    <PlayButton v-if="card.nlExample" class="btn-ghost flex-3" data-testid="play-example" :disabled="disabled" :sound="exampleKey(card)" @play="speakExample(card)">Example</PlayButton>
   </div>
 </template>

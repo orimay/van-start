@@ -41,7 +41,7 @@ const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close())
   <Transition name="sheet-slide" @after-leave="dragY = 0">
     <div
       v-if="card && study"
-      class="sheet-panel fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85dvh] max-w-md flex-col rounded-t-2xl bg-white pb-[max(0.5rem,env(safe-area-inset-bottom))] dark:bg-stone-900"
+      class="sheet-panel fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85dvh] max-w-md flex-col rounded-t-2xl bg-white pb-[max(1rem,env(safe-area-inset-bottom))] dark:bg-stone-900"
       :class="{ 'sheet-dragging': dragging }"
       :style="dragY ? { translate: `0 ${dragY}px` } : undefined"
       role="dialog"
@@ -58,7 +58,7 @@ const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close())
         </div>
         <p v-if="card.tr" class="text-stone-500" data-testid="card-sheet-transcription">[{{ card.tr }}]</p>
       </div>
-      <div ref="body" class="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain px-4 pb-4" data-testid="card-sheet-body">
+      <div ref="body" class="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain px-4 pb-2" data-testid="card-sheet-body">
         <p data-testid="card-sheet-meaning">
           <span v-for="sense in card.f.split('; ')" :key="sense" class="block" :class="{ 'font-semibold text-sky-700 dark:text-sky-400': layer?.gloss && same(layer.gloss, sense) && card.f.includes('; ') }" data-testid="card-sheet-sense">{{ sense }}</span>
         </p>

@@ -46,7 +46,7 @@ onBeforeUnmount(closed);
     <div
       v-if="open"
       ref="panel"
-      class="sheet-panel fixed inset-x-0 bottom-0 mx-auto flex max-w-md flex-col rounded-t-2xl bg-white pb-[max(0.5rem,env(safe-area-inset-bottom))] outline-none dark:bg-stone-900"
+      class="sheet-panel fixed inset-x-0 bottom-0 mx-auto flex max-w-md flex-col rounded-t-2xl bg-white pb-[max(1rem,env(safe-area-inset-bottom))] outline-none dark:bg-stone-900"
       :class="[over ? 'z-70' : 'z-50', tall ? 'h-[85dvh]' : 'max-h-[85dvh]', { 'sheet-dragging': dragging }]"
       :style="dragY ? { translate: `0 ${dragY}px` } : undefined"
       role="dialog"
@@ -64,8 +64,8 @@ onBeforeUnmount(closed);
           <button type="button" class="btn-ghost px-2" aria-label="Close" :data-testid="`${testid}-close`" @click="close">✕</button>
         </div>
       </div>
-      <div ref="body" class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-3" :data-testid="`${testid}-body`"><slot /></div>
-      <div v-if="$slots.footer" class="flex shrink-0 flex-col gap-2 border-t border-stone-200 px-4 pt-3 pb-3 dark:border-stone-800"><slot name="footer" /></div>
+      <div ref="body" class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-2" :data-testid="`${testid}-body`"><slot /></div>
+      <div v-if="$slots.footer" class="flex shrink-0 flex-col gap-2 border-t border-stone-200 px-4 pt-3 pb-2 dark:border-stone-800"><slot name="footer" /></div>
     </div>
   </Transition>
 </template>

@@ -77,7 +77,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] One reload after a deploy reaches the new version: a waiting worker gets `SKIP_WAITING` from the registration, never through `$pwa` (its plugin runs after ours).
 - [ ] A mix-up keeps the card on screen; Remembered is off only for a mix-up picked on this step; a picked card can be unpicked; the other card comes back with cards between.
 - [ ] Every dialog keeps its actions and inputs in the footer, in thumb reach.
-- [ ] Nothing hides under a notch or rounded corner: page edges, sticky bars and sheets respect `env(safe-area-inset-*)`.
+- [ ] Nothing hides under a notch or rounded corner: page edges, sticky bars and sheets keep `max(1rem, env(safe-area-inset-*))`; a bar at the page end replaces the frame's padding, not adds to it.
 - [ ] Every text colour reaches 4.5:1 on its background in light and dark (red/orange: -700 light, -400 dark).
 - [ ] Group settings open from the gear in the start menu title.
 - [ ] Back closes open layers one per press, then on the first page asks before leaving; another back or Stay keeps the app and the next back asks again.

@@ -95,9 +95,9 @@ function reveal(how: 'self' | 'timeout') {
         <button v-if="revealed === 'self'" class="btn-ghost" :disabled="!!mixedHere.length" data-testid="guessed" @click="emit('result', false, true)">Guessed</button>
       </div>
       <p v-if="mixedHere.length" class="text-center text-sm text-orange-700 dark:text-orange-400" data-testid="mixed-hint">Taken for {{ mixedWords }}: {{ mixedHere.length > 1 ? 'all' : 'both' }} come back as missed</p>
-      <div class="actions flex gap-2"><BackButton /><LaterButton /><div class="grid flex-1">
+      <div class="actions flex gap-2"><BackButton /><LaterButton /><div class="grid min-w-0 flex-1">
       <button v-if="!revealed" class="btn-primary" data-testid="reveal" @click="reveal('self')">Reveal</button>
-      <div v-else-if="revealed === 'self'" class="grid grid-cols-2 gap-2">
+      <div v-else-if="revealed === 'self'" class="flex min-w-0 gap-2 *:min-w-0 *:flex-auto *:px-2 max-[359px]:text-sm">
         <button :class="mixedHere.length ? 'btn-primary' : 'btn-ghost'" data-testid="forgot" @click="miss">{{ pronouncing ? 'Said wrong' : 'Forgot' }}</button>
         <button class="btn-primary" :disabled="!!mixedHere.length" data-testid="remembered" @click="emit('result', true)">{{ pronouncing ? 'Said right' : 'Remembered' }}</button>
       </div>

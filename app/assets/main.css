@@ -35,8 +35,9 @@ textarea {
 @utility tile {
   @apply rounded-xl border-2 border-stone-300 bg-white px-3 py-2 text-left shadow-sm transition dark:border-stone-600 dark:bg-stone-900;
 }
+/* Stuck to the screen's bottom it keeps its own clearance; at the page's end it takes the frame's place, not adds to it. */
 @utility actions {
-  @apply sticky bottom-0 z-10 bg-stone-50 pt-1.5 pb-[max(1rem,env(safe-area-inset-bottom))] dark:bg-stone-950;
+  @apply sticky bottom-0 z-10 -mb-[max(1rem,env(safe-area-inset-bottom))] bg-stone-50 pt-1.5 pb-[max(1rem,env(safe-area-inset-bottom))] dark:bg-stone-950;
 }
 /* A menu opens under its button and flips to stay on screen; without anchor positioning it just hangs below. */
 @utility menu-anchor {

@@ -242,7 +242,7 @@ When two rules conflict, the one written further down wins.
   - The keyboard stays open on input screens.
   - Popups block scrolling, and their buttons stay clear of the rounded screen corners.
   - Every dialog is a `BottomSheet`: its actions and inputs (search, Done, confirm) sit in the footer in thumb reach, the title with ✕ on top.
-  - Safe areas: page edges, the sticky `.actions` bar and every sheet pad by `max(<own>, env(safe-area-inset-*))`, so a notch or a rounded corner hides nothing, landscape included.
+  - Safe areas: every screen edge keeps at least `1rem` or the inset, whichever is larger: `max(1rem, env(safe-area-inset-*))`, or `calc(env(...) + 1rem)`. `1rem` in from a side and up from the bottom clears a corner rounded to about 54px, and Android often reports an inset of 0. The frame (`<main>` in `app.vue`) owns it, so every page gets it; the sticky `.actions` bar takes the frame's bottom padding over (negative margin), not adds to it. Sheets pad their panel the same way. `app/assets/safe-area.spec.ts` fails on any smaller clearance. Button rows still fit at 320px: labels never wrap or spill (`min-w-0`, smaller text and square buttons below 360px).
   - Text reads at WCAG AA (4.5:1) in both themes against every background it sits on (card, shaded box): red and orange text use the -700 shade on light and the -400 one on dark; `Prompt.spec.ts` checks the exception line. White text sits on orange-700 (5.2:1), never -500/-600; `app/assets/contrast.spec.ts` checks every white-on-orange class list in the sources.
   - A group's settings open from the gear at the right of its start menu title, over the menu: closing them (✕, backdrop or back) shows the menu again.
   - The recall timer runs from the right edge across the full width.
