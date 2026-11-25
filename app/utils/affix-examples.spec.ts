@@ -86,10 +86,10 @@ describe('an affix named in another card', () => {
   const REF = /(?<![\p{L}-])(-\p{L}+|\p{L}+-) \(([^()]*)\)/gu;
   const glossesOf = (f?: string) => (f ? [f, ...f.split('; '), ...f.split(': '), ...f.split(/; |, |: /)] : []);
   const mismatches = (texts: Array<[string, string | undefined]>, glossOf: (affix: Card) => string | undefined) => {
-    const byWord = new Map(cardsOf(deck).filter(c => isAffix(c.b)).map(c => [c.b, c]));
+    const byWord = Object.groupBy(cardsOf(deck).filter(c => isAffix(c.b)), c => c.b);
     return texts.flatMap(([where, text]) => [...(text ?? '').matchAll(REF)].flatMap(([, affix, gloss]) => {
-      const card = byWord.get(affix!);
-      return card && !glossesOf(glossOf(card)).includes(gloss!) ? [`${where}: ${affix} (${gloss}) ≠ ${glossOf(card)}`] : [];
+      const cards = byWord[affix!] ?? [];
+      return cards.length && !cards.some(card => glossesOf(glossOf(card)).includes(gloss!)) ? [`${where}: ${affix} (${gloss}) ≠ ${cards.map(glossOf).join(' | ')}`] : [];
     }));
   };
 

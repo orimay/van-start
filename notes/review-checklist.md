@@ -68,8 +68,9 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] A card that scrolls shows its scroll thumb before, during and after a swipe.
 - [ ] Things that belong together sit closer than things that do not: word and transcription closest, note groups apart, blocks further.
 - [ ] Words sharing a root name it in their `от:` (onderwerp and voorwerp both from werpen).
-- [ ] Feminine/masculine, compound/part, comparative/superlative/ordinal/base pairs link both ways in every language; a look-alike sits under `не путать с:`.
+- [ ] Feminine/masculine, compound/part, comparative/superlative/ordinal/base pairs link both ways in every language; a regular comparative or superlative also names `-er` / `-ste`; a look-alike sits under `не путать с:`.
 - [ ] No affix gloss in a note says it adds nothing; it names what the affix changes.
+- [ ] A derived word whose meaning does not follow from its parts (betekenen, ontdekken) says how it got there with `букв.`.
 - [ ] A spec whose order comes from a date seed pins its day with fake timers.
 - [ ] An affix with a hyphen never wraps away from its hyphen (`KeepAffixes`).
 - [ ] A mix-up marks both cards missed, links them both ways, and brings both into the next decks together; the picker finds a card by Dutch and by meaning.

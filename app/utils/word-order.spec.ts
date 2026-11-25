@@ -48,9 +48,13 @@ describe('a part a note names', () => {
 
 describe('an affix', () => {
   it('is voiced by the first card made with it', () => {
-    const affixes = deckCards.filter((c: Card & { xb?: string }) => /^-|-$/.test(c.b) && c.xb) as Array<Card & { xb: string }>;
+    const affixes = deckCards.filter((c: Card & { xb?: string }) => /^-|-$/.test(c.b) && c.xb) as Array<Card & { xb: string; f: string }>;
+    /** Two affixes can share a spelling (-er who does, -er comparative): the gloss a note gives it tells which. */
+    const twins = (affix: Card) => affixes.filter(a => a.b === affix.b).length > 1;
+    const glossed = (card: Card & { n?: string }, affix: Card & { f: string }) => (card.n ?? '').split(/[()]/).some(gloss => affix.f.split(/; |: /).includes(gloss));
+    const names = (card: Card & { n?: string }, affix: Card & { f: string }) => partsOf(card).includes(affix.b) && (!twins(affix) || glossed(card, affix));
     const wrong = affixes.flatMap(affix => {
-      const first = deckCards.find(card => partsOf(card).includes(affix.b) && !/^мн\. ч\./.test(card.n ?? ''));
+      const first = deckCards.find(card => names(card, affix) && !/^мн\. ч\./.test(card.n ?? ''));
       return first && first.b !== affix.xb ? [`${affix.b}: ${affix.xb}, not ${first.b}`] : [];
     });
     expect(wrong).toEqual([]);
