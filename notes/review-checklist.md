@@ -19,6 +19,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] The translation is accurate and literal first: tense and aspect (открывать / открываться, ходить / сходить), part of speech (утро понедельника, not в понедельник утром), register (тёплый vs горячий).
 - [ ] Articles: nouns are learned with their article; the native side tells a specific thing from any (de krant lezen).
 - [ ] Number: plural and singular are obvious (мн. ч.), the plural comes after the singular, -je after the base word. Irregular plurals (snelheden, apen, ogen) are marked too, and `мн. ч. от:` is the note's first item.
+- [ ] A singular lists every common sense (blad: журнал too); its plural covers each one, or its note says `без мн. ч.` or names the other plural (bladeren / bladen).
 - [ ] No hint in Dutch on the native side while the Dutch side is closed (jij kunt, aanmelden as a pair): Dutch in a note shows only once the card is open. That the card is a process or action stays visible.
 - [ ] A closed card's example stays hidden behind Show context (a tap anywhere on the card shows it), so the word is recalled on its own.
 - [ ] Examples use only words learned earlier (or about to come); an example sentence contains the word itself.

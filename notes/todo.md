@@ -214,4 +214,11 @@ Work through every item before stopping. Never stop on a question: pick the sens
   - Done: de bode, de pad (toad), de aarde added before their words; paddenstoel, aardappel, sinaasappel and boodschap carry `от:` and a literal-meaning item; -schap gained the sense "task, office".
 
 ## Every word links to its parts (2026-11-25)
-- [ ] boodschap (bode + -schap) and paddenstoel (pad + stoel) had no `от:`; the links audit only finds splits into existing cards. Go over every word and set phrase without `от:`, add the missing part cards before the word, all 6 languages.
+- [ ] boodschap (bode + -schap) and paddenstoel (pad + stoel) had no `от:`; the links audit only finds splits into existing cards. Go over every word and set phrase without `от:`, add the missing part cards before the word, all 6 languages. Phrases too: every non-sentence card and every set expression names its parts (een douche nemen: de douche + nemen) and says why that verb.
+
+## Plurals lose meanings of their singular (2026-11-25)
+- [ ] de bladeren showed only "листья" with no word on blad's other senses (bladen), and het blad lacked "magazine". Every plural of a multi-meaning word covers each meaning or says it has no plural / another plural; a spec holds it. Recheck singular descriptions for missing common senses deck-wide.
+
+## Wrong answer shows a strike-through diff (2026-11-25)
+
+Wrong parts of the typed answer are struck through, the right ones follow them: ~~naar~~op vakantie gaan, ~~v~~felicit~~i~~eren, de do~~e~~uche, de w~~ink~~age~~l~~n.
