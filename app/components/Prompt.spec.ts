@@ -288,6 +288,16 @@ describe('the context of a closed card', () => {
     expect(order.indexOf('context-icon')).toBe(order.indexOf('prompt-example') - 1);
   });
 
+  it('draws its icon in the outline style of the other icons', async () => {
+    const w = await mountSuspended(Prompt, { attachTo: document.body, props: { card: flip(card), secret: true } });
+    const button = w.get('[data-testid="show-context"] svg');
+    await w.get('[data-testid="show-context"]').trigger('click');
+    for (const icon of [button, w.get('[data-testid="context-icon"]')]) {
+      expect(icon.element.tagName).toBe('svg');
+      expect(icon.attributes()).toMatchObject({ fill: 'none', stroke: 'currentColor', 'stroke-width': '1.5' });
+    }
+  });
+
   it('shows on a tap anywhere on the card', async () => {
     const w = await mountSuspended(Prompt, { attachTo: document.body, props: { card: flip(card), secret: true } });
     await w.get('[data-testid="prompt-card"]').trigger('click');

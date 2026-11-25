@@ -179,6 +179,7 @@ When two rules conflict, the one written further down wins.
 
 ## Games and UX
 
+- **Icons.** Outline SVG on a 24 grid, `stroke="currentColor"`, `stroke-width="1.5"`, round caps and joins, one component each (`ContextIcon`, `LaterIcon`). No emoji as icons.
 - **Games.** Five games: reading, speaking, writing, listening/dictation, pronunciation. Each can be turned off in settings.
   - All are on by default. At least one always stays on.
   - Recognizing (choice): Next shows and works only after a wrong pick; hidden it is disabled.

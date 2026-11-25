@@ -42,6 +42,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 
 ## UX
 
+- [ ] Icons are outline SVG with stroke 1.5 like the rest, never emoji.
 - [ ] Nothing jumps: hidden text keeps its place in the layout, an appearing button does not shift the screen.
 - [ ] Buttons look like buttons, sit at the bottom within thumb reach, are sticky, and clear the screen's rounded corners.
 - [ ] Each game page says what the game is and what to do; the game change is announced.
