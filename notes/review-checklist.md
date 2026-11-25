@@ -110,3 +110,4 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] Two forms mixed up (hij pakt / hij neemt) list their bases (pakken / nemen) as mixed up too, on both sheets.
 - [ ] A batch of words is saved once (`store.learn`), never a save per word.
 - [ ] A new card whose base or root peer is in the deck names it, also with no affix between them (tellen ← het tal); the pair goes into `root-links.spec.ts`.
+- [ ] No two cards share a front's senses in any language, order aside; the hidden example never tells them apart (`duplicate-prompts.spec.ts`).

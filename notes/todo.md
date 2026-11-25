@@ -172,42 +172,42 @@ Work through every item before stopping. Never stop on a question: pick the sens
 
 ## Words linked by hand as mixed up (2026-11-25)
 - [x] Typed `fietwandeling` for `fietstochten`, linked de tocht and de wandeling: both must count as missed in the current game. Session already did; regression specs added. The real gap: the mix-up search found nothing for a query with its article (`de tocht`); fixed.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Affix look-alikes (2026-11-25)
 - [x] An affix card suggests affixes under "Looks alike", a word suggests words; tegen- and tegen still find each other through the shared stem.
 
 ## Update only at a move (2026-11-25)
 - [x] An update never reloads mid-card (a cursor may be in a field). It installs only within 2 s of a move: card to card in a game, or page to page. Holds still apply; one released between moves waits for the next.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Article hints in every phrase (2026-11-25)
 - [x] `совершить велопрогулку` did not say een. Every phrase whose article Russian does not show now says it: `(какой-нибудь)` / `(какой-то)` / `один` for een, `(конкретный)` / `(свой)` for de/het; tr `bir` / `(belirli)`; en/es/pt/ro articles fixed. Terms, quantities, set prepositional phrases and definite sentence topics exempt. Data spec on every `een … <verb>` phrase.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Affix examples show the named suffix (2026-11-25)
 - [x] -tie: `-ция: действие или его результат`, example informatie, note adds reactie and felicitatie (`-ение`); -ing: `-ение: …`, example oefening; each under the other's `не путать с:`. -schap example lidmaatschap, mede- medewerker, ont- adds `от-`.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Dictation replay (2026-11-25)
 - [x] Replaying the word or phrase resets the countdown: a replay means the learner did not catch it.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Every sense, every origin, every -e pair (2026-11-25)
 - [ ] zitten op lists one sense: every word lists all its common senses, in all 6 languages.
 - [ ] Every word links to its origin (verb, noun, affix, root) down the chain (ontbijt -> ontbijten -> ont- + bijten -> bijten); a missing origin word gets a card right before its first use.
 - [x] Every adjective has its with/without -e pair card (middelbaar/middelbare).
 - [x] van huis: `из дома; от дома`, note shows both uses (ga van huis, ver van huis).
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Comparative and superlative affixes (2026-11-25)
 - [ ] Affix cards for the comparative -er and the superlative -ste; their notes tell -er of degree (ouder) from -er of the doer (bakker), both ways. Every comparative and superlative links to its affix, in all 6 languages.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Why the article, in every phrase (2026-11-25)
 - [x] `совершить велопрогулку (какую-нибудь)` still does not say where the article comes from: Russian (and Turkish) has none, and a bike ride can be specific or any. Every phrase card with an article gets a note saying why that article, in all 6 languages. A noun's own card always shows its definite article.
   - Decided: every article in a phrase gets a closing note item in ru and tr (Russian and Turkish have no articles): why this one (any of many / named first vs. known, own, unique, season or time of day...) and the other form, -e included. en, es, pt, ro have a/the of their own, so their translation shows the article; 30 en/es/pt and 3 ro translations that dropped it were fixed (in class -> in the classroom). Idioms where those languages drop it too stay (ce idee buna, acum cateva zile).
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## boodschap has no links to its parts (2026-11-25)
 - [x] boodschap = bode (messenger) + -schap (task): link both, explain how message, groceries and the toilet euphemism all come from "a messenger's errand". All 6 languages.
@@ -229,30 +229,34 @@ Wrong parts of the typed answer are struck through, the right ones follow them: 
 
 ## Every affixed word is split (2026-11-25)
 - [x] A word carrying an affix the deck has a card for names that affix and its base (uitstekend = uitsteken + -end), in all 6 languages. `affix-split.spec.ts` checks the marked affixes (ge-, -ig, ...) by shape and every other deck affix when the rest is a deck word (spannend, de opvang, de afvoer, de bijdrage, onverwacht, de kunstenares, de mixer, 9 comparatives); groter/beter/liever/het liefst(e) now name their degree; look-alikes (de kamer) and bases the deck lacks (slaan in de slager) are grouped exemptions.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Putting a card off takes its mix-up back (2026-11-25)
 - [x] Dictation took «en» for the letter n, then Later still counted the miss on en and kept the link. Putting a card off misses nothing and undoes the links its step made.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Letters and sentences are tinted (2026-11-25)
 - [x] A letter card (green) and a sentence card (cyan) look apart from nouns, verbs, affixes and plain cards; hues stay at least 40 degrees apart.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Finishing a group lags (2026-11-25)
 - [x] Answering the last card of a 100-card group in its last game stalls visibly: 100 × two whole-store saves. `store.learn` saves the group once.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Missed etymological links (2026-11-25)
 - [x] tellen does not name het tal. Found by a consonant-skeleton scan of single-word pairs; ~50 cards linked in all 6 languages (verb ← noun, noun ← verb/adjective, -e forms, plurals, superlatives, related peers both ways). `root-links.spec.ts` lists the pairs and checks `родственное` goes both ways.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
   - [x] pas (only, just) `от: de pas` via op dat pas «at that very step».
 
 ## A derived word keeps its base's senses (2026-11-25)
 - [x] gelukkig lacked удачный (geluk is счастье and удача). Scan of derived/form cards with fewer senses than their base: de vriendin девушка, schuldig должный (+ `iemand iets schuldig zijn`), mogelijk возможно, harder громче/твёрже, dunne/dunner худой, bekende знакомый, onregelmatige нерегулярный, de voorstelling представление (+ `zich een voorstelling maken van`), all 6 languages. Verb forms and -e forms whose missing sense is an adverb are fine. Rule in CLAUDE.md and the checklist; `senses.spec.ts` lists them.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.
 
 ## Missing senses and links (2026-11-25)
 - [x] bezittelijk(e) has all its senses (притяжательный (грамм.); собственнический; имущественный), comes from bezitten and names het bezit and de bezitter. Whole deck: 23 families of words made from one base by a suffix now name each other (de sleutel, het slot, de sluiting; de kok, de keuken; de lezer, de lezing ...), `root-links.spec.ts` finds them from the `от:` links. A cross-language scan found senses Russian lacked or ran together: de stem голосование, eerlijk справедливый, het karton пакет, het gaatje дупло, de man мужчина; муж, licht, het bad, de pech, de flat, daarachter; all in `senses.spec.ts`.
 - [x] New `от:` links moved ont- and -baar ahead of ontmoeten and middelbaar: those now voice the affix; the plurals de vriendinnen and de voorstellingen got their second sense; kun jij? reads `poți tu?` in Romanian, apart from kun je.
+- [x] Deploy, verify live.
+
+## A front tells its card apart (2026-11-25)
+- [x] alweer «опять, снова» and weer «снова, опять» were the same card without the hidden example. Whole deck: fronts with the same senses in any order now differ in every language (alweer «опять (с досадой)», de arts «врач (официально)», besluiten / beslissen, de bloes / de blouse, ~35 ru and ~150 translation-only clashes: homonyms like pt segundo, es seguro, tr sıcak, ro mare). `duplicate-prompts.spec.ts` checks all 6 languages; affixes and forms are exempt.
 - [ ] Deploy, verify live.

@@ -29,3 +29,31 @@ describe('a prompt', () => {
     });
   }
 });
+
+/** A front's senses, order aside: «снова, опять» and «опять, снова» ask for the same thing. */
+const sensesOf = (front: string) => front.split(/[;,] /).map(sense => sense.trim().toLowerCase()).sort().join(' | ');
+const isAffix = (dutch: string) => /^-|-$/.test(dutch);
+const byDutch = new Map(cardsOf(deck).map(c => [c.b, c]));
+/** An -e form, a plural or a superlative carries its base's front; its note says when it is used. */
+const isFormOf = (dutch: string, base: string) =>
+  dutch === `${base}e` || new RegExp(`(?:^|; )(?:форма от|мн\\. ч\\. от|превосходная степень от): ${base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\(`).test(byDutch.get(dutch)?.n ?? '');
+
+function sameSenses(fronts: { dutch: string; front: string }[]): string[] {
+  const bySenses = Map.groupBy(fronts.filter(c => !isAffix(c.dutch)), c => sensesOf(c.front));
+  return [...bySenses.values()].flatMap(group => group.flatMap((a, i) => group.slice(i + 1)
+    .filter(b => !isFormOf(a.dutch, b.dutch) && !isFormOf(b.dutch, a.dutch))
+    .map(b => `${a.dutch} / ${b.dutch}: ${a.front}`)));
+}
+
+describe('a front', () => {
+  it('tells its card from every other in Russian, without the context', () => {
+    expect(sameSenses(cardsOf(deck).map(c => ({ dutch: c.b, front: c.f })))).toEqual([]);
+  });
+
+  for (const lang of ['en', 'es', 'pt', 'tr', 'ro']) {
+    it(`tells its card from every other in ${lang}, without the context`, () => {
+      const rows: Record<string, Row> = JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
+      expect(sameSenses(Object.entries(rows).map(([id, [front]]) => ({ dutch: dutchOf.get(id) ?? id, front })))).toEqual([]);
+    });
+  }
+});
