@@ -48,6 +48,15 @@ describe('a native note', () => {
   });
 });
 
+describe('the example on an answer', () => {
+  const card = { id: 'c1', f: 'язык', b: 'de taal', xf: 'Язык Нидерландов.', xb: 'De taal van Nederland.' };
+
+  it.each([['Dutch', toStudyCard(card)], ['native', flip(toStudyCard(card))]])('is marked with the outline example icon on the %s side', async (_, side) => {
+    const w = await mountSuspended(Answer, { props: { card: side, silent: true } });
+    expect(w.get('[data-testid="answer-context"] [data-testid="context-icon"]').attributes()).toMatchObject({ fill: 'none', stroke: 'currentColor', 'stroke-width': '1.5' });
+  });
+});
+
 describe('a Dutch note', () => {
   const card = { id: 'c2', f: 'большой', b: 'grote', n: 'с -e: сразу за ним сущ.', nb: 'de grote man\nhet grote huis\neen groot huis' };
 
