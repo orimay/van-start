@@ -76,6 +76,7 @@ describe('an -e card', () => {
 });
 
 const FORM_OF: Record<string, string> = { en: 'form of', es: 'forma de', pt: 'forma de', tr: 'biçimi', ro: 'forma lui' };
+const FROM: Record<string, string> = { en: 'from', es: 'deriva de', pt: 'deriva de', tr: 'kökü', ro: 'de la' };
 
 describe('an -e pair card', () => {
   it('names its base as the word it is a form of in Russian', () => {
@@ -85,6 +86,16 @@ describe('an -e pair card', () => {
     it(`names its base as the word it is a form of in ${lang}`, () => {
       const rows: Record<string, Row> = JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
       expect(pairsOf().filter(({ card, base }) => !itemsOf(rows[card.id]?.[3] ?? '').some(i => i.startsWith(`${label}: ${base} (`))).map(p => p.card.b)).toEqual([]);
+    });
+  }
+  // Its derivation sits on the base alone, so the chain reads volgen → volgend → volgende.
+  it('leaves what its base is made from to the base in Russian', () => {
+    expect(pairsOf().filter(({ card }) => itemsOf(card.n ?? '').some(i => i.startsWith('от: '))).map(p => p.card.b)).toEqual([]);
+  });
+  for (const [lang, label] of Object.entries(FROM)) {
+    it(`leaves what its base is made from to the base in ${lang}`, () => {
+      const rows: Record<string, Row> = JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
+      expect(pairsOf().filter(({ card }) => itemsOf(rows[card.id]?.[3] ?? '').some(i => i.startsWith(`${label}: `))).map(p => p.card.b)).toEqual([]);
     });
   }
 });
