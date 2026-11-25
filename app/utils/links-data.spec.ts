@@ -54,6 +54,15 @@ describe('a note', () => {
     ['bellen', 'opbellen'],
     ['leuker', 'leuk'],
     ['de slaapkamer', 'de kamer'],
+    ['de boodschap', 'de bode'],
+    ['de boodschap', '-schap'],
+    ['de paddenstoel', 'de pad'],
+    ['de paddenstoel', 'de stoel'],
+    ['de pad', 'het pad'],
+    ['het pad', 'de pad'],
+    ['de aardappel', 'de aarde'],
+    ['de aardappel', 'de appel'],
+    ['de sinaasappel', 'de appel'],
   ])('of %s links %s', (word, other) => {
     expect(russianLinks.get(word)).toContain(other);
   });

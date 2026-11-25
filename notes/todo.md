@@ -210,7 +210,8 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [ ] Deploy, verify live.
 
 ## boodschap has no links to its parts (2026-11-25)
-- [ ] boodschap = bode (messenger) + -schap (task): link both, explain how message, groceries and the toilet euphemism all come from "a messenger's errand". All 6 languages.
+- [x] boodschap = bode (messenger) + -schap (task): link both, explain how message, groceries and the toilet euphemism all come from "a messenger's errand". All 6 languages.
+  - Done: de bode, de pad (toad), de aarde added before their words; paddenstoel, aardappel, sinaasappel and boodschap carry `от:` and a literal-meaning item; -schap gained the sense "task, office".
 
 ## Every word links to its parts (2026-11-25)
 - [ ] boodschap (bode + -schap) and paddenstoel (pad + stoel) had no `от:`; the links audit only finds splits into existing cards. Go over every word and set phrase without `от:`, add the missing part cards before the word, all 6 languages.
