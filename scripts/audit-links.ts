@@ -39,6 +39,9 @@ for (const card of cards) {
   }
 }
 const head = (id: string) => headOf.get(id) ?? id;
+/** Cards spelled alike, `leven` and `het leven`: linking either links the word. */
+const homographs = new Map<string, DeckCard[]>();
+for (const card of cards) homographs.set(bare(card.b), [...(homographs.get(bare(card.b)) ?? []), card]);
 /** Cards two links away at most. */
 const near = (id: string) => new Set([...(graph.get(id) ?? [])].flatMap(n => [n, ...(graph.get(n) ?? [])]));
 
@@ -82,7 +85,7 @@ export function audit() {
     if (!/^[a-z]+$/.test(w) || headOf.has(card.id)) continue;
     const parts = partsOf(w);
     const reach = new Set([...near(card.id)].map(head));
-    const missing = parts?.filter(p => head(p.id) !== card.id && !reach.has(head(p.id)) && !reach.has(affixOf.get(p.id) ?? ''));
+    const missing = parts?.filter(p => !(homographs.get(bare(p.b)) ?? [p]).some(h => head(h.id) === card.id || reach.has(head(h.id)) || reach.has(affixOf.get(h.id) ?? '')));
     if (missing?.length) unlinked.push(`${card.b}: ${missing.map(p => p.b).join(' + ')}`);
   }
   return { unresolved, unlinked };

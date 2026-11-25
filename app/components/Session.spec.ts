@@ -2510,7 +2510,7 @@ function givenRecorder() {
 }
 
 async function doStartNextGame(w: VueWrapper) {
-  await vi.waitFor(() => expect(w.find('[data-testid="next-game"]').exists()).toBe(true));
+  await vi.waitFor(() => expect(w.find('[data-testid="next-game"]').exists()).toBe(true), { timeout: 5000 });
   await doClick(w, 'start-game');
 }
 

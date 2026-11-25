@@ -12,7 +12,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] An affix named in another card carries the affix card's own gloss (or a piece of it), and the gloss is plain enough to tell it from a near affix (-end делающий vs -ig какой). No two affixes share a gloss: affixes making the same thing (-es/-in, -te/-heid) name what picks one after `: ` and point at each other under `не путать с:`, in all 6 languages. Every sense of one gloss being a sense of another counts as shared (-tie `-ция: действие` was inside -ing's).
 - [ ] An affix gloss names the affix's real meaning (-lijks = еже-), with one example per sense, and the example's meaning shows the affix's sense (not opleiding for "руководство"). A gloss naming a Russian suffix (`-ция`) has an example word showing it, and the note names the other suffixes it takes (`-ение`). What it makes is named by its part of speech (`существительное`), never as `предмет`.
 - [ ] Note items read by kind: the rule about the card itself first, then where it comes from, then examples, each looking different.
-- [ ] Every meaning of the word is given (haakje, lid, stranden, bladeren, agent).
+- [ ] Every meaning of the word is given (haakje, lid, stranden, bladeren, agent), verbs too (beginnen: начинаться, hangen: вешать, kunnen: dat kan), each a `; ` item in all 6 languages.
 - [ ] Close pairs say how they differ, clearly enough to pick the right one from the native side alone (aanmelden / inschrijven, voornaam / naam, thuis / naar huis, 's morgens / 's ochtends, lief / lieve).
 - [ ] No two cards share a prompt within a language.
 - [ ] A short form names its long form (het eind / het einde), a colloquial word names the neutral one (checken).
@@ -67,6 +67,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] An affix meaning shown as the word (prompt, answer, option, tile) carries `(affix)` in the native language, never `(suffix)` / `(prefix)`, which would hint where the part goes.
 - [ ] A card that scrolls shows its scroll thumb before, during and after a swipe.
 - [ ] Things that belong together sit closer than things that do not: word and transcription closest, note groups apart, blocks further.
+- [ ] A phrase names its words' cards with the sense used (`от: de douche (душ) + nemen (брать)`); a light-verb collocation says why that verb.
 - [ ] Words sharing a root name it in their `от:` (onderwerp and voorwerp both from werpen).
 - [ ] Feminine/masculine, compound/part, comparative/superlative/ordinal/base pairs link both ways in every language; a regular comparative or superlative also names `-er` / `-ste`; a look-alike sits under `не путать с:`.
 - [ ] No affix gloss in a note says it adds nothing; it names what the affix changes.
