@@ -72,9 +72,15 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] An affix with a hyphen never wraps away from its hyphen (`KeepAffixes`).
 - [ ] A mix-up marks both cards missed, links them both ways, and brings both into the next decks together; the picker finds a card by Dutch and by meaning.
 - [ ] A row in a sheet never runs past its right edge on a phone: a long chip goes on its own line under the word, and a meaning is never squeezed to a word per line. Check a sheet row with the longest real values at 390px.
+- [ ] Typing another card's answer links that mix-up on its own when one card is written exactly so (`terug-`, `één`); a plain form with Ignore accents on also offers the marked one it lacks (`terug` -> `terug`, `terug-`; `een` -> `een`, `één`), a hint "x, y: all come back as missed" once taken for several; several matches open the picker's "The typed answer is" section, reopenable from the `≈` pill; I was right takes back only this step's links.
+- [ ] Mix-up search lists the closest first: exact, then the query at a word's start, then further in.
+- [ ] One reload after a deploy reaches the new version: a waiting worker gets `SKIP_WAITING` from the registration, never through `$pwa` (its plugin runs after ours).
 - [ ] A mix-up keeps the card on screen; Remembered is off only for a mix-up picked on this step; a picked card can be unpicked; the other card comes back with cards between.
 - [ ] Every dialog keeps its actions and inputs in the footer, in thumb reach.
 - [ ] Nothing hides under a notch or rounded corner: page edges, sticky bars and sheets respect `env(safe-area-inset-*)`.
 - [ ] Every text colour reaches 4.5:1 on its background in light and dark (red/orange: -700 light, -400 dark).
 - [ ] Group settings open from the gear in the start menu title.
 - [ ] Back closes open layers one per press, then on the first page asks before leaving; another back or Stay keeps the app and the next back asks again.
+- [ ] White text on orange sits on orange-700 or darker (`contrast.spec.ts`).
+- [ ] A link up a page is an `UpLink`, never a `NuxtLink` push: back on home asks to leave, it never walks through earlier pages.
+- [ ] A sheet opened from a menu returns to that menu when it closes.

@@ -27,10 +27,16 @@ function onPopState() {
   if (leaving) return;
   if (ownBacks) ownBacks--;
   else if (handlers.length) handlers.pop()!();
+  else if (atFirst() && state().forward != null) arrivedFromPage();
   else if (askLeave && atFirst()) askLeave();
   // Back took the layers' entry; layers still open need it again.
   if (handlers.length && !state().backLayer) history.pushState({ ...state(), backLayer: true }, '', location.href);
   guard();
+}
+
+/** Back from a page the router opened on the first entry, not past the guard: nothing to ask. The router's note of that page goes, so the next back here asks. */
+function arrivedFromPage() {
+  history.replaceState({ ...state(), forward: null }, '', location.href);
 }
 
 function listen() {

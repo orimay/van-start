@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from 'vue';
 import { diffLetters, isCorrect, soundsLike } from '@/utils/answer';
-import type { StudyCard } from '@/utils/deck';
+import { cardsOf, type StudyCard } from '@/utils/deck';
+import { typedAs } from '@/utils/mix-up';
 import { speak } from '@/utils/speak';
 import { learnGaps, typingPart } from '@/utils/typing-pace';
 
 /** `missed`: the miss is shown, the answer is not; `shown`: both are. A new try hides the answer again. */
 type Phase = 'typing' | 'missed' | 'shown' | 'done';
-interface State { input?: string; verdict?: boolean; phase?: Phase | 'fixing'; retried?: boolean; again?: boolean }
+/** `mixed`: the cards the answer was taken for on this step; `linked`: those of them this step linked; `choices`: the words a wrong answer may be. */
+interface State { input?: string; verdict?: boolean; phase?: Phase | 'fixing'; retried?: boolean; again?: boolean; mixed?: string[]; linked?: string[]; choices?: string[] }
 
 /** `listening`: the Dutch is only heard until its answer shows. */
 const props = defineProps<{ card: StudyCard; lang: string; listening?: boolean; state?: State }>();
-const emit = defineEmits<{ result: [ok: boolean, guessed?: boolean, typingMs?: number]; progress: [state: State]; miss: [] }>();
+const emit = defineEmits<{ result: [ok: boolean, guessed?: boolean, typingMs?: number]; progress: [state: State]; miss: []; mixed: [others: string[], typingMs: number] }>();
 /** The answer was out since the last try, so a wrong one counts as another miss. */
 let sawAnswer = false;
 
@@ -48,24 +50,65 @@ onMounted(() => (phase.value === 'typing' ? field : keeper).value?.focus());
 /** A typo may be claimed right once it can be compared with the answer; giving up leaves nothing to claim. */
 const claimable = computed(() => phase.value === 'shown' && input.value !== '' && !retried.value);
 
+const store = useStore();
+const leniency = () => ({ ignoreCase: store.settings.value.ignoreCase, ignoreMarks: store.settings.value.ignoreMarks });
 function matches(text: string) {
-  const { ignoreCase, ignoreMarks } = useStore().settings.value;
-  return isCorrect(text, props.card.answer, { ignoreCase, ignoreMarks });
+  return isCorrect(text, props.card.answer, leniency());
+}
+
+const mixedHere = shallowRef(props.state?.mixed ?? []);
+/** Of `mixedHere`, the links this step made, so claiming the answer right takes back only those. */
+const linkedHere = shallowRef(props.state?.linked ?? []);
+const choices = shallowRef(props.state?.choices ?? []);
+const mixing = shallowRef(false);
+const { index } = useCardSheet();
+const mixedWords = computed(() => mixedHere.value.map(id => index.value.byId.get(id)?.b ?? id).join(', '));
+
+/** Another card's answer typed: one written exactly so is taken for it; several leave the learner to say which. */
+function lookForMixUp(text: string) {
+  const cards = store.deck.value ? cardsOf(store.deck.value) : [];
+  const dutch = index.value.byId.get(props.card.id)?.b === props.card.answer;
+  const found = typedAs(text, cards.filter(c => c.id !== props.card.id && !mixedHere.value.includes(c.id)), c => (dutch ? c.b : c.f), leniency());
+  if (found.length === 1) {
+    linkedHere.value = (store.confusions.value[props.card.id] ?? []).includes(found[0]!.id) ? linkedHere.value : [...linkedHere.value, found[0]!.id];
+    store.confuse(props.card.id, found[0]!.id);
+    mixedHere.value = [...mixedHere.value, found[0]!.id];
+  } else if (found.length) {
+    choices.value = found.map(c => c.id);
+    mixing.value = true;
+  }
+}
+
+function pickMixUp(other: string) {
+  linkedHere.value = [...linkedHere.value, other];
+  mixedHere.value = [...mixedHere.value, other];
+  saveProgress();
+}
+
+function dropMixUp(other: string) {
+  linkedHere.value = linkedHere.value.filter(id => id !== other);
+  mixedHere.value = mixedHere.value.filter(id => id !== other);
+  saveProgress();
 }
 
 /** Dictation can only judge what was heard: a spelling that sounds the same counts. */
 const sameSound = computed(() => props.listening && phase.value === 'done' && !matches(input.value) && soundsLike(input.value, props.card.answer));
 
+function saveProgress() {
+  emit('progress', { input: input.value, verdict: verdict.value, phase: phase.value, retried: retried.value, again: again.value, mixed: mixedHere.value, linked: linkedHere.value, choices: choices.value });
+}
+
 function goTo(next: Phase) {
   phase.value = next;
   if (next === 'shown') sawAnswer = true;
-  emit('progress', { input: input.value, verdict: verdict.value, phase: next, retried: retried.value, again: again.value });
+  saveProgress();
   void nextTick(() => (next === 'typing' ? field : keeper).value?.focus());
 }
 
 function submit() {
   if (phase.value === 'done') {
     learnGaps(gaps);
+    if (mixedHere.value.length) return emit('mixed', mixedHere.value, typingMs);
     return emit('result', verdict.value!, false, typingMs);
   }
   if (phase.value !== 'typing') return;
@@ -73,6 +116,7 @@ function submit() {
   if (!ok && sawAnswer) emit('miss');
   sawAnswer = false;
   verdict.value ??= ok;
+  if (!ok) lookForMixUp(input.value);
   goTo(ok ? 'done' : 'missed');
 }
 
@@ -83,7 +127,11 @@ function tryAgain() {
   goTo('typing');
 }
 
+/** Claimed right: the answer was no other word after all. */
 function accept() {
+  for (const other of linkedHere.value) store.unconfuse(props.card.id, other);
+  mixedHere.value = mixedHere.value.filter(id => !linkedHere.value.includes(id));
+  linkedHere.value = [];
   if (!again.value) verdict.value = true;
   goTo('done');
 }
@@ -115,6 +163,19 @@ function giveUp() {
         </template>
         <p v-if="phase === 'missed'" data-testid="typed"><TypedLetters :letters="letters" /></p>
       </Answer>
+      <div v-if="phase !== 'typing' && verdict === false" class="flex flex-col items-center gap-1">
+        <button
+          type="button"
+          class="flex h-7 shrink-0 items-center gap-1 rounded-full border px-2"
+          :class="mixedHere.length ? 'border-orange-700 bg-orange-700 text-white' : 'border-stone-300 text-stone-500 dark:border-stone-600 dark:text-stone-400'"
+          aria-label="Mixed up with another word"
+          data-testid="mixed-up"
+          @click="mixing = true"
+        >
+          ≈<span class="max-w-40 truncate text-sm font-semibold">{{ mixedHere.length ? mixedWords : choices.length ? 'Which word?' : 'Mixed up' }}</span>
+        </button>
+        <p v-if="mixedHere.length" class="text-center text-sm text-orange-700 dark:text-orange-400" data-testid="mixed-hint">Taken for {{ mixedWords }}: {{ mixedHere.length > 1 ? 'all' : 'both' }} come back as missed</p>
+      </div>
     </div>
     <div class="flex flex-col gap-2">
       <TextField v-if="phase === 'typing'" ref="field" v-model="input" data-testid="input" :lang="lang" @enter="submit" />
@@ -136,5 +197,6 @@ function giveUp() {
         </template>
       </div></div>
     </div>
+    <MixUpSheet :id="card.id" :open="mixing" :typed="choices" @pick="pickMixUp" @drop="dropMixUp" @close="mixing = false" />
   </div>
 </template>

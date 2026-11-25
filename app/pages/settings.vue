@@ -98,7 +98,7 @@ watch(draft, value => store.updateSettings(value));
 <template>
   <div class="flex flex-1 flex-col gap-4">
     <header class="flex items-center gap-3">
-      <NuxtLink v-if="store.configured.value" to="/" class="text-2xl text-stone-500" data-testid="back">‹</NuxtLink>
+      <UpLink v-if="store.configured.value" to="/" class="text-2xl text-stone-500" data-testid="back">‹</UpLink>
       <h1 class="flex-1 truncate text-2xl font-bold">Settings</h1>
     </header>
     <VersionInfo />

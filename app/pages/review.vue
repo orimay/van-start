@@ -133,13 +133,13 @@ function onUndo(id: string, stage: Stage) {
 <template>
   <div class="flex flex-1 flex-col gap-4">
     <header class="flex items-center gap-3">
-      <NuxtLink to="/" class="text-2xl text-stone-500" data-testid="back">‹</NuxtLink>
+      <UpLink to="/" class="text-2xl text-stone-500" data-testid="back">‹</UpLink>
       <h1 class="flex-1 truncate font-semibold">{{ section ? `Review: ${section.name}` : 'Review' }}</h1>
     </header>
     <div v-if="finished || !batch.length" class="flex flex-1 flex-col gap-4">
       <p class="flex flex-1 items-center justify-center text-xl font-semibold" data-testid="done">{{ batch.length ? 'Done' : 'Nothing due yet' }}</p>
       <div class="flex flex-col gap-2">
-        <NuxtLink to="/" class="btn-ghost text-center">To sections</NuxtLink>
+        <UpLink to="/" class="btn-ghost text-center">To sections</UpLink>
       </div>
     </div>
     <Session

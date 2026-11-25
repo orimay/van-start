@@ -36,6 +36,11 @@ describe('isCorrect', () => {
     expect(isCorrect('', 'de kat', LENIENT)).toBe(false);
   });
 
+  it('counts a hyphen however lenient', () => {
+    expect(isCorrect('terug', 'terug-', LENIENT)).toBe(false);
+    expect(isCorrect('terug-', 'terug', LENIENT)).toBe(false);
+  });
+
   it('rejects a different word', () => {
     expect(isCorrect('de hond', 'de kat', LENIENT)).toBe(false);
   });

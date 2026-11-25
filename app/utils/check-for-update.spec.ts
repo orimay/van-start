@@ -1,6 +1,6 @@
 import { effectScope } from 'vue';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { checkWhileOpen } from './check-for-update';
+import { checkWhileOpen, noteStep } from './check-for-update';
 
 let scope: ReturnType<typeof effectScope>;
 beforeEach(() => vi.useFakeTimers());
@@ -22,6 +22,24 @@ describe('an open app', () => {
     setVisibility('hidden');
     setVisibility('visible');
     expect(check).toHaveBeenCalledOnce();
+  });
+});
+
+describe('a step', () => {
+  it('checks for an update right away', () => {
+    const check = givenChecking();
+    noteStep();
+    expect(check).toHaveBeenCalledOnce();
+  });
+
+  it('checks at most once in a few seconds', () => {
+    const check = givenChecking();
+    noteStep();
+    noteStep();
+    expect(check).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(5_000);
+    noteStep();
+    expect(check).toHaveBeenCalledTimes(2);
   });
 });
 

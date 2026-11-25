@@ -14,9 +14,21 @@ export function applyUpdates() {
 }
 
 const MINUTE = 60_000;
+/** Steps come every few seconds; one check per this long is enough. */
+const STEP_CHECK_GAP = 5_000;
 
-/** While the app is in view, checks every minute and on coming back, so an update arrives without reloads. */
+const steps = new EventTarget();
+/** A step in a game or a move to another page: an update gets looked for right away. */
+export const noteStep = () => void steps.dispatchEvent(new Event('step'));
+
+/** While the app is in view, checks every minute, on coming back and on every step, so an update arrives without reloads. */
 export function checkWhileOpen(check = checkForUpdate) {
   useIntervalFn(() => document.visibilityState === 'visible' && check(), MINUTE);
   useEventListener(document, 'visibilitychange', () => document.visibilityState === 'visible' && check());
+  let checkedAt = -Infinity;
+  useEventListener(steps, 'step', () => {
+    if (Date.now() - checkedAt < STEP_CHECK_GAP) return;
+    checkedAt = Date.now();
+    check();
+  });
 }

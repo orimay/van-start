@@ -31,7 +31,7 @@ export function showMigrationProgress() {
       label!.textContent = `Could not update your data (${describe(error)}). Reload to try again; nothing was lost.`;
       const retry = document.createElement('button');
       retry.textContent = 'Reload';
-      retry.className = 'rounded bg-orange-600 px-4 py-2 text-white';
+      retry.className = 'rounded bg-orange-700 px-4 py-2 text-white';
       retry.onclick = () => void installWaitingUpdate().finally(() => location.reload());
       root!.append(retry);
     },

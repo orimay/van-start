@@ -77,7 +77,7 @@ function save(kind: Kind, value: boolean | undefined) {
     </div>
     <template #footer>
       <template v-if="pending">
-        <button type="button" class="btn bg-orange-600 text-white" data-testid="kind-overrides-yes" @click="save(pending.kind, pending.value)">Change them too</button>
+        <button type="button" class="btn bg-orange-700 text-white" data-testid="kind-overrides-yes" @click="save(pending.kind, pending.value)">Change them too</button>
         <button type="button" class="btn-ghost" data-testid="kind-overrides-no" @click="pending = undefined">Cancel</button>
       </template>
       <button v-else type="button" class="btn-primary" data-testid="kind-close" @click="emit('close')">Done</button>

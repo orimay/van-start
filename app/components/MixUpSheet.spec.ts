@@ -29,6 +29,12 @@ describe('the mix-up sheet', () => {
     expect(optionsOf(w).slice(0, 3)).toEqual(['de kameraad', 'de slaapkamer', 'het kamp']);
   });
 
+  it('lists the words a typed answer may be first, and only there', async () => {
+    using w = await doMount('kamer', ['kamp', 'koken']);
+    expect(readSections(w)[0]).toEqual(['The typed answer is', 'koken', 'het kamp']);
+    expect(optionsOf(w).filter(o => o === 'het kamp')).toHaveLength(1);
+  });
+
   it('finds a card by its meaning', async () => {
     using w = await doMount('kamer');
     await doSearch(w, 'вари');
@@ -106,8 +112,8 @@ describe('the mix-up sheet', () => {
 
 // declarative helpers
 
-async function doMount(id: string) {
-  const w = await mountSuspended(MixUpSheet, { props: { id, open: true } });
+async function doMount(id: string, typed?: string[]) {
+  const w = await mountSuspended(MixUpSheet, { props: { id, open: true, typed } });
   return Object.assign(w, { [Symbol.dispose]: () => w.unmount() });
 }
 
@@ -129,7 +135,7 @@ function readOptions(w: VueWrapper) {
 
 /** Each section's header, then its options read as by `readOptions`. */
 function readSections(w: VueWrapper) {
-  return w.findAll('[data-testid="mix-up-section"]').map(section => [section.get('h3').text(), ...readOptions(section as unknown as VueWrapper)]);
+  return w.findAll('[data-testid="mix-up-typed"], [data-testid="mix-up-section"]').map(section => [section.get('h3').text(), ...readOptions(section as unknown as VueWrapper)]);
 }
 
 async function doTap(w: VueWrapper, word: string) {

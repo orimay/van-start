@@ -12,6 +12,7 @@ import { knownColour } from '@/utils/known-colour';
 import { isMissed, oddsOf, type GameScores, type Score } from '@/utils/score';
 import { lookalikes } from '@/utils/similar';
 import { chunk, shuffle } from '@/utils/shuffle';
+import { noteStep } from '@/utils/check-for-update';
 
 export type Stage = 'intro' | 'match' | 'choice' | 'pronounce' | 'recallNative' | 'listen' | 'recall' | 'type' | 'dictation';
 
@@ -395,6 +396,7 @@ function stranded(rest: Item[]): Item[] {
 }
 
 function advance(missed: Item[]) {
+  noteStep();
   history.value = [...history.value, snapshot()];
   answers = [];
   shows = [];
@@ -538,10 +540,10 @@ function onMissAgain(id: string) {
 }
 
 /** The learner took `card` for `others`: all are missed, and each other one that plays in its game comes back sooner than `card`, so cards come between them. */
-function onMixedUp(card: StudyCard, others: string[]) {
+function onMixedUp(card: StudyCard, others: string[], typingMs = 0) {
   for (const id of others) onMissAgain(id);
   const along = others.flatMap(id => byId.get(id) ?? []).filter(c => playsIn(!!c.affix, gameOf(c.id)));
-  onCard(card, false, false, 0, along);
+  onCard(card, false, false, typingMs, along);
 }
 
 /** `guessed`: right by luck, so it comes back like a miss but is graded neither way. */
@@ -607,7 +609,7 @@ function optionsFor(card: StudyCard): StudyCard[] {
         <RecallGame v-else-if="game === 'pronounce'" :key="view" :card="meeting ? current.card : flip(current.card)" dutch-shown quiet pronouncing :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(others: string[]) => current?.kind === 'card' && onMixedUp(current.card, others)" />
         <RecallGame v-else-if="game === 'recallNative'" :key="view" :card="flip(current.card)" dutch-shown quiet :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(others: string[]) => current?.kind === 'card' && onMixedUp(current.card, others)" />
         <RecallGame v-else-if="game === 'recall'" :key="view" :card="current.card" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(others: string[]) => current?.kind === 'card' && onMixedUp(current.card, others)" />
-        <TypeGame v-else :key="view" :card="current.card" :lang="lang" :listening="game === 'dictation'" :state="current.state" @progress="onCardProgress" @miss="current?.kind === 'card' && onMissAgain(current.card.id)" @result="(ok, guessed, typingMs) => current?.kind === 'card' && onTyped(current.card, ok, guessed, typingMs)" />
+        <TypeGame v-else :key="view" :card="current.card" :lang="lang" :listening="game === 'dictation'" :state="current.state" @progress="onCardProgress" @miss="current?.kind === 'card' && onMissAgain(current.card.id)" @result="(ok, guessed, typingMs) => current?.kind === 'card' && onTyped(current.card, ok, guessed, typingMs)" @mixed="(others: string[], typingMs: number) => current?.kind === 'card' && (holdKeyboard(), onMixedUp(current.card, others, typingMs))" />
       </div>
     </template>
     <TextField ref="keeper" aria-hidden="true" class="pointer-events-none fixed top-0 left-0 h-px w-px opacity-0" />

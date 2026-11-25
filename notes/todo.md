@@ -111,4 +111,18 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [x] Phone back closes every open layer one press at a time, then leaves the app. Instead of leaving, ask to confirm leaving:
   - confirmed: leave (as if the user pressed back, without hiding the sheet first, so the app really leaves);
   - declined, or back pressed again: the sheet closes and the user stays in the app.
+- [x] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
+
+## Contrast, back on home, group settings return (2026-11-25)
+- [ ] Primary buttons fail AA contrast (white on orange-600 is 3.6:1). White text on orange-700 (5.2:1), on every white-on-orange spot.
+- [ ] Back on the home page jumps through history: the pages' "‹" and "To sections" add a new home entry every time. Back on home must offer to leave instead.
+- [ ] Done with a group's settings (opened from the gear in its start menu): back to that start menu, not everything closed.
+- [ ] Updates come late: a new version on the site shows only after several reloads of the home page. Wanted:
+  - the first reload gets the update;
+  - the first navigation (a step) in a game picks it up, as soon as it is on the site;
+  - caching is the likely culprit; check for the update with an uncached request, ASAP.
+- [ ] Typing a wrong answer that is another existing word marks it as mixed up with that word. The match must count symbols: `terug` and `terug-` are different words, so are `een (a)` and `een (one)`. When it is ambiguous (ignore symbols or ignore accents is on and more than one word matches), a popup asks which word it was mixed up with. Closed without a pick, it can be opened again.
+  - A marked form typed (`terug-`, `één`) is a deliberate pick: only that word. A plain one (`terug`, `een`) may also mean the marked one when ignore accents is on: the popup offers both.
+  - The hint says "both" for one word, "all" for several.
+- [ ] Mix-up search orders results by closeness to what was typed: `terug` lists `terug`, `terug-` first, then the rest by growing distance: words starting with it, then ones holding it further in, and so on.
 - [ ] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.

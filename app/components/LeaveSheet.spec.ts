@@ -55,6 +55,17 @@ describe('the leave question', () => {
   });
 });
 
+describe('back to the first page from a page opened on it', () => {
+  it('asks nothing, then asks on the next back', async () => {
+    using w = await doMount({ onPage: true });
+    await w.browser.pressBack();
+    expect(isAsking(w)).toBe(false);
+    await w.browser.pressBack();
+    expect(isAsking(w)).toBe(true);
+    expect(w.browser.left).toBe(false);
+  });
+});
+
 describe('with nothing before the app', () => {
   it('tries to close the app on Leave', async () => {
     using w = await doMount({ pageBefore: false });
@@ -87,10 +98,15 @@ describe('with nothing before the app', () => {
 
 type Mounted = VueWrapper & { browser: FakeBrowser };
 
-async function doMount({ pageBefore = true } = {}) {
+/** `onPage`: the app stands on a page it opened from its first one before it guarded against leaving. */
+async function doMount({ pageBefore = true, onPage = false } = {}) {
   vi.useFakeTimers();
   vi.spyOn(window, 'close').mockImplementation(() => undefined);
   const browser = useFakeBrowser(pageBefore);
+  if (onPage) {
+    history.replaceState({ ...history.state, forward: '/settings' }, '', location.href);
+    history.pushState({ ...history.state, back: '/', forward: null }, '', location.href);
+  }
   const w = await mountSuspended(LeaveSheet);
   await flushPromises();
   return Object.assign(w, { browser, [Symbol.dispose]: () => w.unmount() });

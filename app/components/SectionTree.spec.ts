@@ -68,24 +68,18 @@ describe('a section with sentences', () => {
     expect(w.get('[data-testid="start-menu"]').text()).not.toContain('Cards');
   });
 
-  it('stays open once the menu has left history', async () => {
-    const w = await doMount(withSentences);
-    await doStart(w);
-    const router = useRouter();
-    const go = router.go.bind(router);
-    // As in a browser: the menu's back lands later, as a popstate, after the sheet took its own entry.
-    const back = vi.spyOn(router, 'back').mockImplementation(() =>
-      setTimeout(() => {
-        go(-1);
-        window.dispatchEvent(new PopStateEvent('popstate'));
-      }),
-    );
-    await w.get('[data-testid="kinds"]').trigger('click');
-    await new Promise(resolve => setTimeout(resolve, 10));
-    await flushPromises();
-    expect(w.find('[data-testid="kind-sheet"]').exists()).toBe(true);
-    back.mockRestore();
-  });
+  for (const [how, close] of [
+    ['closed', (w: VueWrapper) => w.get('[data-testid="kind-sheet-close"]').trigger('click')],
+    ['backed out of', () => window.dispatchEvent(new PopStateEvent('popstate'))],
+  ] as const) {
+    it(`goes back to the start menu once ${how}`, async () => {
+      const w = await doOpenKinds();
+      await close(w);
+      await flushPromises();
+      expect(w.find('[data-testid="kind-sheet"]').exists()).toBe(false);
+      expect(w.find('[data-testid="start-menu"]').exists()).toBe(true);
+    });
+  }
 
   it('follows the settings until given its own switch', async () => {
     const w = await doOpenKinds();
@@ -315,8 +309,7 @@ async function doOpenKinds() {
   const w = await doMount(withSentences);
   await doStart(w);
   await w.get('[data-testid="kinds"]').trigger('click');
-  // The sheet opens once the menu's history entry is gone.
-  await vi.waitFor(() => expect(w.find('[data-testid="kind-sheet"]').exists()).toBe(true));
+  await flushPromises();
   return w;
 }
 

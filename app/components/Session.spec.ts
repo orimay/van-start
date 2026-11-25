@@ -9,8 +9,10 @@ import Session from './Session.vue';
 import { ladder } from '@/utils/scheduler';
 import type { StudyCard } from '@/utils/deck';
 import { speak, speakExample } from '@/utils/speak';
+import { noteStep } from '@/utils/check-for-update';
 
 vi.mock('@/utils/speak');
+vi.mock('@/utils/check-for-update');
 
 const cards = (n: number): StudyCard[] => Array.from({ length: n }, (_, i) => ({ id: `c${i}`, prompt: `p${i}`, answer: `a${i}`, nl: `a${i}` }));
 
@@ -80,6 +82,19 @@ describe('a card mixed up with another', () => {
     ensureContains(w, 'mixed-hint', answerFor(first));
   });
 
+  it('says both come back when taken for one word, all when for more', async () => {
+    givenDeck(cards(6));
+    const w = await doMount({ cards: cards(6), stages: ['recall'] });
+    const first = promptOf(w);
+    await doRecall(w, true);
+    const second = promptOf(w);
+    await doRecall(w, true);
+    await doMixUp(w, idOf(first));
+    expect(w.get('[data-testid="mixed-hint"]').text()).toBe(`Taken for ${answerFor(first)}: both come back as missed`);
+    await doMixUp(w, idOf(second));
+    expect(w.get('[data-testid="mixed-hint"]').text()).toBe(`Taken for ${answerFor(first)}, ${answerFor(second)}: all come back as missed`);
+  });
+
   it('turns Remembered back on once that mix-up is taken back', async () => {
     givenDeck(cards(6));
     const w = await doMount({ cards: cards(6), stages: ['recall'] });
@@ -144,6 +159,92 @@ describe('a card mixed up with another', () => {
     }
     expect(seen).toContain('p7');
     expect(w.emitted('answer')).toContainEqual(['c7', 'recall', false]);
+  });
+});
+
+describe('a typed answer that is another word', () => {
+  const words = (...answers: string[]): StudyCard[] => [{ id: 'c0', prompt: 'p0', answer: 'a0', nl: 'a0' }, ...answers.map((answer, i) => ({ id: `c${i + 1}`, prompt: `p${i + 1}`, answer, nl: answer }))];
+
+  /** The deck the typed answer is looked up in. */
+  function givenDeck(list: StudyCard[]) {
+    const { deck, unconfuse, confusions } = useStore();
+    const was = deck.value;
+    deck.value = { id: 'root', name: 'root', cards: list.map(c => ({ id: c.id, f: c.prompt, b: c.answer })) };
+    onTestFinished(() => {
+      deck.value = was;
+      for (const [a, others] of Object.entries(confusions.value)) for (const b of others) unconfuse(a, b);
+    });
+  }
+
+  async function doMountTyping(list: StudyCard[]) {
+    givenDeck(list);
+    return doMount({ cards: list.slice(0, 1), pool: list, stages: ['type'] });
+  }
+
+  it('is taken for that word', async () => {
+    const w = await doMountTyping(words('terug', 'weg'));
+    await doType(w, 'input', 'terug');
+    ensureContains(w, 'mixed-hint', 'terug');
+    expect(useStore().confusions.value.c0).toEqual(['c1']);
+  });
+
+  it('counts symbols', async () => {
+    const w = await doMountTyping(words('terug', 'terug-'));
+    await doType(w, 'input', 'terug-');
+    expect(useStore().confusions.value.c0).toEqual(['c2']);
+  });
+
+  it('brings that word back as missed', async () => {
+    const w = await doMountTyping(words('terug', 'weg'));
+    await doType(w, 'input', 'terug');
+    await doClick(w, 'try-again');
+    await doType(w, 'input', 'a0');
+    await doClick(w, 'submit');
+    expect(w.emitted('answer')).toContainEqual(['c1', 'type', false]);
+  });
+
+  it('is no mix-up once claimed right', async () => {
+    const w = await doMountTyping(words('terug'));
+    await doType(w, 'input', 'terug');
+    await doClick(w, 'show-answer');
+    await doClick(w, 'accept');
+    ensureHas(w, 'mixed-hint', false);
+    expect(useStore().confusions.value.c0 ?? []).toEqual([]);
+  });
+
+  describe('matching several words', () => {
+    it('asks which one it was taken for', async () => {
+      const w = await doMountTyping(words('een (a)', 'een (one)', 'eens'));
+      await doType(w, 'input', 'een');
+      expect(w.findAll('[data-testid="mix-up-typed"] [data-testid="mix-up-word"]').map(o => o.text())).toEqual(['een (a)', 'een (one)']);
+      await w.findAll('[data-testid="mix-up-typed"] [data-testid="mix-up-option"]')[1]!.trigger('click');
+      await doClick(w, 'mix-up-done');
+      expect(useStore().confusions.value.c0).toEqual(['c2']);
+      ensureContains(w, 'mixed-hint', 'een (one)');
+    });
+
+    it('offers the hyphenated word too when typed without its hyphen', async () => {
+      const w = await doMountTyping(words('terug', 'terug-'));
+      await doType(w, 'input', 'terug');
+      expect(w.findAll('[data-testid="mix-up-typed"] [data-testid="mix-up-word"]').map(o => o.text())).toEqual(['terug', 'terug-']);
+    });
+
+    it('says all come back once taken for more than one', async () => {
+      const w = await doMountTyping(words('een (a)', 'een (one)'));
+      await doType(w, 'input', 'een');
+      for (const option of w.findAll('[data-testid="mix-up-typed"] [data-testid="mix-up-option"]')) await option.trigger('click');
+      await doClick(w, 'mix-up-done');
+      expect(w.get('[data-testid="mixed-hint"]').text()).toBe('Taken for een (a), een (one): all come back as missed');
+    });
+
+    it('asks again from the card once closed unanswered', async () => {
+      const w = await doMountTyping(words('een (a)', 'een (one)'));
+      await doType(w, 'input', 'een');
+      await doClick(w, 'mix-up-done');
+      ensureHas(w, 'mix-up-typed', false);
+      await doClick(w, 'mixed-up');
+      ensureHas(w, 'mix-up-typed');
+    });
   });
 });
 
@@ -1789,6 +1890,16 @@ describe('back into matching', () => {
     await doClick(after, 'previous');
     await doClick(after, 'previous');
     expect(visiblePairs(after)).toHaveLength(5);
+  });
+});
+
+describe('a step', () => {
+  it('looks for an update', async () => {
+    const w = await doMount({ cards: cards(3), stages: ['recall'] });
+    // The app's router also notes each navigation, the test router's own included.
+    vi.mocked(noteStep).mockClear();
+    await doRecall(w, true);
+    expect(noteStep).toHaveBeenCalledOnce();
   });
 });
 

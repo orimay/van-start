@@ -6,7 +6,7 @@ export interface Leniency {
 
 const STRICT: Leniency = { ignoreCase: false, ignoreMarks: false };
 
-function stripMarks(text: string): string {
+export function stripMarks(text: string): string {
   return text.normalize('NFD').replace(/\p{M}/gu, '').replace(/ı/g, 'i').replace(/ß/g, 'ss').normalize('NFC');
 }
 

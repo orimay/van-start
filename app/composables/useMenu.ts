@@ -12,11 +12,6 @@ export function useMenu(name: string) {
   return {
     openKey,
     show: (key = '') => router.push({ hash: `#${name}${key === '' ? '' : `-${key}`}` }),
-    /** Resolves once the menu has left history, so a layer opened next keeps the entry it pushes. */
-    hide: () =>
-      new Promise<void>(resolve => {
-        const stop = router.afterEach(() => (stop(), resolve()));
-        router.back();
-      }),
+    hide: () => router.back(),
   };
 }

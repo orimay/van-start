@@ -5,9 +5,9 @@ import { matching, suspects } from '@/utils/mix-up';
 
 /**
  * Links the cards `id` was mixed up with, and unlinks them: a tap toggles a card, which stays in the list ticked or not.
- * Before anything is typed it lists the cards already linked, then its look-alikes; typing searches Dutch and native text.
+ * Before anything is typed it lists the cards a typed answer may be, the cards already linked, then its look-alikes; typing searches Dutch and native text.
  */
-const props = defineProps<{ id: string; open: boolean }>();
+const props = defineProps<{ id: string; open: boolean; typed?: readonly string[] }>();
 const emit = defineEmits<{ pick: [id: string]; drop: [id: string]; close: [] }>();
 const store = useStore();
 const query = shallowRef('');
@@ -18,6 +18,7 @@ const others = computed(() => cards.value.filter(c => c.id !== props.id));
 const linked = computed(() => new Set(store.confusions.value[props.id] ?? []));
 
 /** The lists as they were on opening, so a tap ticks a row without moving it. */
+const typedAtOpen = shallowRef<DeckCard[]>([]);
 const linkedAtOpen = shallowRef<DeckCard[]>([]);
 const suggested = shallowRef<DeckCard[]>([]);
 watch(
@@ -25,9 +26,11 @@ watch(
   open => {
     if (!open) return;
     query.value = '';
+    const typed = new Set(props.typed);
     const was = new Set(store.confusions.value[props.id] ?? []);
-    linkedAtOpen.value = others.value.filter(c => was.has(c.id));
-    suggested.value = self.value ? suspects(self.value, others.value.filter(c => !was.has(c.id)), store.isLearned) : [];
+    typedAtOpen.value = others.value.filter(c => typed.has(c.id));
+    linkedAtOpen.value = others.value.filter(c => was.has(c.id) && !typed.has(c.id));
+    suggested.value = self.value ? suspects(self.value, others.value.filter(c => !was.has(c.id) && !typed.has(c.id)), store.isLearned) : [];
   },
   { immediate: true },
 );
@@ -37,6 +40,7 @@ const sections = computed(() =>
   query.value.trim()
     ? [{ title: '', cards: found.value }]
     : [
+        { title: 'The typed answer is', cards: typedAtOpen.value, testid: 'mix-up-typed' },
         { title: 'Mixed up with', cards: linkedAtOpen.value },
         { title: 'Looks alike', cards: suggested.value },
       ].filter(s => s.cards.length),
@@ -57,7 +61,7 @@ function toggle(other: string) {
   <BottomSheet :open="open" testid="mix-up-sheet" tall over @close="emit('close')">
     <template #title>Mixed up <span class="text-orange-700 dark:text-orange-400">{{ self?.b }}</span> with…</template>
     <div class="flex flex-col" data-testid="mix-up-options">
-      <section v-for="section in sections" :key="section.title" class="flex flex-col" data-testid="mix-up-section">
+      <section v-for="section in sections" :key="section.title" class="flex flex-col" :data-testid="'testid' in section ? section.testid : 'mix-up-section'">
         <h3 v-if="section.title" class="pt-2 pb-1 text-xs font-semibold uppercase text-stone-500">{{ section.title }}</h3>
         <button
           v-for="card in section.cards"
@@ -73,7 +77,7 @@ function toggle(other: string) {
             <span class="text-stone-500">{{ card.f }}</span>
             <span v-if="!store.isLearned(card.id)" class="text-xs text-stone-400">new</span>
           </span>
-          <span class="flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-sm" :class="linked.has(card.id) ? 'border-orange-600 bg-orange-600 text-white' : 'border-stone-300 dark:border-stone-600'" aria-hidden="true">{{ linked.has(card.id) ? '✓' : '' }}</span>
+          <span class="flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-sm" :class="linked.has(card.id) ? 'border-orange-700 bg-orange-700 text-white' : 'border-stone-300 dark:border-stone-600'" aria-hidden="true">{{ linked.has(card.id) ? '✓' : '' }}</span>
         </button>
       </section>
       <div v-if="query.trim() && !found.length" class="flex flex-col items-center gap-2 py-6 text-center" data-testid="mix-up-none">

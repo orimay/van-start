@@ -1,7 +1,7 @@
 import { effectScope } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { holdUpdateWhile } from './update-hold';
-import { reloadOnNewWorker } from './new-worker';
+import { reloadOnNewWorker, takeOverWhenIdle } from './new-worker';
 import { takeUpdateReload } from './update-reload';
 
 const scopes: ReturnType<typeof effectScope>[] = [];
@@ -48,5 +48,52 @@ describe('a new service worker taking over', () => {
     });
     container.dispatchEvent(new Event('controllerchange'));
     expect(reload).not.toHaveBeenCalled();
+  });
+});
+
+function makeWorker(state: string) {
+  return Object.assign(new EventTarget(), { state, postMessage: vi.fn() });
+}
+type Worker = ReturnType<typeof makeWorker>;
+
+function makeRegistration(waiting: Worker | null = null) {
+  return Object.assign(new EventTarget(), { waiting, installing: null as Worker | null });
+}
+
+/** A newer worker downloads and finishes installing while an older one runs the page. */
+function doInstall(registration: ReturnType<typeof makeRegistration>) {
+  const worker = makeWorker('installing');
+  registration.installing = worker;
+  registration.dispatchEvent(new Event('updatefound'));
+  worker.state = 'installed';
+  registration.installing = null;
+  registration.waiting = worker;
+  worker.dispatchEvent(new Event('statechange'));
+  return worker;
+}
+
+const SKIP_WAITING = { type: 'SKIP_WAITING' };
+
+describe('a newer service worker waiting', () => {
+  it('takes over right away when found on start', () => {
+    const worker = makeWorker('installed');
+    inScope(() => takeOverWhenIdle(makeRegistration(worker)));
+    expect(worker.postMessage).toHaveBeenCalledWith(SKIP_WAITING);
+  });
+
+  it('takes over once it finishes installing', () => {
+    const registration = makeRegistration();
+    inScope(() => takeOverWhenIdle(registration));
+    const worker = doInstall(registration);
+    expect(worker.postMessage).toHaveBeenCalledWith(SKIP_WAITING);
+  });
+
+  it('waits while something holds the update', () => {
+    const worker = makeWorker('installed');
+    inScope(() => {
+      holdUpdateWhile(() => true);
+      takeOverWhenIdle(makeRegistration(worker));
+    });
+    expect(worker.postMessage).not.toHaveBeenCalled();
   });
 });

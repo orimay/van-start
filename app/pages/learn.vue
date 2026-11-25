@@ -245,7 +245,7 @@ function takeDone() {
 <template>
   <div class="flex flex-1 flex-col gap-2">
     <header class="flex items-center gap-3 text-sm">
-      <NuxtLink to="/" class="text-xl leading-none text-stone-500" data-testid="back">‹</NuxtLink>
+      <UpLink to="/" class="text-xl leading-none text-stone-500" data-testid="back">‹</UpLink>
       <h1 class="flex-1 truncate font-semibold">{{ node.name }}</h1>
     </header>
     <div v-if="confirmingStartOver" class="flex flex-1 flex-col gap-4">
@@ -282,7 +282,7 @@ function takeDone() {
       <p class="flex flex-1 items-center justify-center text-xl font-semibold" data-testid="done">{{ group.length ? 'Group learned' : 'Section learned' }}</p>
       <p v-if="finished && carried.size" class="text-center text-sm opacity-70" data-testid="carried">{{ carried.size }} hard {{ carried.size === 1 ? 'word moves' : 'words move' }} to the next group</p>
       <div class="flex flex-col gap-2">
-        <NuxtLink to="/" class="btn-ghost text-center">To sections</NuxtLink>
+        <UpLink to="/" class="btn-ghost text-center">To sections</UpLink>
         <button v-if="group.length && finished" class="btn-primary" data-testid="next-group" @click="nextGroup">Next group</button>
       </div>
     </div>
