@@ -1209,6 +1209,13 @@ describe('typing', () => {
       expect(typed.findAll('[data-kind="wrong"]').map(l => l.text())).toEqual(['x']);
     });
 
+    it('shows an extra space as a visible space mark, so its strike cannot pass for a hyphen', async () => {
+      const w = await doMount({ cards: cards(2), stages: ['type'] });
+      const answer = answerFor(promptOf(w));
+      await doType(w, 'input', `${answer[0]} ${answer.slice(1)}`);
+      expect(w.get('[data-testid="typed"]').findAll('[data-kind="extra"]').map(l => l.text())).toEqual(['␣']);
+    });
+
     it('is not shown once the answer is right', async () => {
       const w = await doMount({ cards: cards(2), stages: ['type'] });
       await doType(w, 'input', answerFor(promptOf(w)));

@@ -103,6 +103,11 @@ describe('a wrong typed answer', () => {
     });
   });
 
+  it('is no word that merely looks like it', () => {
+    const short = [card('1', 'de', 'опр. артикль'), card('2', '-te', '-ость'), card('3', '-st', '-ейший')];
+    for (const leniency of [LENIENT, { ignoreCase: false, ignoreMarks: false }]) expect(typedAs('-ste', short, c => c.b, leniency)).toEqual([]);
+  });
+
   it('is any word the leniency accepts when none is written so', () => {
     expect(takenFor('een')).toEqual(['3', '4', '5']);
     expect(takenFor('een', { ignoreCase: false, ignoreMarks: false })).toEqual(['3', '4']);

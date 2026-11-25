@@ -272,6 +272,7 @@ When two rules conflict, the one written further down wins.
   - Home is the last stop: arriving on it from another page (a link, Back, `‹`) goes back to the app's first history entry and puts home there (`utils/home-first.ts`), so no earlier page is behind it. A hash menu opening on home is no arrival.
   - Back with nothing open on the app's first page asks `Leave Van start?` (`LeaveSheet.vue`; a guard entry over the first one in `app/utils/back.ts`). Leave goes back past the app; with nothing before it (an installed app), it tries to close, and else says the next back leaves. Stay, ✕ or another back keep the app, and the next back asks again. Back onto the first page from a page the router opened on it (its `forward` set: no guard above it yet) asks nothing; it clears `forward` and guards, so the next back asks.
   - While a sheet is open the answer clock stops.
+  - The typed-letter diff (`TypedLetters.vue`): right letters green, extra ones in a red box struck through, wrong ones in a red box, missing ones as `_`. An extra or wrong space is drawn as `␣`: a struck blank reads as a typed hyphen.
   - The sheet slides up and fades its backdrop in (200 ms), slides out on close (150 ms), as focus-assistant's `Dialog.vue`. A finger drags it down; let go past a quarter of its height it closes, else springs back. The body takes the gesture while scrolled. Header (word, audio, ✕, transcription) stays put; only the body scrolls.
 
 ## Verify and ship

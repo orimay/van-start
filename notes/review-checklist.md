@@ -87,3 +87,4 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] A link up a page is an `UpLink`, never a `NuxtLink` push: back on home asks to leave, it never walks through earlier pages.
 - [ ] A sheet opened from a menu returns to that menu when it closes.
 - [ ] Home is the last stop: after home -> settings -> a lesson -> home, Back on home asks to leave, never walks back through pages.
+- [ ] Every mark in the typed-letter diff reads as what was typed: a space typed in error shows as `␣`, never a blank that a strike turns into a hyphen.

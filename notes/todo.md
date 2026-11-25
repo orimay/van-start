@@ -136,11 +136,11 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [x] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
 
 ## A miss counts directly linked mix-ups as missed (2026-11-25)
-- [ ] A miss on a card also counts every card directly linked to it as mixed up as missed, so the pair is reinforced; links of links are not followed. The linked ones come back like a picked mix-up.
-- [ ] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
+- [x] A miss on a card also counts every card directly linked to it as mixed up as missed, so the pair is reinforced; links of links are not followed. The linked ones come back like a picked mix-up.
+- [x] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
 
 ## Mix-up detection, affix look, context layout, derivation links (2026-11-25)
-- [ ] Typed `-ste` was auto-detected as a mix-up with `de`: unacceptable. Auto-detect only on an exact match, or an obvious other form of the same (`terug` for the affix `terug-` means `terug-` or `-terug`).
+- [x] Typed `-ste` was auto-detected as a mix-up with `de`: unacceptable. Auto-detect only on an exact match, or an obvious other form of the same (`terug` for the affix `terug-` means `terug-` or `-terug`). Not reproducible: auto-detect links only a card whose answer the leniency accepts or that lacks only marks or an affix hyphen; `-ste` links nothing in any of the 6 languages. Regression spec added.
 - [ ] An auto-detected mix-up, then Back, then Later instead of Forgot cancels the mix-up.
 - [ ] Affix cards suggest other affixes as look-alikes (affix mixed up with affix, non-affix with non-affix); weigh the same heuristic for `tegen-` vs `tegen`.
 - [ ] Everything in the explanation under the divider leaves the layout while hidden.
@@ -148,14 +148,24 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [ ] Hidden context still takes space: when open, show the context icon before it; when hidden, the same icon in the top-left corner.
 - [ ] Derivation links are uneven (a word without -e linked, its -e pair only pointing to it; `volgend` and `volgende` both linked to `volgen`). Pick one logical rule across all cards, apply it, record it.
 - [ ] Before reveal the mix-up picker spoils the word being guessed. Decide: drop manual mix-up before reveal (once detection is exact), or keep it while hiding what the card is mixed up with and leaving it out of the matches (the card itself is always left out).
-- [ ] Back on home still goes to the previous page. Home is the last stop: there the history holds only home, and Back offers to leave.
+- [x] Back on home still goes to the previous page. Home is the last stop: there the history holds only home, and Back offers to leave.
 - [ ] The affix card meaning `-ция` (ru) gives `поздравление` as its example, not one word in `-ция`; `-ение` is missing, or sits on another affix card, which would explain the mix-ups. Describe it better in all 6 languages; check the other affix cards for the same.
 
 ## Earlier mix-ups: never before the answer, listed under ≈ (2026-11-25)
-- [ ] No "mixed up before" hint before the answer shows (a typing retry included): seeing it, the user steers clear of the known-wrong word and the other card never gets its new miss.
-- [ ] Once the card is open, list the earlier mix-ups under the `≈` button on the card itself, one per line, the freshest on top.
-- [ ] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
+- [x] No "mixed up before" hint before the answer shows (a typing retry included): seeing it, the user steers clear of the known-wrong word and the other card never gets its new miss.
+- [x] Once the card is open, list the earlier mix-ups under the `≈` button on the card itself, one per line, the freshest on top.
+- [x] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
 
 ## be- and etymology notes (2026-11-25)
 - [ ] be- says it changes the verb's meaning: is that so? betekening: is it be- + tekenen (to mark, to signify)? Research the etymology, explain it well on the linked words, and fix be-'s native description in all 6 languages so it is right.
 - [ ] Then go over every linked word: the etymology notes are right and the examples fit (not an affix about `-ость` giving `-ние` words as examples).
+- [ ] -end says `-ющий: делающий что-то`: it reads like an example, or like a verb, and confuses. `соответствующий` is not "doing something". Describe `-end` right in all 6 languages; check its examples and linked words.
+
+## Typed-letter diff: an extra space reads as a hyphen (2026-11-25)
+- [x] A struck-through extra space looks like a wrongly typed hyphen. An extra or wrong space is drawn as `␣`, so its strike reads as a space; the rest stays (extra: red box + strike, wrong: red box, missing: `_`).
+- [x] TDD black-box spec, CLAUDE.md + review checklist, check visually (phone, light/dark).
+- [ ] Deploy, verify live.
+
+## samen- vs mee- (2026-11-25)
+- [x] Both said `вместе`. Now mee- = `заодно с кем-то, с собой` (join what another does, or take along: meegaan, meenemen), samen- = `друг с другом, сообща` (two or more on equal terms: samenwerken); each note ends with `не путать с:` the other. All 6 languages, glosses on every linked word.
+- [ ] Deploy, verify live.
