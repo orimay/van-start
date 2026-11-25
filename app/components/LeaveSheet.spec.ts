@@ -8,6 +8,7 @@ import LeaveSheet from './LeaveSheet.vue';
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe('back on the first page', () => {
@@ -94,15 +95,65 @@ describe('with nothing before the app', () => {
   });
 });
 
+describe('on a phone that skips entries pushed on back', () => {
+  it('asks before leaving the app', async () => {
+    using w = await doMount({ phone: true });
+    await w.browser.pressBack();
+    expect(isAsking(w)).toBe(true);
+    expect(w.browser.left).toBe(false);
+  });
+
+  it('closes the question on another back, keeping the app', async () => {
+    using w = await doMount({ phone: true });
+    await w.browser.pressBack();
+    await w.browser.pressBack();
+    expect(isAsking(w)).toBe(false);
+    expect(w.browser.left).toBe(false);
+  });
+
+  for (const [how, act] of [
+    ['Stay', (w: Mounted) => doStay(w)],
+    ['another back', (w: Mounted) => w.browser.pressBack()],
+  ] as const) {
+    it(`asks again on the next back after ${how}`, async () => {
+      using w = await doMount({ phone: true });
+      await w.browser.pressBack();
+      await act(w);
+      await w.browser.pressBack();
+      expect(isAsking(w)).toBe(true);
+      expect(w.browser.left).toBe(false);
+    });
+  }
+
+  it('leaves the app on Leave', async () => {
+    using w = await doMount({ phone: true });
+    await w.browser.pressBack();
+    await doLeave(w);
+    expect(w.browser.left).toBe(true);
+  });
+
+  it('leaves on the next back after Leave with nothing before the app', async () => {
+    using w = await doMount({ phone: true, pageBefore: false });
+    await w.browser.pressBack();
+    await doLeave(w);
+    expect(window.close).toHaveBeenCalled();
+    await w.browser.pressBack();
+    expect(w.browser.left).toBe(true);
+  });
+});
+
 // declarative helpers
 
 type Mounted = VueWrapper & { browser: FakeBrowser };
 
-/** `onPage`: the app stands on a page it opened from its first one before it guarded against leaving. */
-async function doMount({ pageBefore = true, onPage = false } = {}) {
+/**
+ * `onPage`: the app stands on a page it opened from its first one before it guarded against leaving.
+ * `phone`: Chrome on a touch screen, see `useFakeBrowser`.
+ */
+async function doMount({ pageBefore = true, onPage = false, phone = false } = {}) {
   vi.useFakeTimers();
   vi.spyOn(window, 'close').mockImplementation(() => undefined);
-  const browser = useFakeBrowser(pageBefore);
+  const browser = useFakeBrowser(pageBefore, phone);
   if (onPage) {
     history.replaceState({ ...history.state, forward: '/settings' }, '', location.href);
     history.pushState({ ...history.state, back: '/', forward: null }, '', location.href);
@@ -133,13 +184,32 @@ type FakeBrowser = ReturnType<typeof useFakeBrowser>;
  * The browser's session history, which happy-dom does not move on back: entries from the app's first
  * one on, and whether a page before the app takes a back past it. The device's back button on the
  * app's first entry leaves the app either way; a script's step out of range does nothing.
+ * `phone` is Chrome on a touch screen: the back button closes the latest CloseWatcher first, and skips
+ * an entry the page pushed another over while handling a back, with no tap since.
  */
-function useFakeBrowser(pageBefore: boolean) {
+function useFakeBrowser(pageBefore: boolean, phone = false) {
   const replace = history.replaceState.bind(history);
   const { leaveGuard: _guard, backLayer: _layer, ...first } = (history.state ?? {}) as Record<string, unknown>;
   replace({ ...first, back: null }, '', location.href);
   const entries: unknown[] = [history.state];
+  const skipped = new Set<unknown>();
+  let onBack = false;
   let at = 0;
+  const watchers: FakeCloseWatcher[] = [];
+  class FakeCloseWatcher {
+    onclose: (() => void) | null = null;
+    constructor() {
+      watchers.push(this);
+    }
+    destroy() {
+      const at = watchers.indexOf(this);
+      if (at >= 0) watchers.splice(at, 1);
+    }
+  }
+  if (phone) {
+    vi.stubGlobal('CloseWatcher', FakeCloseWatcher);
+    vi.spyOn(window, 'matchMedia').mockImplementation(query => ({ matches: query === '(pointer: coarse)', media: query }) as MediaQueryList);
+  }
   const browser = { left: false, pressBack: async () => {} };
   const leave = () => {
     browser.left = true;
@@ -154,6 +224,7 @@ function useFakeBrowser(pageBefore: boolean) {
     queueMicrotask(() => window.dispatchEvent(new PopStateEvent('popstate', { state: history.state })));
   };
   vi.spyOn(history, 'pushState').mockImplementation(state => {
+    if (phone && onBack) skipped.add(entries[at]);
     entries.splice(++at, Infinity, state);
     replace(state, '', location.href);
   });
@@ -164,9 +235,16 @@ function useFakeBrowser(pageBefore: boolean) {
   vi.spyOn(history, 'go').mockImplementation(go);
   vi.spyOn(history, 'back').mockImplementation(() => go(-1));
   browser.pressBack = async () => {
-    if (at === 0) leave();
-    else go(-1);
+    onBack = true;
+    const watcher = phone && watchers.at(-1);
+    const to = entries.findLastIndex((entry, i) => i < at && !skipped.has(entry));
+    if (watcher) {
+      watcher.destroy();
+      watcher.onclose?.();
+    } else if (to < 0) leave();
+    else go(to - at);
     await flushPromises();
+    onBack = false;
   };
   return browser;
 }
