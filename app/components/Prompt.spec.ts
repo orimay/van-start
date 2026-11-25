@@ -492,7 +492,7 @@ describe('a card surface', () => {
       { id: 's3', f: 'на', b: 'op' },
     ]);
     expect(new Set([affix, noun, verb, other].map(s => s![0])).size).toBe(4);
-    for (const [prompt, answer] of [affix, noun, verb, other]) expect(answer).toBe(prompt);
+    for (const [prompt, answer] of [affix!, noun!, verb!, other!]) expect(answer).toBe(prompt);
   });
 
   it('has its own tint in the dark theme too', async () => {

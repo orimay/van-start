@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { linkBreakdown, linkSegments } from '@/utils/links';
+import { linkBreakdown, linkSegments, type Segment } from '@/utils/links';
 
 /** A note item, the words it names as links to their cards; `secret`: the note's own card is not answered yet; `breakdown`: a word's parts, `a- (…) + b (…)`. */
 /** `head`: the item's opening words (a label, an example's Dutch), set apart by `headClass`; the links still read the whole item. */
 const props = defineProps<{ text: string; self?: string; secret?: boolean; breakdown?: boolean; head?: string; headClass?: string; headTestid?: string }>();
 const sheet = useCardSheet();
-const segments = computed(() => {
+const segments = computed((): Array<Segment & { head?: true }> => {
   const all = (props.breakdown ? linkBreakdown : linkSegments)(props.text, sheet.index.value, props.self);
   const [first, ...rest] = all;
   if (!props.head || !first || first.link || !first.text.startsWith(props.head)) return all;

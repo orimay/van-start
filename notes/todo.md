@@ -142,12 +142,12 @@ Work through every item before stopping. Never stop on a question: pick the sens
 ## Mix-up detection, affix look, context layout, derivation links (2026-11-25)
 - [x] Typed `-ste` was auto-detected as a mix-up with `de`: unacceptable. Auto-detect only on an exact match, or an obvious other form of the same (`terug` for the affix `terug-` means `terug-` or `-terug`). Not reproducible: auto-detect links only a card whose answer the leniency accepts or that lacks only marks or an affix hyphen; `-ste` links nothing in any of the 6 languages. Regression spec added.
 - [x] An auto-detected mix-up, then Back, then Later instead of Forgot cancels the mix-up. Later now keeps the words it was taken for missed (and brings them back sooner); only the card's own answer is taken back.
-- [ ] Affix cards suggest other affixes as look-alikes (affix mixed up with affix, non-affix with non-affix); weigh the same heuristic for `tegen-` vs `tegen`.
-- [ ] Everything in the explanation under the divider leaves the layout while hidden.
-- [ ] Affix cards are not distinct enough: tint them (violet-ish background or text shade). Look at where the same word appears as different cards (parts of speech) and tint those apart too.
-- [ ] Hidden context still takes space: when open, show the context icon before it; when hidden, the same icon in the top-left corner.
-- [ ] Derivation links are uneven (a word without -e linked, its -e pair only pointing to it; `volgend` and `volgende` both linked to `volgen`). Pick one logical rule across all cards, apply it, record it.
-- [ ] Before reveal the mix-up picker spoils the word being guessed. Decide: drop manual mix-up before reveal (once detection is exact), or keep it while hiding what the card is mixed up with and leaving it out of the matches (the card itself is always left out).
+- [x] Affix cards suggest other affixes as look-alikes (affix mixed up with affix, non-affix with non-affix); weigh the same heuristic for `tegen-` vs `tegen`.
+- [x] Everything in the explanation under the divider leaves the layout while hidden.
+- [x] Affix cards are not distinct enough: tint them (violet-ish background or text shade). Look at where the same word appears as different cards (parts of speech) and tint those apart too.
+- [x] Hidden context still takes space: when open, show the context icon before it; when hidden, the same icon in the top-left corner.
+- [x] Derivation links are uneven (a word without -e linked, its -e pair only pointing to it; `volgend` and `volgende` both linked to `volgen`). Pick one logical rule across all cards, apply it, record it. Rule: `от:` on the base alone, its -e card names only `форма от:` the base (volgen → volgend → volgende); `form-notes.spec.ts`.
+- [x] Before reveal the mix-up picker spoils the word being guessed. Decide: drop manual mix-up before reveal (once detection is exact), or keep it while hiding what the card is mixed up with and leaving it out of the matches (the card itself is always left out). Kept: before the answer the picker lists only what the typed answer is, never the linked or look-alike cards.
 - [x] Back on home still goes to the previous page. Home is the last stop: there the history holds only home, and Back offers to leave.
 - [x] The affix card meaning `-ция` (ru) gives `поздравление` as its example, not one word in `-ция`; `-ение` is missing, or sits on another affix card, which would explain the mix-ups. Describe it better in all 6 languages; check the other affix cards for the same.
 
@@ -157,8 +157,8 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [x] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
 
 ## be- and etymology notes (2026-11-25)
-- [ ] be- says it changes the verb's meaning: is that so? betekening: is it be- + tekenen (to mark, to signify)? Research the etymology, explain it well on the linked words, and fix be-'s native description in all 6 languages so it is right.
-- [ ] Then go over every linked word: the etymology notes are right and the examples fit (not an affix about `-ость` giving `-ние` words as examples).
+- [x] be- says it changes the verb's meaning: is that so? betekening: is it be- + tekenen (to mark, to signify)? Research the etymology, explain it well on the linked words, and fix be-'s native description in all 6 languages so it is right.
+- [x] Then go over every linked word: the etymology notes are right and the examples fit (not an affix about `-ость` giving `-ние` words as examples). be- is now `действие на кого-то или что-то; снабдить чем-то, сделать каким-то; исходно: вокруг, при` (Proto-Germanic *bi), every linked word glossed with its sense, bestaan/besluiten with `букв.`; ver- got `до конца, полностью` for the same empty gloss; ont- `навстречу` (ontmoeten, ontvangen, from *and-); -voud `грамматическое число` (enkelvoud, meervoud); -baar and ont- breakdowns split their own example. Specs: no `меняет смысл`, a breakdown splits its own example.
 - [x] -end says `-ющий: делающий что-то`: it reads like an example, or like a verb, and confuses. `соответствующий` is not "doing something". Describe `-end` right in all 6 languages; check its examples and linked words. Now `-ющий, -ящий: который что-то делает` (en `-ing: that does something`), example `volgend (следующий: который следует)`, glosses updated, passend's note reads `который подходит`.
 
 ## Typed-letter diff: an extra space reads as a hyphen (2026-11-25)
@@ -194,14 +194,15 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [x] Deploy, verify live.
 
 ## Every sense, every origin, every -e pair (2026-11-25)
-- [ ] zitten op lists one sense: every word lists all its common senses, in all 6 languages.
+- [x] zitten op lists one sense: every word lists all its common senses, in all 6 languages.
+  - Done: zitten op holds учиться в; заниматься; сидеть на. Phrases gained opzoeken/zoek op (навещать), over zijn (остаться), pijn doen (причинять боль), vandaan komen (быть родом), letten op/let op (присматривать), gaan over (отвечать за), langer (длиннее; выше).
 - [ ] Every word links to its origin (verb, noun, affix, root) down the chain (ontbijt -> ontbijten -> ont- + bijten -> bijten); a missing origin word gets a card right before its first use.
 - [x] Every adjective has its with/without -e pair card (middelbaar/middelbare).
 - [x] van huis: `из дома; от дома`, note shows both uses (ga van huis, ver van huis).
 - [x] Deploy, verify live.
 
 ## Comparative and superlative affixes (2026-11-25)
-- [ ] Affix cards for the comparative -er and the superlative -ste; their notes tell -er of degree (ouder) from -er of the doer (bakker), both ways. Every comparative and superlative links to its affix, in all 6 languages.
+- [x] Affix cards for the comparative -er and the superlative -ste; their notes tell -er of degree (ouder) from -er of the doer (bakker), both ways. Every comparative and superlative links to its affix, in all 6 languages.
 - [x] Deploy, verify live.
 
 ## Why the article, in every phrase (2026-11-25)
@@ -217,7 +218,8 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [ ] boodschap (bode + -schap) and paddenstoel (pad + stoel) had no `от:`; the links audit only finds splits into existing cards. Go over every word and set phrase without `от:`, add the missing part cards before the word, all 6 languages. Phrases too: every non-sentence card and every set expression names its parts (een douche nemen: de douche + nemen) and says why that verb.
 
 ## Plurals lose meanings of their singular (2026-11-25)
-- [ ] de bladeren showed only "листья" with no word on blad's other senses (bladen), and het blad lacked "magazine". Every plural of a multi-meaning word covers each meaning or says it has no plural / another plural; a spec holds it. Recheck singular descriptions for missing common senses deck-wide.
+- [x] de bladeren showed only "листья" with no word on blad's other senses (bladen), and het blad lacked "magazine". Every plural of a multi-meaning word covers each meaning or says it has no plural / another plural; a spec holds it. Recheck singular descriptions for missing common senses deck-wide.
+  - Done: `plural-meanings.spec.ts` checks all 6 languages (drogisten, agenda's, functies fixed). Singulars gained doel (ворота), voorwerp and persoon (грамматика), lang (высокий), zacht (тихий), bloem (мука), ruim (с лишним), serie (серия), zakken (опускаться), uitslag (матч, выборы; сыпь), meester (мастер), instelling (настройка), werk (произведение); plurals and -e forms follow.
 
 ## Wrong answer shows a strike-through diff (2026-11-25)
 
@@ -225,7 +227,7 @@ Wrong parts of the typed answer are struck through, the right ones follow them: 
 
 ## Typecheck is red (2026-11-25)
 
-- [ ] `npm run typecheck` reports 15 errors, none from the diff/gloss work: plugins `$router` unknown, `NoteText.vue` segment union, `SectionTree.spec.ts` settings fixtures, `Session.spec.ts` `gameScores`, `useCardSheet.ts` `indexed`.
+- [x] `npm run typecheck` reports 15 errors, none from the diff/gloss work: plugins `$router` unknown, `NoteText.vue` segment union, `SectionTree.spec.ts` settings fixtures, `Session.spec.ts` `gameScores`, `useCardSheet.ts` `indexed`. Now 0: plugins take `useRouter()` (Nuxt's vue-router 5, the app's direct dep is 4), fixtures typed.
 
 ## Every affixed word is split (2026-11-25)
 - [x] A word carrying an affix the deck has a card for names that affix and its base (uitstekend = uitsteken + -end), in all 6 languages. `affix-split.spec.ts` checks the marked affixes (ge-, -ig, ...) by shape and every other deck affix when the rest is a deck word (spannend, de opvang, de afvoer, de bijdrage, onverwacht, de kunstenares, de mixer, 9 comparatives); groter/beter/liever/het liefst(e) now name their degree; look-alikes (de kamer) and bases the deck lacks (slaan in de slager) are grouped exemptions.
@@ -259,4 +261,4 @@ Wrong parts of the typed answer are struck through, the right ones follow them: 
 
 ## A front tells its card apart (2026-11-25)
 - [x] alweer «опять, снова» and weer «снова, опять» were the same card without the hidden example. Whole deck: fronts with the same senses in any order now differ in every language (alweer «опять (с досадой)», de arts «врач (официально)», besluiten / beslissen, de bloes / de blouse, ~35 ru and ~150 translation-only clashes: homonyms like pt segundo, es seguro, tr sıcak, ro mare). `duplicate-prompts.spec.ts` checks all 6 languages; affixes and forms are exempt.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live.

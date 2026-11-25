@@ -77,7 +77,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] A verb form card (hij neemt, neem) names its infinitive with `форма от:` (or the perfect/imperative label) in all 6 languages, and only that verb.
 - [ ] Words sharing a root name it in their `от:` (onderwerp and voorwerp both from werpen).
 - [ ] Feminine/masculine, compound/part, comparative/superlative/ordinal/base pairs link both ways in every language; a regular comparative or superlative also names `-er` / `-ste`; a look-alike sits under `не путать с:`.
-- [ ] No affix gloss in a note says it adds nothing; it names what the affix changes.
+- [ ] No affix gloss in a note says it adds nothing or only `меняет смысл глагола`; it names what the affix does, or its original sense where the word drifted (be- `вокруг, при`). An affix's breakdown splits its own example word.
 - [ ] A derived word whose meaning does not follow from its parts (betekenen, ontdekken) says how it got there with `букв.`.
 - [ ] A spec whose order comes from a date seed pins its day with fake timers.
 - [ ] An affix with a hyphen never wraps away from its hyphen (`KeepAffixes`).

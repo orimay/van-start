@@ -153,3 +153,26 @@ describe("an affix's gloss", () => {
     });
   }
 });
+
+/** "Changes the verb's meaning" is true of every prefix and teaches nothing: a meaning says what the affix does. */
+describe("an affix's meaning", () => {
+  const EMPTY: Record<string, RegExp> = { ru: /меняет смысл/, en: /changes the verb/, es: /cambia el sentido/, pt: /muda o sentido/, tr: /anlamını değiştirir/, ro: /schimbă sensul/ };
+  for (const lang of Object.keys(EMPTY)) {
+    it(`says what it does in ${lang}`, () => {
+      const overlay = lang === 'ru' ? undefined : overlayOf(lang);
+      const glossOf = (c: Card) => (overlay ? overlay[c.id]![0] : c.f);
+      expect(everyAffix.filter(c => EMPTY[lang]!.test(glossOf(c))).map(c => `${c.b}: ${glossOf(c)}`)).toEqual([]);
+    });
+  }
+});
+
+/** The breakdown under an affix's example splits that word, not another: -baar once showed middelbaar over «dank + -baar». */
+describe("an affix's breakdown", () => {
+  it('names the parts of its own example word', () => {
+    const notes = cardsOf(deck) as Array<Card & { n?: string }>;
+    const noteOf = (dutch: string) => notes.find(c => c.b === dutch)?.n ?? '';
+    const partsOf = (xl: string) => xl.split(': ')[0]!.split(' + ').map(part => bare(part.replace(/ \(.*$/, '')));
+    const wrong = pairs.filter(([affix]) => affix.xl).flatMap(([affix]) => partsOf(affix.xl!).filter(part => !noteOf(affix.xb!).includes(part)).map(part => `${affix.b}: ${part} not in ${affix.xb}`));
+    expect(wrong).toEqual([]);
+  });
+});

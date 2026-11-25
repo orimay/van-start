@@ -1,7 +1,7 @@
 import { stopPlaying } from '@/utils/play';
 import { mountSuspended } from '@nuxt/test-utils/runtime';
 import type { VueWrapper } from '@vue/test-utils';
-import type { Score } from '@/utils/score';
+import type { GameScores, Score } from '@/utils/score';
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { flushPromises } from '@vue/test-utils';
 import { nextTick } from 'vue';
@@ -2574,7 +2574,7 @@ function ensureTryAgainOffered(w: VueWrapper) {
   expect(w.find('[data-testid="try-again"]').exists()).toBe(true);
 }
 
-async function doMount(props: { cards: StudyCard[]; stages: string[]; retryGap?: number; resumeAt?: unknown; pool?: StudyCard[]; known?: string[]; seed?: string; scores?: Record<string, Score>; games?: Record<string, string>; passed?: Record<string, string[]>; isSlow?: (game: string, ms: number) => boolean; introducing?: boolean; announce?: boolean; onPosition?: (p: unknown) => void }, attached = false) {
+async function doMount(props: { cards: StudyCard[]; stages: string[]; retryGap?: number; resumeAt?: unknown; pool?: StudyCard[]; known?: string[]; seed?: string; scores?: Record<string, Score>; gameScores?: Record<string, GameScores>; games?: Record<string, string>; passed?: Record<string, string[]>; isSlow?: (game: string, ms: number) => boolean; introducing?: boolean; announce?: boolean; onPosition?: (p: unknown) => void }, attached = false) {
   return mountSuspended(Session, { props: { pool: props.cards, lang: 'nl', ...props } as never, ...(attached ? { attachTo: document.body } : {}) });
 }
 

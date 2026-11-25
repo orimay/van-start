@@ -193,7 +193,7 @@ describe('the order', () => {
   it('starts with the hardest words of the game', async () => {
     // A fixed day: the order comes from a seed holding the date, and on some days a hard word jumps ahead by its odds.
     vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-01-02T12:00:00') });
-    onTestFinished(() => vi.useRealTimers());
+    onTestFinished(() => { vi.useRealTimers(); });
     givenLearned('k0', 'k1', 'k2');
     for (const id of ['k0', 'k1', 'k2']) givenDue(id, 'recall');
     store.saveScore('k1', 'recall', { right: 1, wrong: 2 });

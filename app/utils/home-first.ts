@@ -1,11 +1,9 @@
-import type { Router } from 'vue-router';
-
 /**
  * Arriving on home from another page goes back to the app's first history entry and puts home there,
  * so the pages before it are no longer behind it and back on home can only leave the app.
  * A menu opening on home (a hash) is no arrival.
  */
-export function keepHomeFirst(router: Router) {
+export function keepHomeFirst(router: ReturnType<typeof useRouter>) {
   let rooting = false;
   router.afterEach((to, from, failure) => {
     // The step back lands on the first entry; one already showing home is a duplicate, failed navigation.

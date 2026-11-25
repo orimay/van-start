@@ -122,7 +122,7 @@ describe('a section with sentences', () => {
   it('is marked in the list while it keeps its own switch', async () => {
     settings.value.groupKinds = { s: { sentence: false } };
     const w = await doMount(withSentences);
-    expect(w.get('[data-testid="kinds-own"]').exists()).toBe(true);
+    expect(w.find('[data-testid="kinds-own"]').exists()).toBe(true);
   });
 
   it('is not marked without its own switch', async () => {
@@ -145,13 +145,13 @@ describe('review menu', () => {
 
 describe('groups left', () => {
   it('count the groups the new cards still make', async () => {
-    settings.value = { groupSize: 2, games: ['recall'] };
+    settings.value = { groupSize: 2, games: ['recall'], kinds: {}, groupKinds: {} };
     const w = await doMount({ ...section, cards: Array.from({ length: 7 }, (_, i) => ({ id: `c${i}`, f: 'f', b: 'b' })) });
     expect(w.get('[data-testid="groups-left"]').text()).toBe('4/4 groups left');
   });
 
   it('leave out the learned cards', async () => {
-    settings.value = { groupSize: 1, games: ['recall'] };
+    settings.value = { groupSize: 1, games: ['recall'], kinds: {}, groupKinds: {} };
     learned.add('a');
     const w = await doMount();
     expect(w.get('[data-testid="groups-left"]').text()).toBe('1/2 groups left');
@@ -173,7 +173,7 @@ describe('start button', () => {
   });
 
   it('offers a review per review game, on or off, when everything is learned', async () => {
-    settings.value = { groupSize: 5, games: ['match'] };
+    settings.value = { groupSize: 5, games: ['match'], kinds: {}, groupKinds: {} };
     learned.add('a').add('b');
     const w = await doMount();
     await doStart(w);
