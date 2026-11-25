@@ -28,6 +28,28 @@ const SENSES: Record<string, string[]> = {
   'het slot': ['замок', 'конец'],
   eens: ['однажды', 'согласный'],
   pas: ['только', 'недавно'],
+  // A word made from another keeps each sense of its base it can carry: geluk is счастье and удача, so gelukkig is удачный too
+  gelukkig: ['счастливый', 'удачный', 'к счастью'],
+  'de vriendin': ['подруга', 'девушка'],
+  schuldig: ['виновный', 'должный'],
+  mogelijk: ['возможный', 'возможно'],
+  harder: ['усерднее', 'громче', 'твёрже'],
+  dunne: ['тонкий', 'худой'],
+  dunner: ['тоньше', 'худее'],
+  bekende: ['известный', 'знакомый'],
+  onregelmatige: ['нерегулярный', 'неправильный'],
+  'de voorstelling': ['спектакль', 'представление'],
+  // Senses another language listed apart and Russian ran together or lacked
+  'de stem': ['голос', 'голосование'],
+  eerlijk: ['честный', 'справедливый'],
+  'het karton': ['картон', 'пакет'],
+  'het gaatje': ['дырочка', 'дупло'],
+  'de pech': ['невезение', 'поломка'],
+  'het bad': ['ванна', 'купание'],
+  licht: ['лёгкий', 'светлый'],
+  daarachter: ['за этим', 'после этого'],
+  'de man': ['мужчина', 'муж'],
+  'de flat': ['многоэтажка', 'квартира'],
 };
 
 const glossesOf = (f: string) => f.split(/[;,] /).map(s => s.replace(/ \(.*$/, ''));

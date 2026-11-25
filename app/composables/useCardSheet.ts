@@ -1,6 +1,4 @@
-import { computed, shallowRef } from 'vue';
-import { cardsOf } from '@/utils/deck';
-import { buildIndex, type CardIndex } from '@/utils/links';
+import { shallowRef } from 'vue';
 import { onBack } from '@/utils/back';
 
 /** A sheet on a card, opened from a link; `gloss` is the meaning the link gave the word. */
@@ -13,7 +11,6 @@ interface Layer {
 const layers = shallowRef<Layer[]>([]);
 /** The card whose answer is still secret: sheets leave it out of their lists. */
 const secret = shallowRef<string>();
-let indexed: { deck: unknown; index: CardIndex } | undefined;
 
 function pop() {
   layers.value = layers.value.slice(0, -1);
@@ -21,11 +18,7 @@ function pop() {
 
 /** Sheets on the cards a note links to, stacked: back closes the top one. */
 export function useCardSheet() {
-  const { deck } = useStore();
-  const index = computed(() => {
-    if (indexed?.deck !== deck.value) indexed = { deck: deck.value, index: buildIndex(deck.value ? cardsOf(deck.value) : []) };
-    return indexed.index;
-  });
+  const { index } = useStore();
   return {
     index,
     layers,

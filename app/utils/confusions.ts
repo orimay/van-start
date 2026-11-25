@@ -14,6 +14,23 @@ export const linked = (all: Confusions, a: string, b: string): Confusions =>
 
 export const unlinked = (all: Confusions, a: string, b: string): Confusions => removing(removing(all, a, b), b, a);
 
+/** A mix-up of two forms holds for their bases too: hij pakt with hij neemt mixes up pakken and nemen. */
+export function withBases(all: Confusions, bases: Map<string, string>): Confusions {
+  let out = all;
+  for (const [a, others] of Object.entries(all))
+    for (const b of others) {
+      const [x, y] = [bases.get(a), bases.get(b)];
+      if (x && y) out = linked(out, x, y);
+    }
+  return out;
+}
+
+/** Off both ends, with every pair of forms that mixes the two up through their bases. */
+export function unlinkedWithForms(all: Confusions, a: string, b: string, bases: Map<string, string>): Confusions {
+  const carries = (x: string, y: string) => [bases.get(x), bases.get(y)].sort().join() === [a, b].sort().join();
+  return Object.entries(all).reduce((out, [x, others]) => others.filter(y => carries(x, y)).reduce((rest, y) => unlinked(rest, x, y), out), unlinked(all, a, b));
+}
+
 /** Cards linked directly or through others, each group once, in the order first met. */
 export function groupsOf(all: Confusions): string[][] {
   const seen = new Set<string>();

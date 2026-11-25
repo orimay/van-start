@@ -226,3 +226,33 @@ Wrong parts of the typed answer are struck through, the right ones follow them: 
 ## Typecheck is red (2026-11-25)
 
 - [ ] `npm run typecheck` reports 15 errors, none from the diff/gloss work: plugins `$router` unknown, `NoteText.vue` segment union, `SectionTree.spec.ts` settings fixtures, `Session.spec.ts` `gameScores`, `useCardSheet.ts` `indexed`.
+
+## Every affixed word is split (2026-11-25)
+- [x] A word carrying an affix the deck has a card for names that affix and its base (uitstekend = uitsteken + -end), in all 6 languages. `affix-split.spec.ts` checks the marked affixes (ge-, -ig, ...) by shape and every other deck affix when the rest is a deck word (spannend, de opvang, de afvoer, de bijdrage, onverwacht, de kunstenares, de mixer, 9 comparatives); groter/beter/liever/het liefst(e) now name their degree; look-alikes (de kamer) and bases the deck lacks (slaan in de slager) are grouped exemptions.
+- [ ] Deploy, verify live.
+
+## Putting a card off takes its mix-up back (2026-11-25)
+- [x] Dictation took «en» for the letter n, then Later still counted the miss on en and kept the link. Putting a card off misses nothing and undoes the links its step made.
+- [ ] Deploy, verify live.
+
+## Letters and sentences are tinted (2026-11-25)
+- [x] A letter card (green) and a sentence card (cyan) look apart from nouns, verbs, affixes and plain cards; hues stay at least 40 degrees apart.
+- [ ] Deploy, verify live.
+
+## Finishing a group lags (2026-11-25)
+- [x] Answering the last card of a 100-card group in its last game stalls visibly: 100 × two whole-store saves. `store.learn` saves the group once.
+- [ ] Deploy, verify live.
+
+## Missed etymological links (2026-11-25)
+- [x] tellen does not name het tal. Found by a consonant-skeleton scan of single-word pairs; ~50 cards linked in all 6 languages (verb ← noun, noun ← verb/adjective, -e forms, plurals, superlatives, related peers both ways). `root-links.spec.ts` lists the pairs and checks `родственное` goes both ways.
+- [ ] Deploy, verify live.
+  - [x] pas (only, just) `от: de pas` via op dat pas «at that very step».
+
+## A derived word keeps its base's senses (2026-11-25)
+- [x] gelukkig lacked удачный (geluk is счастье and удача). Scan of derived/form cards with fewer senses than their base: de vriendin девушка, schuldig должный (+ `iemand iets schuldig zijn`), mogelijk возможно, harder громче/твёрже, dunne/dunner худой, bekende знакомый, onregelmatige нерегулярный, de voorstelling представление (+ `zich een voorstelling maken van`), all 6 languages. Verb forms and -e forms whose missing sense is an adverb are fine. Rule in CLAUDE.md and the checklist; `senses.spec.ts` lists them.
+- [ ] Deploy, verify live.
+
+## Missing senses and links (2026-11-25)
+- [x] bezittelijk(e) has all its senses (притяжательный (грамм.); собственнический; имущественный), comes from bezitten and names het bezit and de bezitter. Whole deck: 23 families of words made from one base by a suffix now name each other (de sleutel, het slot, de sluiting; de kok, de keuken; de lezer, de lezing ...), `root-links.spec.ts` finds them from the `от:` links. A cross-language scan found senses Russian lacked or ran together: de stem голосование, eerlijk справедливый, het karton пакет, het gaatje дупло, de man мужчина; муж, licht, het bad, de pech, de flat, daarachter; all in `senses.spec.ts`.
+- [x] New `от:` links moved ont- and -baar ahead of ontmoeten and middelbaar: those now voice the affix; the plurals de vriendinnen and de voorstellingen got their second sense; kun jij? reads `poți tu?` in Romanian, apart from kun je.
+- [ ] Deploy, verify live.

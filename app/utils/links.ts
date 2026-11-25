@@ -11,6 +11,8 @@ const labelsOf = (labels: string[]) => labels.map(escape).join('|');
  */
 const LABEL = /^((?:pl\. )?(?:[mfn]\.(?:\/[mfn]\.)? )?)((?:[^:()]|\([^()]*\)){0,59}?[^:()\s]): /;
 const ORIGIN_LABEL = new RegExp(`^(${labelsOf(ORIGIN)})$`);
+/** Labels calling a card a form of another: `форма от:`, `прошедшее (сделал) от:`, `просьба/приказ, от:`, `мн. ч. от:`. */
+const FORM_LABEL = /^(форма(?: «[^»]*»)?|прошедшее \([^()]*\)|просьба\/приказ,|мн\. ч\.) от$/;
 
 export interface Segment {
   text: string;
@@ -125,4 +127,15 @@ export function buildIndex(cards: DeckCard[]): CardIndex {
     else index.related.delete(id);
   }
   return index;
+}
+
+/** The card each form card is a form of, from its note: hij pakt → pakken. */
+export function basesOf(index: CardIndex): Map<string, string> {
+  const bases = new Map<string, string>();
+  for (const card of index.byId.values()) {
+    const item = itemsOf(card.n ?? '').find(i => FORM_LABEL.test(i.match(LABEL)?.[2] ?? ''));
+    const base = item && linkSegments(item, index, card.id).find(s => s.link)?.link;
+    if (base) bases.set(card.id, base);
+  }
+  return bases;
 }

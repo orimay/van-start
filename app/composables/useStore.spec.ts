@@ -1,6 +1,13 @@
 import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
 import { cardsOf } from '@/utils/deck';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { save } from '@/db/kv';
+
+// Counts the writes; the store still saves for real.
+vi.mock('@/db/kv', async importOriginal => {
+  const kv = await importOriginal<typeof import('@/db/kv')>();
+  return { ...kv, save: vi.fn(kv.save) };
+});
 
 beforeEach(async () => {
   const store = useStore();
@@ -210,6 +217,51 @@ describe('a mix-up', () => {
   });
 });
 
+describe('a mix-up of two forms', () => {
+  const card = (id: string, b: string, n?: string) => ({ id, f: id, b, ...(n && { n }) });
+  beforeEach(() => {
+    const store = useStore();
+    store.saveCustom({ id: CUSTOM_ID, name: 'My cards', cards: [
+      card('pakken', 'pakken'), card('nemen', 'nemen'),
+      card('pakt', 'hij pakt', 'форма от: pakken (брать)'), card('neemt', 'hij neemt', 'форма от: nemen (брать)'),
+    ] });
+  });
+  afterEach(() => {
+    const store = useStore();
+    store.unconfuse('pakt', 'neemt');
+    store.unconfuse('pakken', 'nemen');
+    store.saveCustom(emptyCustom());
+  });
+
+  it('mixes up their bases too', () => {
+    const store = useStore();
+    store.confuse('pakt', 'neemt');
+    expect([store.confusions.value.pakken, store.confusions.value.nemen]).toEqual([['nemen'], ['pakken']]);
+  });
+
+  it('takes the bases back with it', () => {
+    const store = useStore();
+    store.confuse('pakt', 'neemt');
+    store.unconfuse('neemt', 'pakt');
+    expect(store.confusions.value).toEqual({});
+  });
+
+  it('comes off with its bases', () => {
+    const store = useStore();
+    store.confuse('pakt', 'neemt');
+    store.unconfuse('nemen', 'pakken');
+    expect(store.confusions.value).toEqual({});
+  });
+
+  it('keeps a base mix-up made on its own', () => {
+    const store = useStore();
+    store.confuse('pakken', 'nemen');
+    store.confuse('pakt', 'neemt');
+    store.unconfuse('pakt', 'neemt');
+    expect(store.confusions.value).toEqual({ pakken: ['nemen'], nemen: ['pakken'] });
+  });
+});
+
 describe('saved progress', () => {
   it('brings back everything kept', () => {
     const store = useStore();
@@ -260,5 +312,22 @@ describe('a kind switched off', () => {
     const store = useStore();
     store.updateSettings({ kinds: { sentence: false }, groupKinds: { [CUSTOM_ID]: { sentence: true } } });
     expect(shown()).toEqual(['word', 'sent']);
+  });
+});
+
+describe('a learned group', () => {
+  const ids = Array.from({ length: 100 }, (_, i) => `g${i}`);
+
+  it('is saved in one write of progress and one of reviews', () => {
+    const store = useStore();
+    vi.mocked(save).mockClear();
+    store.learn(Object.fromEntries(ids.map(id => [id, store.Rating.Good])));
+    expect(vi.mocked(save).mock.calls.map(([key]) => key).sort()).toEqual(['progress', 'reviews']);
+  });
+
+  it('is learned and scheduled word by word', () => {
+    const store = useStore();
+    store.learn({ a: store.Rating.Good, b: store.Rating.Hard });
+    expect([store.isLearned('a'), store.isLearned('b'), store.scheduleOf('b', 'recall')?.scheduled_days]).toEqual([true, true, 2]);
   });
 });

@@ -439,7 +439,7 @@ function advance(missed: Item[]) {
   }
 }
 
-/** Sends the card back like a fresh one, as if never shown: nothing is logged; a missed card keeps its rung for its next answer. */
+/** Sends the card back like a fresh one, as if never shown: nothing is logged or missed; a missed card keeps its rung for its next answer. */
 function putOff() {
   const [first, ...rest] = queue.value;
   if (first?.kind !== 'card' || !rest.length) return;
@@ -451,14 +451,9 @@ function putOff() {
   shown.set(first.card.id, step.value);
   step.value++;
   view.value++;
-  // The words it was taken for stay missed: putting the card off takes back only its own answer.
-  const mixed = first.state?.mixed ?? [];
-  for (const id of mixed) onMissAgain(id);
-  const sooner = Math.max(1, Math.floor(gapOf(0) / 2));
-  const along = mixed.flatMap(id => byId.get(id) ?? []).filter(c => playsIn(!!c.affix, gameOf(c.id)))
-    .map((card): Item => ({ kind: 'card', card, round: 0, rung: 0, missedAt: step.value, spacing: sooner }));
-  const others = rest.filter(i => i.kind !== 'card' || !mixed.includes(i.card.id));
-  queue.value = [...pickFront([...others, ...along]), { ...first, state: undefined, missedAt: step.value, spacing: gapOf(0) }];
+  // The mix-ups this step found go with it: nothing is missed, and the links it made are undone.
+  for (const id of first.state?.linked ?? []) store.unconfuse(first.card.id, id);
+  queue.value = [...pickFront(rest), { ...first, state: undefined, missedAt: step.value, spacing: gapOf(0) }];
   skipPassed();
 }
 

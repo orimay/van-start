@@ -5,7 +5,8 @@ import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
 import { cardsOf, type DeckNode, isAffixCard } from '@/utils/deck';
 import { applyEdits, type Edits, noEdits } from '@/utils/edits';
 import { type KindSwitches, shownCards } from '@/utils/kinds';
-import { type Confusions, linked, unlinked } from '@/utils/confusions';
+import { type Confusions, linked, unlinkedWithForms, withBases } from '@/utils/confusions';
+import { basesOf, buildIndex } from '@/utils/links';
 import type { LexilizeCard } from '@/utils/lexilize';
 import type { GameScores, Score } from '@/utils/score';
 import { markReviewed, type ReviewLog } from '@/utils/today';
@@ -69,6 +70,11 @@ const scores = shallowRef<Record<string, GameScores>>({});
 const passed = shallowRef<Record<string, string[]>>({});
 /** Cards the learner mixed up with each other. */
 const confusions = shallowRef<Confusions>({});
+/** The deck's cards by id and spelling, with what links to each. */
+const index = computed(() => buildIndex(deck.value ? cardsOf(deck.value) : []));
+const bases = computed(() => basesOf(index.value));
+/** The mix-ups, each one of forms carried to their bases. */
+const mixedUp = computed(() => withBases(confusions.value, bases.value));
 /** Cards reviewed while due today, for the day's progress. */
 const reviewLog = shallowRef<ReviewLog>();
 const settings = shallowRef<Settings>({ language: 'en', groupSize: 15, games: [...DEFAULT_GAMES], recallSeconds: 10, ignoreCase: true, ignoreMarks: true });
@@ -215,6 +221,17 @@ function review(card: CardInput | undefined, now: Date, rating: Grade): CardInpu
   return { ...base, state, scheduled_days: gap, due: new Date(now.getTime() + gap * DAY_MS).toISOString(), last_review: now.toISOString() };
 }
 
+/** Learns the words, each with its rating, and every review game starts its schedule; one save for them all, since each save writes the whole store. */
+function learn(ratings: Record<string, Grade>) {
+  const now = new Date();
+  for (const [id, rating] of Object.entries(ratings)) {
+    progress.value[id] = next(progress.value[id] ?? createEmptyCard(now), now, rating);
+    for (const g of REVIEW_GAMES) schedule(g, id, review(undefined, now, rating));
+  }
+  saveProgress();
+  saveReviews();
+}
+
 export function useStore() {
   loading ??= load();
 
@@ -280,16 +297,16 @@ export function useStore() {
         schedule(game, id, review(reviews.value[game]?.[id], now, rating));
         return saveReviews();
       }
-      progress.value[id] = next(progress.value[id] ?? createEmptyCard(now), now, rating);
-      for (const g of REVIEW_GAMES) schedule(g, id, review(undefined, now, rating));
-      saveProgress();
-      saveReviews();
+      learn({ [id]: rating });
     },
 
-    confusions,
+    learn,
+
+    confusions: mixedUp,
+    index,
     /** Links two cards the learner mixed up. */
     confuse: (a: string, b: string) => saveConfusions(linked(confusions.value, a, b)),
-    unconfuse: (a: string, b: string) => saveConfusions(unlinked(confusions.value, a, b)),
+    unconfuse: (a: string, b: string) => saveConfusions(unlinkedWithForms(confusions.value, a, b, bases.value)),
 
     passed,
     forgetPassed,

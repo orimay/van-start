@@ -6,11 +6,12 @@ import { defineComponent, h, shallowRef } from 'vue';
 import CardSheet from './CardSheet.vue';
 import Answer from './Answer.vue';
 import Prompt from './Prompt.vue';
-import { toStudyCard, type DeckNode } from '@/utils/deck';
+import { cardsOf, toStudyCard, type DeckNode } from '@/utils/deck';
+import { buildIndex } from '@/utils/links';
 import { type Confusions, linked, unlinked } from '@/utils/confusions';
 
 const { deck, learned } = vi.hoisted(() => ({ deck: { value: undefined as DeckNode | undefined }, learned: new Set<string>() }));
-mockNuxtImport('useStore', () => () => ({ deck, isLearned: (id: string) => learned.has(id), settings: { value: { language: 'en' } }, confusions: mixUps, confuse: (a: string, b: string) => (mixUps.value = linked(mixUps.value, a, b)), unconfuse: (a: string, b: string) => (mixUps.value = unlinked(mixUps.value, a, b)) }));
+mockNuxtImport('useStore', () => () => ({ deck, index: { get value() { return buildIndex(deck.value ? cardsOf(deck.value) : []); } }, isLearned: (id: string) => learned.has(id), settings: { value: { language: 'en' } }, confusions: mixUps, confuse: (a: string, b: string) => (mixUps.value = linked(mixUps.value, a, b)), unconfuse: (a: string, b: string) => (mixUps.value = unlinked(mixUps.value, a, b)) }));
 const mixUps = shallowRef<Confusions>({});
 
 const cards = [

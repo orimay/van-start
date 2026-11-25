@@ -61,14 +61,20 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] A note never glosses its word's -e form as another word: the -e form is a pair card, a noun from it its own card.
 - [ ] Every mention of another card is a labelled link (`от:`, `форма от:`, `мн. ч. от:`...); the target lists it back on its sheet.
 - [ ] `scripts/audit-links.ts` finds no new hit: a word built from cards links its parts; a false split goes into `scripts/audit-links-reviewed.json`.
+- [ ] An affixed-looking word names its parts in all 6 languages (linked card, `root — gloss`, or `форма «сделанный» от:`); so does any deck affix plus a deck word (spannend = spannen + -end); only a look-alike or a fossil affix is listed as unsplit in `affix-split.spec.ts`.
+- [ ] A derived word keeps every sense of its base it can carry (geluk счастье; удача -> gelukkig удачный too; vriend -> vriendin девушка; a comparative or -e form keeps each adjective sense); a fixed one goes into `senses.spec.ts`.
+- [ ] Words made from one base by a suffix (het bezit, de bezitter, bezittelijk) name each other under `родственное:` in one link; each sense is its own `; ` item (de man: мужчина; муж), none another language lists is missing in Russian.
 - [ ] Every -e pair card carries `форма от: <base> (<sense>)` in all 6 languages, and no `от:` of its own: the derivation sits on the base.
 - [ ] An adjective whose -e form shows up anywhere in the deck has its -e pair card; its base carries the rule and `nb`/`nx` examples.
 - [ ] An exception line (`!`) reads red on both sides, a Dutch line that is all head included.
 - [ ] Every `nb` line has its own translated `nx` line in every language, `!` kept, never the Dutch itself.
+- [ ] No two `nx` lines of a card read the same in any language. Where the language has no article (ru), a `het`/`de` line ends `(конкретный)` and an `een`/`geen` line `(абстрактный)`, in the noun's gender (`example-lines.spec.ts`).
 - [ ] An affix meaning shown as the word (prompt, answer, option, tile) carries `(affix)` in the native language, never `(suffix)` / `(prefix)`, which would hint where the part goes.
 - [ ] A card that scrolls shows its scroll thumb before, during and after a swipe.
 - [ ] Things that belong together sit closer than things that do not: word and transcription closest, note groups apart, blocks further.
 - [ ] A phrase names its words' cards with the sense used (`от: de douche (душ) + nemen (брать)`); a light-verb collocation says why that verb.
+- [ ] Every word of a multi-word card is in its `от:` in all 6 languages, same parts and order: a card, a form of one, or `word — «gloss»` when it has no card.
+- [ ] A verb form card (hij neemt, neem) names its infinitive with `форма от:` (or the perfect/imperative label) in all 6 languages, and only that verb.
 - [ ] Words sharing a root name it in their `от:` (onderwerp and voorwerp both from werpen).
 - [ ] Feminine/masculine, compound/part, comparative/superlative/ordinal/base pairs link both ways in every language; a regular comparative or superlative also names `-er` / `-ste`; a look-alike sits under `не путать с:`.
 - [ ] No affix gloss in a note says it adds nothing; it names what the affix changes.
@@ -94,10 +100,13 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] Home is the last stop: after home -> settings -> a lesson -> home, Back on home asks to leave, never walks back through pages.
 - [ ] A wrong typed answer strikes its wrong letters and puts the right ones after them (`_` until the answer shows), never a wrong letter standing in for a right one.
 - [ ] Every mark in the typed-letter diff reads as what was typed: a space typed in error shows as `␣`, never a blank that a strike turns into a hyphen.
-- [ ] Undoing a card's own answer (Later, Back) never drops the misses of the words it was mixed up with.
+- [ ] Later on a card mixed up with other words takes their misses back and undoes the links its step made.
 - [ ] An update reloads only at a move (card to card, page to page), never mid-card.
 - [ ] A phrase with an article Russian does not show says it in words in every language (`(какой-нибудь)`, `(свой)`, `bir`, `(belirli)`).
 - [ ] Every article in a phrase has a closing ru/tr note item, Dutch first, saying why that article (any, known, own, set phrase, amount…); en/es/pt/ro show it with their own article.
-- [ ] A card's tint matches its kind: affix violet, noun sky, verb amber, else plain (`p` from `flag-kinds.py`), readable in light and dark.
+- [ ] A card's tint matches its kind: affix violet, noun sky, verb yellow, letter green, sentence cyan, else plain, same oklch lightness and chroma, hues 40° apart, no red hue (`p` from `flag-kinds.py`), readable in light and dark.
 - [ ] A note says plainly where a word is used (`только внутри слова de postbode`), never a figure like "lives in de postbode".
 - [ ] A word-initial v is transcribed `ф` in every card, loans too (visite `физи́тэ`).
+- [ ] Two forms mixed up (hij pakt / hij neemt) list their bases (pakken / nemen) as mixed up too, on both sheets.
+- [ ] A batch of words is saved once (`store.learn`), never a save per word.
+- [ ] A new card whose base or root peer is in the deck names it, also with no affix between them (tellen ← het tal); the pair goes into `root-links.spec.ts`.

@@ -414,14 +414,22 @@ describe('a typed answer that is another word', () => {
     const missesLeft = (w: VueWrapper, id: string) =>
       (w.emitted('answer') ?? []).filter(([at, , ok]) => at === id && !ok).length - (w.emitted('undo') ?? []).filter(([at]) => at === id).length;
 
-    it('keeps that word missed', async () => {
+    it('takes that word\'s miss back', async () => {
       const w = await doMountPair();
       await doType(w, 'input', 'terug');
       await doClick(w, 'later');
-      expect(missesLeft(w, 'c1')).toBe(1);
+      expect(missesLeft(w, 'c1')).toBe(0);
     });
 
-    it('keeps that word missed when put off after stepping back to it', async () => {
+    it('unlinks that word', async () => {
+      const w = await doMountPair();
+      const id = list.find(c => c.prompt === promptOf(w))!.id;
+      await doType(w, 'input', 'terug');
+      await doClick(w, 'later');
+      expect(useStore().confusions.value[id] ?? []).toEqual([]);
+    });
+
+    it('takes that word\'s miss back when put off after stepping back to it', async () => {
       const w = await doMountPair();
       await doType(w, 'input', 'terug');
       await doClick(w, 'try-again');
@@ -429,7 +437,7 @@ describe('a typed answer that is another word', () => {
       await doClick(w, 'submit');
       await doClick(w, 'previous');
       await doClick(w, 'later');
-      expect(missesLeft(w, 'c1')).toBe(1);
+      expect(missesLeft(w, 'c1')).toBe(0);
     });
   });
 

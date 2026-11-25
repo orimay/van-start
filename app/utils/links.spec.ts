@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildIndex, linkBreakdown, linkSegments } from './links';
+import { basesOf, buildIndex, linkBreakdown, linkSegments } from './links';
 
 const cards = [
   { id: 'kopen', f: 'покупать', b: 'kopen' },
@@ -121,5 +121,21 @@ describe('related words', () => {
 
   it("leave out a card the word's own note already links", () => {
     expect(index.related.get('snel')).toBeUndefined();
+  });
+});
+
+describe('the base of a form', () => {
+  const card = (id: string, b: string, n?: string) => ({ id, f: id, b, ...(n && { n }) });
+  const bases = basesOf(buildIndex([
+    card('nemen', 'nemen'), card('pakken', 'pakken'), card('kopen', 'kopen'),
+    card('neemt', 'hij neemt', 'форма от: nemen (брать)'),
+    card('nam', 'ik heb genomen', 'прошедшее (сделал) от: nemen (брать)'),
+    card('pak', 'pak', 'просьба/приказ, от: pakken (брать)'),
+    card('gekocht', 'gekocht', 'форма «сделанный» от: kopen (покупать)'),
+    card('koper', 'de koper', 'от: kopen (покупать) + -er'),
+  ]));
+
+  it('is the card its form label names', () => {
+    expect(Object.fromEntries(bases)).toEqual({ neemt: 'nemen', nam: 'nemen', pak: 'pakken', gekocht: 'kopen' });
   });
 });

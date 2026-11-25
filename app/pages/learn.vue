@@ -196,7 +196,7 @@ function onUndo(id: string, s: Stage) {
 }
 
 function onFinished() {
-  for (const c of group.value.filter(c => !store.isLearned(c.id))) store.rate(c.id, typeMistakes.has(c.id) || carried.value.has(c.id) ? store.Rating.Hard : store.Rating.Good);
+  store.learn(Object.fromEntries(group.value.filter(c => !store.isLearned(c.id)).map(c => [c.id, typeMistakes.has(c.id) || carried.value.has(c.id) ? store.Rating.Hard : store.Rating.Good])));
   clearResume();
   finished.value = true;
 }
