@@ -15,6 +15,10 @@ describe('confusion links', () => {
     expect(links(['a', 'b'], ['b', 'a'])).toEqual({ a: ['b'], b: ['a'] });
   });
 
+  it('move a pair linked again to the end, so the newest comes last', () => {
+    expect(links(['a', 'b'], ['a', 'c'], ['b', 'a'])).toEqual({ a: ['c', 'b'], b: ['a'], c: ['a'] });
+  });
+
   it('never link a card to itself', () => {
     expect(links(['a', 'a'])).toEqual({});
   });

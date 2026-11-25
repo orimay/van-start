@@ -129,8 +129,33 @@ Work through every item before stopping. Never stop on a question: pick the sens
 
 ## Safe area everywhere, known mix-ups on reveal (2026-11-25)
 - [x] The whole interface keeps clear of the safe area, not only sheets: the lesson's continue button is clipped by the screen's rounded corners. Every element at a screen edge (button rows, continue/next, toasts, headers) keeps its inset.
-- [ ] After a card is revealed, show the words it is already mixed up with (e.g. under the `≈` icon), so the user does not mark them again.
+- [x] After a card is revealed, show the words it is already mixed up with (e.g. under the `≈` icon), so the user does not mark them again.
   - Open question from the user: should marking an already-linked word again be allowed, giving that card one more miss? Find the best UX.
   - Default: the linked words show by `≈` after reveal; the picker lists them first ("Mixed up before"), one tap counts this step as mixed up again (both missed again, link unchanged).
   - The user's alternative, unsure if right: on a miss, mark every linked card wrong automatically. Weigh it.
+- [x] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
+
+## A miss counts directly linked mix-ups as missed (2026-11-25)
+- [ ] A miss on a card also counts every card directly linked to it as mixed up as missed, so the pair is reinforced; links of links are not followed. The linked ones come back like a picked mix-up.
 - [ ] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
+
+## Mix-up detection, affix look, context layout, derivation links (2026-11-25)
+- [ ] Typed `-ste` was auto-detected as a mix-up with `de`: unacceptable. Auto-detect only on an exact match, or an obvious other form of the same (`terug` for the affix `terug-` means `terug-` or `-terug`).
+- [ ] An auto-detected mix-up, then Back, then Later instead of Forgot cancels the mix-up.
+- [ ] Affix cards suggest other affixes as look-alikes (affix mixed up with affix, non-affix with non-affix); weigh the same heuristic for `tegen-` vs `tegen`.
+- [ ] Everything in the explanation under the divider leaves the layout while hidden.
+- [ ] Affix cards are not distinct enough: tint them (violet-ish background or text shade). Look at where the same word appears as different cards (parts of speech) and tint those apart too.
+- [ ] Hidden context still takes space: when open, show the context icon before it; when hidden, the same icon in the top-left corner.
+- [ ] Derivation links are uneven (a word without -e linked, its -e pair only pointing to it; `volgend` and `volgende` both linked to `volgen`). Pick one logical rule across all cards, apply it, record it.
+- [ ] Before reveal the mix-up picker spoils the word being guessed. Decide: drop manual mix-up before reveal (once detection is exact), or keep it while hiding what the card is mixed up with and leaving it out of the matches (the card itself is always left out).
+- [ ] Back on home still goes to the previous page. Home is the last stop: there the history holds only home, and Back offers to leave.
+- [ ] The affix card meaning `-ция` (ru) gives `поздравление` as its example, not one word in `-ция`; `-ение` is missing, or sits on another affix card, which would explain the mix-ups. Describe it better in all 6 languages; check the other affix cards for the same.
+
+## Earlier mix-ups: never before the answer, listed under ≈ (2026-11-25)
+- [ ] No "mixed up before" hint before the answer shows (a typing retry included): seeing it, the user steers clear of the known-wrong word and the other card never gets its new miss.
+- [ ] Once the card is open, list the earlier mix-ups under the `≈` button on the card itself, one per line, the freshest on top.
+- [ ] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
+
+## be- and etymology notes (2026-11-25)
+- [ ] be- says it changes the verb's meaning: is that so? betekening: is it be- + tekenen (to mark, to signify)? Research the etymology, explain it well on the linked words, and fix be-'s native description in all 6 languages so it is right.
+- [ ] Then go over every linked word: the etymology notes are right and the examples fit (not an affix about `-ость` giving `-ние` words as examples).

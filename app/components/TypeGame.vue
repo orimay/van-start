@@ -174,7 +174,8 @@ function giveUp() {
         >
           ≈<span class="max-w-40 truncate text-sm font-semibold">{{ mixedHere.length ? mixedWords : choices.length ? 'Which word?' : 'Mixed up' }}</span>
         </button>
-        <MixedBefore :id="card.id" :except="mixedHere" />
+        <!-- Only once the answer shows: seen on a retry, they would be steered clear of and never missed again. -->
+        <MixedBefore v-if="answerShown" class="items-center" :id="card.id" :except="mixedHere" />
         <p v-if="mixedHere.length" class="text-center text-sm text-orange-700 dark:text-orange-400" data-testid="mixed-hint">Taken for {{ mixedWords }}: {{ mixedHere.length > 1 ? 'all' : 'both' }} come back as missed</p>
       </div>
     </div>

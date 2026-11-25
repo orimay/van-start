@@ -13,19 +13,37 @@ describe('the link up', () => {
   });
 
   it('goes back when the page below is where it leads', async () => {
-    await givenHistory('/', '/settings');
     const back = vi.spyOn(history, 'back').mockImplementation(() => undefined);
     using w = await doMount('/');
+    await givenHistory('/', '/settings');
     await doFollow(w);
     expect(back).toHaveBeenCalled();
   });
 
   it('takes the page\'s place otherwise, adding nothing to history', async () => {
+    using w = await doMount('/edit?id=a');
     await givenHistory('/edit', '/settings');
-    using w = await doMount('/');
     await doFollow(w);
-    expect(useRouter().currentRoute.value.fullPath).toBe('/');
+    await vi.waitFor(() => expect(useRouter().currentRoute.value.fullPath).toBe('/edit?id=a'));
     expect(history.state.back).toBe('/edit');
+  });
+});
+
+describe('home', () => {
+  it('is the first stop of history once reached, so back on it can only leave', async () => {
+    using w = await doMount('/');
+    await givenHistory('/edit', '/settings');
+    await doFollow(w);
+    await vi.waitFor(() => expect(history.state.position).toBe(0));
+    await flushPromises();
+    expect(useRouter().currentRoute.value.fullPath).toBe('/');
+  });
+
+  it('stays where it is when a menu opens on it', async () => {
+    await givenHistory('/edit', '/');
+    await useRouter().push('/#menu');
+    await flushPromises();
+    expect(useRouter().currentRoute.value.fullPath).toBe('/#menu');
   });
 });
 

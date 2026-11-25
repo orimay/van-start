@@ -1,7 +1,8 @@
 /** Cards the learner mixed up, each listing the others; a link goes both ways. */
 export type Confusions = Record<string, string[]>;
 
-const adding = (list: string[] | undefined, id: string) => (list?.includes(id) ? list : [...(list ?? []), id]);
+/** Linked again, a card moves to the end: the list runs oldest to newest. */
+const adding = (list: string[] | undefined, id: string) => [...(list ?? []).filter(x => x !== id), id];
 function removing(all: Confusions, id: string, other: string): Confusions {
   const rest = all[id]?.filter(x => x !== other) ?? [];
   const { [id]: _, ...others } = all;

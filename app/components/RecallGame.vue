@@ -91,6 +91,7 @@ function reveal(how: 'self' | 'timeout') {
           >
             ≈<span v-if="mixedHere.length" class="max-w-32 truncate text-sm font-semibold">{{ mixedWords }}</span>
           </button>
+          <MixedBefore class="mt-1 items-start pl-2" :id="card.id" :except="mixedHere" />
         </template>
       </Answer>
     </div>
@@ -106,7 +107,6 @@ function reveal(how: 'self' | 'timeout') {
         <ExampleButton class="flex-1" :card="card" :disabled="!revealed && (!dutchShown || quiet)" />
         <button v-if="revealed === 'self'" class="btn-ghost" :disabled="!!mixedHere.length" data-testid="guessed" @click="emit('result', false, true)">Guessed</button>
       </div>
-      <MixedBefore v-if="revealed" :id="card.id" :except="mixedHere" />
       <p v-if="mixedHere.length" class="text-center text-sm text-orange-700 dark:text-orange-400" data-testid="mixed-hint">Taken for {{ mixedWords }}: {{ mixedHere.length > 1 ? 'all' : 'both' }} come back as missed</p>
       <div class="actions flex gap-2"><BackButton /><LaterButton /><div class="grid min-w-0 flex-1">
       <button v-if="!revealed" class="btn-primary" data-testid="reveal" @click="reveal('self')">Reveal</button>

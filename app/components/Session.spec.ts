@@ -116,7 +116,20 @@ describe('a card mixed up with another', () => {
       await nextTick();
       ensureHas(w, 'mixed-before', false);
       await doClick(w, 'reveal');
-      expect(w.get('[data-testid="mixed-before"]').text()).toBe(`Mixed up before: ${answerFor(first)}`);
+      expect(readMixedBefore(w)).toEqual([answerFor(first)]);
+    });
+
+    it('are listed newest first', async () => {
+      givenDeck(cards(6));
+      const w = await doMount({ cards: cards(6), stages: ['recall'] });
+      const first = promptOf(w);
+      await doRecall(w, true);
+      const second = promptOf(w);
+      await doRecall(w, true);
+      useStore().confuse(idOf(promptOf(w)), idOf(first));
+      useStore().confuse(idOf(promptOf(w)), idOf(second));
+      await doClick(w, 'reveal');
+      expect(readMixedBefore(w)).toEqual([answerFor(second), answerFor(first)]);
     });
 
     it('keeps Remembered on', async () => {
@@ -175,6 +188,51 @@ describe('a card mixed up with another', () => {
     expect(w.emitted('answer')).toContainEqual([idOf(first), 'recall', false]);
   });
 
+  describe('a miss', () => {
+    it('counts the cards linked to it as missed too', async () => {
+      givenDeck(cards(6));
+      const w = await doMount({ cards: cards(6), stages: ['recall'] });
+      const first = promptOf(w);
+      await doRecall(w, true);
+      useStore().confuse(idOf(promptOf(w)), idOf(first));
+      await doRecall(w, false);
+      expect(w.emitted('answer')).toContainEqual([idOf(first), 'recall', false]);
+    });
+
+    it('follows no link of a link', async () => {
+      givenDeck(cards(8));
+      const w = await doMount({ cards: cards(6), pool: cards(8), stages: ['recall'] });
+      const second = idOf(promptOf(w));
+      useStore().confuse(second, 'c6');
+      useStore().confuse('c6', 'c7');
+      await doRecall(w, false);
+      expect(w.emitted('answer')).toContainEqual(['c6', 'recall', false]);
+      expect(w.emitted('answer')).not.toContainEqual(['c7', 'recall', false]);
+    });
+
+    it('brings the linked ones back, with other cards between', async () => {
+      givenDeck(cards(8));
+      const w = await doMount({ cards: cards(6), pool: cards(8), stages: ['recall'], retryGap: 4 });
+      useStore().confuse(idOf(promptOf(w)), 'c7');
+      await doRecall(w, false);
+      const seen: string[] = [];
+      while (!w.emitted('finished')) {
+        seen.push(promptOf(w));
+        await doRecall(w, true);
+      }
+      expect(seen.indexOf('p7')).toBeGreaterThan(0);
+    });
+
+    it('leaves the linked ones alone when remembered', async () => {
+      givenDeck(cards(8));
+      const w = await doMount({ cards: cards(6), pool: cards(8), stages: ['recall'] });
+      useStore().confuse(idOf(promptOf(w)), 'c7');
+      await doRecall(w, true);
+      expect(w.emitted('answer')).not.toContainEqual(['c7', 'recall', false]);
+    });
+
+  });
+
   it('brings in a deck card the session did not hold', async () => {
     givenDeck(cards(8));
     const w = await doMount({ cards: cards(6), pool: cards(8), stages: ['recall'] });
@@ -231,11 +289,13 @@ describe('a typed answer that is another word', () => {
     expect(w.emitted('answer')).toContainEqual(['c1', 'type', false]);
   });
 
-  it('shows the words it was mixed up with before', async () => {
+  it('keeps the words it was mixed up with before back until the answer shows, so a retry cannot steer clear of them', async () => {
     const w = await doMountTyping(words('terug', 'weg'));
     useStore().confuse('c0', 'c2');
     await doType(w, 'input', 'xyz');
-    expect(w.get('[data-testid="mixed-before"]').text()).toBe('Mixed up before: weg');
+    ensureHas(w, 'mixed-before', false);
+    await doClick(w, 'show-answer');
+    expect(readMixedBefore(w)).toEqual(['weg']);
   });
 
   it('keeps an earlier link picked again once claimed right', async () => {
@@ -2370,6 +2430,11 @@ async function doEnter() {
 
 function promptOf(w: VueWrapper) {
   return w.get('[data-testid="prompt"]').text();
+}
+
+/** The words listed as mixed up before, top to bottom. */
+function readMixedBefore(w: VueWrapper) {
+  return w.findAll('[data-testid="mixed-before"] li').map(li => li.text());
 }
 
 function answerFor(prompt: string) {

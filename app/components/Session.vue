@@ -201,6 +201,7 @@ const progress = computed(() => {
 const current = computed(() => queue.value[0]);
 const knownIds = props.known && new Set(props.known);
 const isKnown = (id: string) => knownIds?.has(id) ?? true;
+const store = useStore();
 const byId = new Map(props.cards.concat(props.pool).map(c => [c.id, c]));
 // Recomputes only when the card changes, not when its state is saved.
 /** The ladder rung to draw: a miss whose right answer is out starts over at the bottom, a right one climbs. */
@@ -553,10 +554,19 @@ function onCard(card: StudyCard, ok: boolean, guessed = false, typingMs = 0, alo
   const slow = ok && gameOf(card.id) !== 'intro' && (props.isSlow?.(gameOf(card.id), answerMs(typingMs)) ?? false);
   if (guessed || slow) skipGrade(card.id);
   else report(card.id, ok, true);
+  if (!ok && !guessed && gameOf(card.id) !== 'intro') along = [...along, ...missLinked(card.id)];
   const item = current.value?.kind === 'card' && current.value.card.id === card.id ? current.value : { kind: 'card' as const, card };
   logShow(item, guessed ? 'guessed' : ok ? 'plus' : 'minus', typingMs);
   const sooner = Math.max(1, Math.floor(gapOf(0) / 2));
   advance(ok && !slow ? [] : [{ kind: 'card', card }, ...along.map((c): Item => ({ kind: 'card', card: c, spacing: sooner }))]);
+}
+
+/** A miss counts the cards directly linked to `id` as mixed up as missed too, so the pair is drilled together; links of links are not followed. Returns the ones that play in this game, to bring back. */
+function missLinked(id: string): StudyCard[] {
+  // A card picked as the mix-up on this step is missed already.
+  const linked = (store.confusions.value[id] ?? []).filter(other => !answers.includes(other));
+  for (const other of linked) onMissAgain(other);
+  return linked.flatMap(other => byId.get(other) ?? []).filter(c => playsIn(!!c.affix, gameOf(c.id)));
 }
 
 function onMatch(cards: StudyCard[], mistakes: string[]) {
