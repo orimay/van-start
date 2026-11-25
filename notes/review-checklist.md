@@ -95,7 +95,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] Group settings open from the gear in the start menu title.
 - [ ] Back closes open layers one per press, then on the first page asks before leaving; another back or Stay keeps the app and the next back asks again.
 - [ ] White text on orange sits on orange-700 or darker (`contrast.spec.ts`).
-- [ ] Grey text: `text-stone-500` pairs with `dark:text-stone-400`; no light stone-400 or dark stone-500; stone-600 on a stone-100 chip (`contrast.spec.ts`).
+- [ ] Grey text: `text-stone-500` pairs with `dark:text-stone-400`; no light stone-400 or dark stone-500; stone-600 on a stone-100 chip (`contrast.spec.ts`). A new card text or kind passes `card-contrast.spec.ts` in both themes.
 - [ ] A link up a page is an `UpLink`, never a `NuxtLink` push: back on home asks to leave, it never walks through earlier pages.
 - [ ] A sheet opened from a menu returns to that menu when it closes.
 - [ ] Home is the last stop: after home -> settings -> a lesson -> home, Back on home asks to leave, never walks back through pages.

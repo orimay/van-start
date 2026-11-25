@@ -15,3 +15,44 @@ export function contrastOf(colour: string, background: string) {
   const [hi, lo] = [luminance(linearOf(colour)), luminance(linearOf(background))].sort((x, y) => y - x) as [number, number];
   return (hi + 0.05) / (lo + 0.05);
 }
+
+/** A Tailwind colour token (`stone-500`, `white`, `[oklch(...)]`) as a colour `contrastOf` reads, from Tailwind's `theme.css`. */
+function colourOf(token: string, palette: string) {
+  if (token.startsWith('[')) return token.slice(1, -1);
+  if (token === 'white') return '#ffffff';
+  if (token === 'black') return '#000000';
+  return palette.match(new RegExp(`--color-${token}: (oklch\\([^)]+\\));`))?.[1];
+}
+
+/** The colour token a class list gives one slot (`text` or `bg`) in a theme, if it sets one; the dark theme falls back to the light class. */
+function tokenOf(classes: string[], slot: 'text' | 'bg', dark: boolean) {
+  const token = (prefix: string) => classes.map(c => c.match(new RegExp(`^${prefix}${slot}-((?:[a-z]+-\\d+)|white|black|\\[oklch\\([^\\]]+\\)\\])$`))?.[1]).find(Boolean);
+  return (dark && token('dark:')) || token('');
+}
+
+/**
+ * Every rendered text under `root` that falls short of WCAG AA in a theme, read off its Tailwind classes:
+ * the text colour from the nearest element setting one, the background from the nearest painting one, else `page`.
+ * Large text (bold at 20px, or 24px and up) needs 3:1, the rest 4.5:1.
+ */
+export function lowContrastIn(root: Element, dark: boolean, palette: string, page: string) {
+  const nearest = (el: Element, find: (classes: string[]) => string | undefined) => {
+    for (let e: Element | null = el; e; e = e.parentElement) {
+      const found = find([...e.classList]);
+      if (found) return found;
+    }
+  };
+  const large = (el: Element) => {
+    const size = nearest(el, cs => cs.find(c => /^text-(xs|sm|base|lg|xl|[2-9]xl)$/.test(c))) ?? 'text-base';
+    return /[2-9]xl$/.test(size) || (size === 'text-xl' && !!nearest(el, cs => cs.find(c => /^font-(bold|extrabold|black)$/.test(c))));
+  };
+  return [root, ...root.querySelectorAll('*')]
+    .filter(el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent!.trim()) && !el.closest('.invisible, [aria-hidden="true"]'))
+    .flatMap(el => {
+      const text = nearest(el, cs => tokenOf(cs, 'text', dark));
+      if (!text) return [];
+      const background = nearest(el, cs => tokenOf(cs, 'bg', dark));
+      const ratio = contrastOf(colourOf(text, palette)!, background ? colourOf(background, palette)! : page);
+      return ratio < (large(el) ? 3 : 4.5) ? [`${ratio.toFixed(2)} ${el.textContent!.trim().slice(0, 30)}`] : [];
+    });
+}
