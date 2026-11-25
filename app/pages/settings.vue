@@ -98,7 +98,7 @@ watch(draft, value => store.updateSettings(value));
 <template>
   <div class="flex flex-1 flex-col gap-4">
     <header class="flex items-center gap-3">
-      <UpLink v-if="store.configured.value" to="/" class="text-2xl text-stone-500" data-testid="back">‹</UpLink>
+      <UpLink v-if="store.configured.value" to="/" class="text-2xl text-stone-500 dark:text-stone-400" data-testid="back">‹</UpLink>
       <h1 class="flex-1 truncate text-2xl font-bold">Settings</h1>
     </header>
     <VersionInfo />
@@ -110,7 +110,7 @@ watch(draft, value => store.updateSettings(value));
           <option v-for="(label, code) in LANGUAGES" :key="code" :value="code">{{ label }}</option>
         </select>
       </label>
-      <p class="-mt-1 text-xs text-stone-500">Meanings and transcriptions are shown in it.</p>
+      <p class="-mt-1 text-xs text-stone-500 dark:text-stone-400">Meanings and transcriptions are shown in it.</p>
     </section>
     <section class="flex flex-col gap-2 rounded-2xl bg-white p-4 text-sm dark:bg-stone-900">
       <h2 class="font-semibold">Learning</h2>
@@ -119,21 +119,21 @@ watch(draft, value => store.updateSettings(value));
         <input type="number" min="5" step="1" inputmode="numeric" class="tile w-20 py-1 text-right" :value="draft.groupSize" data-testid="group-size" @change="setGroupSize($event.target as HTMLInputElement)">
 
       </label>
-      <p class="-mt-1 text-xs text-stone-500">A group is learned in one go. In review, a missed card comes back after this many others.</p>
+      <p class="-mt-1 text-xs text-stone-500 dark:text-stone-400">A group is learned in one go. In review, a missed card comes back after this many others.</p>
       <fieldset class="flex flex-col gap-2">
         <legend class="mb-1">Games</legend>
         <label v-for="g in ALL_GAMES" :key="g" class="flex items-center justify-between gap-2 pl-2">
-          <span class="flex flex-col">{{ GAME_TITLES[g] }}<span class="text-xs text-stone-500" :data-testid="`game-hint-${g}`">{{ GAME_HINTS[g] }}</span></span>
+          <span class="flex flex-col">{{ GAME_TITLES[g] }}<span class="text-xs text-stone-500 dark:text-stone-400" :data-testid="`game-hint-${g}`">{{ GAME_HINTS[g] }}</span></span>
           <input type="checkbox" class="h-5 w-5 accent-orange-600" :checked="draft.games.includes(g)" :disabled="draft.games.length === 1 && draft.games.includes(g)" :data-testid="`game-${g}`" @change="draft = { ...draft, games: toggled(draft.games, g) }" />
         </label>
       </fieldset>
       <label v-if="draft.games.includes('pronounce')" class="flex items-center justify-between gap-2">
-        <span class="flex flex-col">Start with pronouncing<span class="text-xs text-stone-500">A new group opens with pronouncing in place of the intro.</span></span>
+        <span class="flex flex-col">Start with pronouncing<span class="text-xs text-stone-500 dark:text-stone-400">A new group opens with pronouncing in place of the intro.</span></span>
         <input type="checkbox" class="h-5 w-5 accent-orange-600" :checked="draft.pronounceFirst" data-testid="pronounce-first" @change="draft = { ...draft, pronounceFirst: ($event.target as HTMLInputElement).checked }" />
       </label>
-      <p class="-mt-1 text-xs text-stone-500">A new group plays them in this order. At least one stays on. Every game but Associating and Recognizing is reviewed on its own schedule, with its own mistakes.</p>
+      <p class="-mt-1 text-xs text-stone-500 dark:text-stone-400">A new group plays them in this order. At least one stays on. Every game but Associating and Recognizing is reviewed on its own schedule, with its own mistakes.</p>
       <label class="flex items-center justify-between gap-2">
-        <span class="flex flex-col">Top up a short group with<span class="text-xs text-stone-500">When fewer new words are left than a group holds.</span></span>
+        <span class="flex flex-col">Top up a short group with<span class="text-xs text-stone-500 dark:text-stone-400">When fewer new words are left than a group holds.</span></span>
         <select class="tile py-1" :value="draft.topUp ?? 'trouble'" data-testid="top-up" @change="draft = { ...draft, topUp: ($event.target as HTMLSelectElement).value as 'trouble' | 'next' }">
           <option value="trouble">Words that gave trouble</option>
           <option value="next">Next group's words</option>
@@ -145,21 +145,21 @@ watch(draft, value => store.updateSettings(value));
           <option v-for="n in [5, 10, 15, 20, 30]" :key="n" :value="n">{{ n }} s</option>
         </select>
       </label>
-      <p class="-mt-1 text-xs text-stone-500">In recall games, the answer shows by itself after this.</p>
+      <p class="-mt-1 text-xs text-stone-500 dark:text-stone-400">In recall games, the answer shows by itself after this.</p>
     </section>
     <section class="flex flex-col gap-2 rounded-2xl bg-white p-4 text-sm dark:bg-stone-900">
       <h2 class="font-semibold">Cards</h2>
       <template v-for="kind in KINDS" :key="kind">
         <label class="flex items-center justify-between gap-2">
-          <span class="flex flex-col">{{ KIND_TITLES[kind][0] }}<span class="text-xs text-stone-500">{{ KIND_TITLES[kind][1] }}</span></span>
+          <span class="flex flex-col">{{ KIND_TITLES[kind][0] }}<span class="text-xs text-stone-500 dark:text-stone-400">{{ KIND_TITLES[kind][1] }}</span></span>
           <input type="checkbox" class="h-5 w-5 accent-orange-600" :checked="draft.kinds?.[kind] !== false" :data-testid="`kind-${kind}`" @change="setKind(kind, ($event.target as HTMLInputElement).checked)" />
         </label>
-        <p v-if="ownGroups(kind)" class="-mt-1 flex items-center justify-between gap-2 text-xs text-stone-500" :data-testid="`kind-own-${kind}`">
+        <p v-if="ownGroups(kind)" class="-mt-1 flex items-center justify-between gap-2 text-xs text-stone-500 dark:text-stone-400" :data-testid="`kind-own-${kind}`">
           {{ ownGroups(kind) === 1 ? '1 group keeps its own' : `${ownGroups(kind)} groups keep their own` }}
           <button class="font-medium text-orange-700 dark:text-orange-400" :data-testid="`kind-reset-${kind}`" @click="resetGroups(kind)">Reset</button>
         </p>
       </template>
-      <p class="-mt-1 text-xs text-stone-500">Off leaves those cards out of learning and review; what was learned comes back when on. A section can keep its own choice from its menu.</p>
+      <p class="-mt-1 text-xs text-stone-500 dark:text-stone-400">Off leaves those cards out of learning and review; what was learned comes back when on. A section can keep its own choice from its menu.</p>
     </section>
     <section class="flex flex-col gap-2 rounded-2xl bg-white p-4 text-sm dark:bg-stone-900">
       <h2 class="font-semibold">Writing</h2>
@@ -178,9 +178,9 @@ watch(draft, value => store.updateSettings(value));
         <button class="btn-ghost" data-testid="export" @click="saveBackup()">Save backup</button>
         <button class="btn-ghost" data-testid="import" @click="importDialog.open()">Load from file</button>
       </div>
-      <p class="-mt-1 text-xs text-stone-500">Saving keeps everything: progress, schedules, scores, settings, your words and unfinished sessions. Loading takes a saved backup or a Lexilize backup.</p>
+      <p class="-mt-1 text-xs text-stone-500 dark:text-stone-400">Saving keeps everything: progress, schedules, scores, settings, your words and unfinished sessions. Loading takes a saved backup or a Lexilize backup.</p>
     </section>
-    <p v-if="imported" class="text-sm text-stone-500" data-testid="imported">{{ imported }}</p>
+    <p v-if="imported" class="text-sm text-stone-500 dark:text-stone-400" data-testid="imported">{{ imported }}</p>
   </div>
 </template>
 

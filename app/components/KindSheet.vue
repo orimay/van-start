@@ -72,7 +72,7 @@ function save(kind: Kind, value: boolean | undefined) {
             {{ c.label }}
           </button>
         </div>
-        <p v-if="stateOf(kind) === 'mixed'" class="text-xs text-stone-500" :data-testid="`kind-${kind}-mixed`">Mixed: some groups keep their own</p>
+        <p v-if="stateOf(kind) === 'mixed'" class="text-xs text-stone-500 dark:text-stone-400" :data-testid="`kind-${kind}-mixed`">Mixed: some groups keep their own</p>
       </div>
     </div>
     <template #footer>

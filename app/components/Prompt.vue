@@ -18,7 +18,7 @@ const hidden = computed(() => props.secret && props.card.promptNote ? noteLines(
 <template>
   <div data-testid="prompt-card" class="relative flex min-h-0 flex-1 basis-0 flex-col items-center justify-center-safe overflow-hidden gap-1 text-center w-full self-stretch rounded-xl border px-3 py-2 shadow-sm" :class="surfaceOf(card)" @click="contextShown = true">
     <img v-if="card.img" :class="{ invisible: secret && card.prompt === card.nl }" :src="`${base}img/${card.img}`" alt="" class="h-20 w-20 shrink-0 rounded-xl object-cover" />
-    <p data-testid="prompt" class="cursor-copy px-7 text-xl font-semibold" @click="copyText(card.prompt)"><KeepAffixes :text="card.prompt" /><AffixTag :card="card" :text="card.prompt" /><span v-if="process" class="font-normal text-stone-500"> ({{ process }})</span></p>
+    <p data-testid="prompt" class="cursor-copy px-7 text-xl font-semibold" @click="copyText(card.prompt)"><KeepAffixes :text="card.prompt" /><AffixTag :card="card" :text="card.prompt" /><span v-if="process" class="font-normal text-stone-500 dark:text-stone-400"> ({{ process }})</span></p>
     <!-- Only the notes scroll: the word stays in view, clear of the corner badge. -->
     <ScrollBox v-if="card.promptNote || card.promptExample || card.breakdown" box-class="gap-3" class="mt-2" testid="prompt-scroll">
     <!-- Where the example comes from, then the example, apart from the rules below. -->

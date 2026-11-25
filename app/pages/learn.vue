@@ -245,13 +245,13 @@ function takeDone() {
 <template>
   <div class="flex flex-1 flex-col gap-2">
     <header class="flex items-center gap-3 text-sm">
-      <UpLink to="/" class="text-xl leading-none text-stone-500" data-testid="back">‹</UpLink>
+      <UpLink to="/" class="text-xl leading-none text-stone-500 dark:text-stone-400" data-testid="back">‹</UpLink>
       <h1 class="flex-1 truncate font-semibold">{{ node.name }}</h1>
     </header>
     <div v-if="confirmingStartOver" class="flex flex-1 flex-col gap-4">
       <div class="flex flex-1 flex-col items-center justify-center gap-3 text-center">
         <p class="text-xl font-semibold">Drop this progress?</p>
-        <ul class="text-stone-500">
+        <ul class="text-stone-500 dark:text-stone-400">
           <li v-for="g in passedGames" :key="g.title" data-testid="passed-games">{{ g.title }}: {{ g.count }} {{ g.count === 1 ? 'word' : 'words' }}</li>
         </ul>
         <p>These games will start over for these words.</p>
@@ -264,7 +264,7 @@ function takeDone() {
     <div v-else-if="offerResume" class="flex flex-1 flex-col gap-4">
       <div class="flex flex-1 flex-col items-center justify-center gap-3 text-center">
         <p class="text-xl font-semibold">Continue where you left off?</p>
-        <ul class="flex w-full max-w-xs flex-col gap-2 text-sm text-stone-500">
+        <ul class="flex w-full max-w-xs flex-col gap-2 text-sm text-stone-500 dark:text-stone-400">
           <li v-for="g in groupProgress" :key="g.title" class="flex flex-col gap-1" data-testid="resume-progress">
             <span class="flex justify-between"><span data-testid="resume-game">{{ g.title }}</span><span class="tabular-nums">{{ g.passed }}/{{ g.of }}</span></span>
             <div class="h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800" role="progressbar" :aria-label="g.title" :aria-valuenow="g.passed" aria-valuemin="0" :aria-valuemax="g.of">

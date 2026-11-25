@@ -34,7 +34,7 @@ function tone(option: string) {
       <Prompt :card="card" :secret="picked === undefined" />
       <button v-for="option in options" :key="option.id" class="tile grid min-h-0 grid-rows-2 overflow-hidden" :class="tone(option.answer)" data-testid="option" @click="pick(option.answer)">
         <span class="self-end pb-1 font-medium"><KeepAffixes :text="option.answer" /><AffixTag :card="option" :text="option.answer" /></span>
-        <span class="line-clamp-3 self-stretch border-t border-stone-200 pt-1 text-xs text-stone-500 dark:border-stone-700">{{ option.answerExample }}</span>
+        <span class="line-clamp-3 self-stretch border-t border-stone-200 pt-1 text-xs text-stone-500 dark:text-stone-400 dark:border-stone-700">{{ option.answerExample }}</span>
       </button>
     </div>
     <div class="actions flex gap-2">

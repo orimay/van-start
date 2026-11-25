@@ -176,7 +176,7 @@ function giveUp() {
       <Answer v-else :card="card" :hidden="!answerShown" :silent="listening" :right="phase === 'done'">
         <template #above>
           <p v-if="claimable" data-testid="typed" class="text-xl"><TypedLetters :letters="letters" reveal /></p>
-          <p v-if="sameSound" data-testid="same-sound" class="text-sm text-stone-500">Sounds the same, spelled {{ card.answer }}</p>
+          <p v-if="sameSound" data-testid="same-sound" class="text-sm text-stone-500 dark:text-stone-400">Sounds the same, spelled {{ card.answer }}</p>
         </template>
         <p v-if="phase === 'missed'" data-testid="typed"><TypedLetters :letters="letters" /></p>
       </Answer>

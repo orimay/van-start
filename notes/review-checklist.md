@@ -95,6 +95,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] Group settings open from the gear in the start menu title.
 - [ ] Back closes open layers one per press, then on the first page asks before leaving; another back or Stay keeps the app and the next back asks again.
 - [ ] White text on orange sits on orange-700 or darker (`contrast.spec.ts`).
+- [ ] Grey text: `text-stone-500` pairs with `dark:text-stone-400`; no light stone-400 or dark stone-500; stone-600 on a stone-100 chip (`contrast.spec.ts`).
 - [ ] A link up a page is an `UpLink`, never a `NuxtLink` push: back on home asks to leave, it never walks through earlier pages.
 - [ ] A sheet opened from a menu returns to that menu when it closes.
 - [ ] Home is the last stop: after home -> settings -> a lesson -> home, Back on home asks to leave, never walks back through pages.
@@ -104,7 +105,7 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] An update reloads only at a move (card to card, page to page), never mid-card.
 - [ ] A phrase with an article Russian does not show says it in words in every language (`(какой-нибудь)`, `(свой)`, `bir`, `(belirli)`).
 - [ ] Every article in a phrase has a closing ru/tr note item, Dutch first, saying why that article (any, known, own, set phrase, amount…); en/es/pt/ro show it with their own article.
-- [ ] A card's tint matches its kind: affix violet, noun sky, verb yellow, letter green, sentence cyan, else plain, same oklch lightness and chroma, hues 40° apart, no red hue (`p` from `flag-kinds.py`), readable in light and dark.
+- [ ] A card's tint matches its kind: affix violet, noun sky, verb yellow, letter green, sentence cyan, else plain, same oklch lightness and chroma, hues 40° apart, no red hue (`p` from `flag-kinds.py`), quiet text at 4.5:1 on it, dark border ≥3:1 against the dark card.
 - [ ] A note says plainly where a word is used (`только внутри слова de postbode`), never a figure like "lives in de postbode".
 - [ ] A word-initial v is transcribed `ф` in every card, loans too (visite `физи́тэ`).
 - [ ] Two forms mixed up (hij pakt / hij neemt) list their bases (pakken / nemen) as mixed up too, on both sheets.

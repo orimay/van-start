@@ -80,15 +80,15 @@ function linkTo(page: 'learn' | 'review', i: number, game?: ReviewGame) {
     <li v-for="(node, i) in nodes" :key="i">
       <div class="flex items-center gap-2 rounded-lg py-1.5" :data-testid="`section-${[...path, i].join('-')}`">
         <button class="flex flex-1 items-center gap-2 text-left" @click="open = open === i ? undefined : i">
-          <span class="w-4 text-stone-400">{{ node.children ? (open === i ? '▾' : '▸') : '' }}</span>
+          <span class="w-4 text-stone-500 dark:text-stone-400">{{ node.children ? (open === i ? '▾' : '▸') : '' }}</span>
           <span class="flex flex-1 flex-col gap-1">
             <span>{{ node.name }}<span v-if="ownKinds(node)" class="ml-2 rounded bg-orange-100 px-1.5 text-xs text-orange-800 dark:bg-orange-950 dark:text-orange-300" title="Keeps its own choice of cards" data-testid="kinds-own">own cards</span></span>
             <span class="flex items-center gap-2">
               <ProgressBar :value="shareOf(node)" class="max-w-40 flex-1" />
               <span class="w-9 text-right text-xs font-semibold tabular-nums text-stone-700 dark:text-stone-300" data-testid="learned-share">{{ Math.round(100 * shareOf(node)) }}%</span>
-              <span class="rounded bg-stone-100 px-1.5 text-xs tabular-nums text-stone-500 dark:bg-stone-800" data-testid="learned-count">{{ countsOf(node).learned }}/{{ countsOf(node).total }}</span>
+              <span class="rounded bg-stone-100 px-1.5 text-xs tabular-nums text-stone-600 dark:bg-stone-800 dark:text-stone-400" data-testid="learned-count">{{ countsOf(node).learned }}/{{ countsOf(node).total }}</span>
             </span>
-            <span v-if="groupsOf(node).left" class="text-xs text-stone-500" data-testid="groups-left">{{ groupsOf(node).left }}/{{ groupsOf(node).total }} groups left</span>
+            <span v-if="groupsOf(node).left" class="text-xs text-stone-500 dark:text-stone-400" data-testid="groups-left">{{ groupsOf(node).left }}/{{ groupsOf(node).total }} groups left</span>
           </span>
         </button>
         <span class="menu-anchor">
@@ -106,7 +106,7 @@ function linkTo(page: 'learn' | 'review', i: number, game?: ReviewGame) {
                 </button>
               </div>
               <NuxtLink v-for="o in optionsOf(node, i)" :key="o.id" :to="o.to" replace class="flex flex-col gap-1 rounded-lg px-3 py-2" :class="o.id === 'learn' ? 'bg-orange-700 text-white' : 'hover:bg-stone-100 dark:hover:bg-stone-800'" :data-testid="o.id" :data-primary="o.id === 'learn' || undefined" v-on="longPress(() => askReset(node, o))">
-                <span class="flex justify-between gap-2"><span>{{ o.label }}</span><span v-if="o.total" class="text-xs tabular-nums" :class="o.id === 'learn' ? 'text-orange-100' : 'text-stone-500'">{{ o.done }}/{{ o.total }}</span></span>
+                <span class="flex justify-between gap-2"><span>{{ o.label }}</span><span v-if="o.total" class="text-xs tabular-nums" :class="o.id === 'learn' ? 'text-orange-100' : 'text-stone-500 dark:text-stone-400'">{{ o.done }}/{{ o.total }}</span></span>
                 <ProgressBar v-if="o.total" :value="o.done / o.total" :inverted="o.id === 'learn'" />
               </NuxtLink>
             </div>

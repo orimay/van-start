@@ -591,7 +591,7 @@ function optionsFor(card: StudyCard): StudyCard[] {
 <template>
   <div class="flex flex-1 flex-col gap-2" @mousedown="keepTyping">
     <ProgressBar :value="progress" data-testid="session-progress" />
-    <div class="flex items-center justify-between text-xs text-stone-500">
+    <div class="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
       <span data-testid="stage">{{ STAGE_TITLES[game] }}<template v-if="stages.length > 1"> · {{ stageIndex + 1 }}/{{ stages.length }}</template></span>
       <span class="flex items-center gap-3">
         <span class="tabular-nums" data-testid="left">left {{ cardsLeft }}</span>
@@ -600,9 +600,9 @@ function optionsFor(card: StudyCard): StudyCard[] {
     <div v-if="announcing" class="flex flex-1 flex-col gap-4" data-testid="next-game">
       <div class="flex flex-1 flex-col items-center justify-center gap-2 text-center">
         <p class="text-2xl font-bold">{{ STAGE_TITLES[stage] }}</p>
-        <p class="text-stone-500">{{ hint }}</p>
+        <p class="text-stone-500 dark:text-stone-400">{{ hint }}</p>
       </div>
-      <ul v-if="stageIndex === firstLaterStage || stage === 'pronounce'" class="flex flex-col gap-3 border-t border-stone-200 pt-4 text-xs text-stone-400 dark:border-stone-800">
+      <ul v-if="stageIndex === firstLaterStage || stage === 'pronounce'" class="flex flex-col gap-3 border-t border-stone-200 pt-4 text-xs text-stone-500 dark:text-stone-400 dark:border-stone-800">
         <li v-if="stageIndex === firstLaterStage" class="flex items-center gap-3" data-testid="tip-back"><span class="w-6 shrink-0 text-center text-lg">‹</span>Picked the wrong one or moved on too soon? Step back.</li>
         <li v-if="stageIndex === firstLaterStage" class="flex items-center gap-3" data-testid="tip-later"><span class="flex w-6 shrink-0 justify-center"><LaterIcon /></span>The last card reminded you of this one? Put it off for later.</li>
         <li v-if="stage === 'pronounce'" class="flex items-center gap-3" data-testid="tip-record"><span class="w-6 shrink-0 text-center text-lg">🎤</span>Record yourself to compare with the right pronunciation, if you like.</li>

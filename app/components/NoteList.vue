@@ -20,8 +20,8 @@ function gapBefore(previous: NoteKind | undefined, kind: NoteKind) {
 const HEAD: Record<NoteKind, string> = {
   rule: '',
   example: 'font-medium not-italic text-stone-900 dark:text-stone-100',
-  label: 'mr-0.5 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500',
-  origin: 'mr-0.5 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500',
+  label: 'mr-0.5 text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400',
+  origin: 'mr-0.5 text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400',
 };
 </script>
 

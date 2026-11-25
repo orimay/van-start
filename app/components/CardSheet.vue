@@ -56,7 +56,7 @@ const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close())
           <PlayButton class="btn-ghost px-2" aria-label="Play" data-testid="card-sheet-play" :sound="cardKey(study)" @play="speak(study)" />
           <button type="button" class="btn-ghost px-2" aria-label="Close" data-testid="card-sheet-close" @click="sheet.close()">✕</button>
         </div>
-        <p v-if="card.tr" class="text-stone-500" data-testid="card-sheet-transcription">[{{ card.tr }}]</p>
+        <p v-if="card.tr" class="text-stone-500 dark:text-stone-400" data-testid="card-sheet-transcription">[{{ card.tr }}]</p>
       </div>
       <div ref="body" class="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain px-4 pb-2" data-testid="card-sheet-body">
         <p data-testid="card-sheet-meaning">
@@ -66,38 +66,38 @@ const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close())
         <div v-if="card.xb" class="flex items-start gap-2" data-testid="card-sheet-example">
           <div class="flex-1 text-sm">
             <p><AffixWord v-if="study?.affix" :word="card.xb" :affix="study.affix.dutch" /><template v-else>{{ card.xb }}</template></p>
-            <p v-if="study?.affix?.tr && study.tr" class="text-stone-500">[<AffixWord :word="study.tr" :affix="study.affix.dutch" :size="letterCount(study.affix.tr)" />]</p>
-            <p v-if="card.xf" class="text-stone-500">{{ card.xf }}</p>
+            <p v-if="study?.affix?.tr && study.tr" class="text-stone-500 dark:text-stone-400">[<AffixWord :word="study.tr" :affix="study.affix.dutch" :size="letterCount(study.affix.tr)" />]</p>
+            <p v-if="card.xf" class="text-stone-500 dark:text-stone-400">{{ card.xf }}</p>
           </div>
           <PlayButton class="btn-ghost px-2" aria-label="Play example" :sound="exampleKey(study)" @play="speakExample(study)" />
         </div>
-        <p class="text-xs text-stone-500" data-testid="card-sheet-status">{{ isLearned(card.id) ? 'Learned' : 'Not learned yet' }}</p>
+        <p class="text-xs text-stone-500 dark:text-stone-400" data-testid="card-sheet-status">{{ isLearned(card.id) ? 'Learned' : 'Not learned yet' }}</p>
         <section v-if="derived.length" class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-derived">
-          <p class="text-xs font-semibold uppercase text-stone-500">Words built on it</p>
+          <p class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Words built on it</p>
           <button v-for="word in derived" :key="word.id" type="button" class="flex flex-wrap items-baseline gap-x-2 gap-y-1 py-1 text-left" data-testid="card-sheet-derived-word" @click="sheet.open(word.id)">
             <span class="text-sky-700 underline decoration-dotted decoration-2 underline-offset-4 dark:text-sky-400">{{ word.card.b }}</span>
-            <span class="flex-1 text-stone-500">{{ word.card.f }}</span>
-            <span v-if="!isLearned(word.id)" class="text-xs text-stone-400">new</span>
-            <span v-if="word.sense" class="basis-full"><span class="rounded bg-stone-100 px-1.5 text-xs text-stone-500 dark:bg-stone-800" :class="{ 'text-sky-700 dark:text-sky-400': layer?.gloss && same(layer.gloss, word.sense) }">{{ word.sense }}</span></span>
+            <span class="flex-1 text-stone-500 dark:text-stone-400">{{ word.card.f }}</span>
+            <span v-if="!isLearned(word.id)" class="text-xs text-stone-500 dark:text-stone-400">new</span>
+            <span v-if="word.sense" class="basis-full"><span class="rounded bg-stone-100 px-1.5 text-xs text-stone-600 dark:bg-stone-800 dark:text-stone-400" :class="{ 'text-sky-700 dark:text-sky-400': layer?.gloss && same(layer.gloss, word.sense) }">{{ word.sense }}</span></span>
           </button>
         </section>
         <section v-if="related.length" class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-related">
-          <p class="text-xs font-semibold uppercase text-stone-500">Related words</p>
+          <p class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Related words</p>
           <button v-for="word in related" :key="word.id" type="button" class="flex items-baseline gap-2 py-1 text-left" data-testid="card-sheet-related-word" @click="sheet.open(word.id)">
             <span class="text-sky-700 underline decoration-dotted decoration-2 underline-offset-4 dark:text-sky-400">{{ word.card.b }}</span>
-            <span class="flex-1 text-stone-500">{{ word.card.f }}</span>
-            <span v-if="!isLearned(word.id)" class="text-xs text-stone-400">new</span>
+            <span class="flex-1 text-stone-500 dark:text-stone-400">{{ word.card.f }}</span>
+            <span v-if="!isLearned(word.id)" class="text-xs text-stone-500 dark:text-stone-400">new</span>
           </button>
         </section>
         <section class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-mixed">
           <div class="flex items-center">
-            <p class="flex-1 text-xs font-semibold uppercase text-stone-500">Mixed up with</p>
+            <p class="flex-1 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Mixed up with</p>
             <button type="button" class="btn-ghost px-2 py-1 text-sm" data-testid="card-sheet-mixed-add" @click="mixing = true">+ Add</button>
           </div>
           <div v-for="word in mixedUp" :key="word.id" class="flex items-center gap-1">
             <button type="button" class="flex flex-1 items-baseline gap-2 py-1 text-left" data-testid="card-sheet-mixed-word" @click="sheet.open(word.id)">
               <span class="text-sky-700 underline decoration-dotted decoration-2 underline-offset-4 dark:text-sky-400">{{ word.b }}</span>
-              <span class="flex-1 text-stone-500">{{ word.f }}</span>
+              <span class="flex-1 text-stone-500 dark:text-stone-400">{{ word.f }}</span>
             </button>
             <button type="button" class="btn-ghost px-2" :aria-label="`Not mixed up with ${word.b}`" data-testid="card-sheet-mixed-remove" @click="unconfuse(card.id, word.id)">✕</button>
           </div>

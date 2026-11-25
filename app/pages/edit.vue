@@ -86,7 +86,7 @@ function deleteCard(id: string) {
 <template>
   <div class="flex flex-1 flex-col gap-4">
     <header class="flex items-center gap-3">
-      <UpLink :to="isRoot ? '/' : parentId === root.id ? '/edit' : `/edit?id=${parentId}`" class="text-2xl text-stone-500" data-testid="back">‹</UpLink>
+      <UpLink :to="isRoot ? '/' : parentId === root.id ? '/edit' : `/edit?id=${parentId}`" class="text-2xl text-stone-500 dark:text-stone-400" data-testid="back">‹</UpLink>
       <h1 class="flex-1 truncate text-2xl font-bold">{{ section.name }}</h1>
     </header>
 

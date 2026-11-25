@@ -1,13 +1,13 @@
 import type { StudyCard } from '@/utils/deck';
 
-const PLAIN = 'border-stone-300 bg-white dark:border-stone-700 dark:bg-stone-900';
-// One lightness and chroma for every kind, only the hue tells them apart.
+const PLAIN = 'border-stone-300 bg-white dark:border-stone-600 dark:bg-stone-900';
+// One lightness and chroma for every kind, only the hue tells them apart; a dark card shows its hue mostly in the border.
 const TINT: Record<NonNullable<StudyCard['part']>, string> = {
-  affix: 'border-[oklch(0.87_0.06_300)] bg-[oklch(0.96_0.03_300)] dark:border-[oklch(0.42_0.06_300)] dark:bg-[oklch(0.27_0.04_300)]',
-  noun: 'border-[oklch(0.87_0.06_240)] bg-[oklch(0.96_0.03_240)] dark:border-[oklch(0.42_0.06_240)] dark:bg-[oklch(0.27_0.04_240)]',
-  verb: 'border-[oklch(0.87_0.06_95)] bg-[oklch(0.96_0.03_95)] dark:border-[oklch(0.42_0.06_95)] dark:bg-[oklch(0.27_0.04_95)]',
-  letter: 'border-[oklch(0.87_0.06_150)] bg-[oklch(0.96_0.03_150)] dark:border-[oklch(0.42_0.06_150)] dark:bg-[oklch(0.27_0.04_150)]',
-  sentence: 'border-[oklch(0.87_0.06_195)] bg-[oklch(0.96_0.03_195)] dark:border-[oklch(0.42_0.06_195)] dark:bg-[oklch(0.27_0.04_195)]',
+  affix: 'border-[oklch(0.78_0.1_300)] bg-[oklch(0.982_0.024_300)] dark:border-[oklch(0.6_0.1_300)] dark:bg-[oklch(0.25_0.035_300)]',
+  noun: 'border-[oklch(0.78_0.1_250)] bg-[oklch(0.982_0.024_250)] dark:border-[oklch(0.6_0.1_250)] dark:bg-[oklch(0.25_0.035_250)]',
+  verb: 'border-[oklch(0.78_0.1_85)] bg-[oklch(0.982_0.024_85)] dark:border-[oklch(0.6_0.1_85)] dark:bg-[oklch(0.25_0.035_85)]',
+  letter: 'border-[oklch(0.78_0.1_150)] bg-[oklch(0.982_0.024_150)] dark:border-[oklch(0.6_0.1_150)] dark:bg-[oklch(0.25_0.035_150)]',
+  sentence: 'border-[oklch(0.78_0.1_200)] bg-[oklch(0.982_0.024_200)] dark:border-[oklch(0.6_0.1_200)] dark:bg-[oklch(0.25_0.035_200)]',
 };
 
 /** A card's border and background: one spelling as an affix, a noun or a verb looks apart (op-, de boeken, boeken), and so do a letter and a sentence. */

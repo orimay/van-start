@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { type StudyCard, toStudyCard } from '@/utils/deck';
 import { surfaceOf } from '@/utils/surface';
+import { contrastOf } from '../../tests/contrast';
 
 const PARTS: Array<NonNullable<StudyCard['part']>> = ['affix', 'noun', 'verb', 'letter', 'sentence'];
 const SLOTS = ['border', 'bg', 'dark:border', 'dark:bg'];
@@ -41,5 +43,25 @@ describe('a card', () => {
   it.each(['letter', 'sentence'] as const)('is tinted apart from every other kind as a %s', (kind) => {
     expect(Object.entries(surfaces).filter(([other, s]) => other !== kind && s === surfaces[kind]).map(([other]) => other)).toEqual([]);
     expect(surfaces[kind]).not.toBe(plain);
+  });
+});
+
+const theme = readFileSync('node_modules/tailwindcss/theme.css', 'utf8');
+const shade = (name: string) => theme.match(new RegExp(`--color-${name}: (oklch\\([^)]+\\));`))![1]!;
+const oklchOf = (part: StudyCard['part'], slot: string) => {
+  const { l, c, h } = colourOf(part, slot);
+  return `oklch(${l} ${c} ${h})`;
+};
+
+describe('a kind tint', () => {
+  // The quietest text a card carries: examples, origins, transcriptions.
+  it.each(PARTS)('keeps quiet text at AA contrast in both themes for %s', (part) => {
+    expect(contrastOf(shade('stone-500'), oklchOf(part, 'bg'))).toBeGreaterThanOrEqual(4.5);
+    expect(contrastOf(shade('stone-400'), oklchOf(part, 'dark:bg'))).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // On a dark card the background barely shows a hue; the border carries it.
+  it.each(PARTS)('draws its dark border clearly against its card for %s', (part) => {
+    expect(contrastOf(oklchOf(part, 'dark:border'), oklchOf(part, 'dark:bg'))).toBeGreaterThanOrEqual(3);
   });
 });

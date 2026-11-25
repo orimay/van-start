@@ -59,11 +59,11 @@ function tone(id: string, side: Side) {
     <template v-for="(_, i) in left" :key="i">
       <button class="tile grid grid-rows-2 text-sm" :class="tone(left[i]!.id, 'left')" data-testid="match-left" @click="pick('left', left[i]!.id)">
         <span class="self-end pb-1 font-medium" data-testid="match-text"><KeepAffixes :text="left[i]!.prompt" /><AffixTag :card="left[i]!" :text="left[i]!.prompt" /></span>
-        <span class="line-clamp-3 self-stretch border-t border-stone-200 pt-1 text-xs text-stone-500 dark:border-stone-700">{{ left[i]!.promptExample }}</span>
+        <span class="line-clamp-3 self-stretch border-t border-stone-200 pt-1 text-xs text-stone-500 dark:text-stone-400 dark:border-stone-700">{{ left[i]!.promptExample }}</span>
       </button>
       <button class="tile grid grid-rows-2 text-sm" :class="tone(right[i]!.id, 'right')" data-testid="match-right" @click="pick('right', right[i]!.id)">
         <span class="self-end pb-1 font-medium" data-testid="match-text"><KeepAffixes :text="right[i]!.answer" /><AffixTag :card="right[i]!" :text="right[i]!.answer" /></span>
-        <span class="line-clamp-3 self-stretch border-t border-stone-200 pt-1 text-xs text-stone-500 dark:border-stone-700">{{ right[i]!.answerExample }}</span>
+        <span class="line-clamp-3 self-stretch border-t border-stone-200 pt-1 text-xs text-stone-500 dark:text-stone-400 dark:border-stone-700">{{ right[i]!.answerExample }}</span>
       </button>
     </template>
   </div>

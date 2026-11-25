@@ -264,3 +264,8 @@ Wrong parts of the typed answer are struck through, the right ones follow them: 
 ## A front tells its card apart (2026-11-25)
 - [x] alweer «опять, снова» and weer «снова, опять» were the same card without the hidden example. Whole deck: fronts with the same senses in any order now differ in every language (alweer «опять (с досадой)», de arts «врач (официально)», besluiten / beslissen, de bloes / de blouse, ~35 ru and ~150 translation-only clashes: homonyms like pt segundo, es seguro, tr sıcak, ro mare). `duplicate-prompts.spec.ts` checks all 6 languages; affixes and forms are exempt.
 - [x] Deploy, verify live.
+
+## Card fixes from review, and cleaner card colours (2026-11-25)
+- [x] aflopen card before afgelopen (`af- + lopen`), afgelopen `прошедший, закончившийся`, het is afgelopen «это закончилось, прошло» as its perfect form; afgelopen maandag/donderdag and het paasei (Pasen + het ei, het ei first) name their parts; telefoneren met een vriend «говорить по телефону с другом»; boodschappen doen also `выполнять поручения`; Kom je met de fiets?, hoe laat is het?, openen, het lid, de Kerstmis, om half één and more; all 6 languages.
+- [x] Card tints were muddy and dark cards hardly showed their kind. Light: near-white wash with a clear border; dark: faint wash, the hue in a bright border; the plain dark card a stone-600 border. Quiet text kept at 4.5:1 on every tint (`surface.spec.ts`); grey text across the app fixed to AA in both themes (`contrast.spec.ts`). Checked on screen in light and dark.
+- [ ] Deploy, verify live.

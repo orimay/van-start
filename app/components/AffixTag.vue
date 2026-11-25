@@ -15,5 +15,5 @@ const kind = computed(() => props.card.affix && props.text !== props.card.affix.
 </script>
 
 <template>
-  <span v-if="kind" class="font-normal text-stone-500" data-testid="affix-kind"> ({{ kind }})</span>
+  <span v-if="kind" class="font-normal text-stone-500 dark:text-stone-400" data-testid="affix-kind"> ({{ kind }})</span>
 </template>

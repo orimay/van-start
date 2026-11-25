@@ -72,7 +72,7 @@ function toggle(other: string) {
     <template #title>Mixed up <span v-if="!secret" class="text-orange-700 dark:text-orange-400">{{ self?.b }}</span><template v-else>this word</template> with…</template>
     <div class="flex flex-col" data-testid="mix-up-options">
       <section v-for="section in sections" :key="section.title" class="flex flex-col" :data-testid="'testid' in section ? section.testid : 'mix-up-section'">
-        <h3 v-if="section.title" class="pt-2 pb-1 text-xs font-semibold uppercase text-stone-500">{{ section.title }}</h3>
+        <h3 v-if="section.title" class="pt-2 pb-1 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">{{ section.title }}</h3>
         <button
           v-for="card in section.cards"
           :key="card.id"
@@ -84,14 +84,14 @@ function toggle(other: string) {
         >
           <span class="flex flex-1 flex-wrap items-baseline gap-x-2">
             <span class="font-semibold" data-testid="mix-up-word">{{ card.b }}</span>
-            <span class="text-stone-500">{{ card.f }}</span>
-            <span v-if="!store.isLearned(card.id)" class="text-xs text-stone-400">new</span>
+            <span class="text-stone-500 dark:text-stone-400">{{ card.f }}</span>
+            <span v-if="!store.isLearned(card.id)" class="text-xs text-stone-500 dark:text-stone-400">new</span>
           </span>
           <span class="flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-sm" :class="ticked(card.id) ? 'border-orange-700 bg-orange-700 text-white' : 'border-stone-300 dark:border-stone-600'" aria-hidden="true">{{ ticked(card.id) ? '✓' : '' }}</span>
         </button>
       </section>
       <div v-if="query.trim() && !found.length" class="flex flex-col items-center gap-2 py-6 text-center" data-testid="mix-up-none">
-        <p class="text-stone-500">Nothing found for "{{ query.trim() }}"</p>
+        <p class="text-stone-500 dark:text-stone-400">Nothing found for "{{ query.trim() }}"</p>
         <button type="button" class="btn-ghost text-sm" data-testid="mix-up-clear" @click="query = ''">Clear search</button>
       </div>
     </div>

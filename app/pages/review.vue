@@ -133,7 +133,7 @@ function onUndo(id: string, stage: Stage) {
 <template>
   <div class="flex flex-1 flex-col gap-4">
     <header class="flex items-center gap-3">
-      <UpLink to="/" class="text-2xl text-stone-500" data-testid="back">‹</UpLink>
+      <UpLink to="/" class="text-2xl text-stone-500 dark:text-stone-400" data-testid="back">‹</UpLink>
       <h1 class="flex-1 truncate font-semibold">{{ section ? `Review: ${section.name}` : 'Review' }}</h1>
     </header>
     <div v-if="finished || !batch.length" class="flex flex-1 flex-col gap-4">
