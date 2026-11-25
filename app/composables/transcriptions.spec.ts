@@ -29,7 +29,7 @@ const ROOT_SOUNDS: Record<string, string> = {
   muziek: 'мүүзи',
   probe: 'прообэ',
   drogist: 'дроохи',
-  vitamine: 'витаамии',
+  vitamine: 'фитаамии',
   journalist: 'журнаали',
   klarinet: 'клаари',
   salon: 'саало',
@@ -54,6 +54,16 @@ const ENGLISH_YU = /interview|new york|steward/i;
 describe('ru transcriptions', () => {
   it('use no ы, е, ё or ː', () => {
     expect(cards.filter(c => /[ыеёː]/.test(c.tr)).map(c => `${c.b} /${c.tr}/`)).toEqual([]);
+  });
+
+  // In the Netherlands a word-initial v sounds close to f.
+  it('write a word-initial v as ф', () => {
+    const words = (s: string) => s.toLowerCase().match(/[\p{L}'-]+/gu) ?? [];
+    const offenders = cards.filter(c => c.b.length > 1).filter((c) => {
+      const [dutch, ru] = [words(c.b), c.tr.split(' ')];
+      return dutch.length === ru.length && dutch.some((w, i) => w.startsWith('v') && ru[i]!.startsWith('в'));
+    });
+    expect(offenders.map(c => `${c.b} /${c.tr}/`)).toEqual([]);
   });
 
   it('stress a diphthong on its first letter', () => {

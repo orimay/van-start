@@ -21,7 +21,7 @@ NOT_SPLITS = {
     'ontmoeten': None, 'ontbijten': None, 'inversie': None, 'veranderen': None, 'navel': None,
     'vervolgens': None, 'beroepen': None, 'hamburger': None,
     'gezinnen': None, 'gerecht': None, 'gesloten': None, 'geniet': None, 'gevaar': None, 'gedicht': None,
-    'gezonder': None, 'gehoor': None, 'geheel': None, 'natuur': None,
+    'gezonder': None, 'gehoor': None, 'geheel': None, 'natuur': None, 'bestellen': None,
 }
 
 

@@ -59,3 +59,16 @@ describe('affix glosses', () => {
     expect(affixes.filter(c => THING[lang]!.test(`${overlay[c.id]?.[0]} ${overlay[c.id]?.[3]}`)).map(c => c.b)).toEqual([]);
   });
 });
+
+// "lives in de postbode" reads as nonsense: a note says plainly where a word is used
+const LIVES_IN: Record<string, RegExp> = {
+  ru: /живёт в (составн|de |het )/, en: /lives (on )?in (compounds|de |het )/, es: /vive en (palabras|de |het )/,
+  pt: /vive em (palavras|de |het )/, tr: /kelimelerde yaşar|\) içinde yaşıyor/, ro: /trăiește în (cuvinte|de |het )/,
+};
+
+describe('a note naming where a word is used', () => {
+  it.each(Object.keys(LIVES_IN))('says it plainly in %s', (lang) => {
+    const notes = lang === 'ru' ? cards.map(c => c.n ?? '') : overlayNotes(lang);
+    expect(notes.filter(n => LIVES_IN[lang]!.test(n))).toEqual([]);
+  });
+});

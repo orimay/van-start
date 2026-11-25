@@ -5,7 +5,7 @@ import { cardsOf, type DeckCard, type DeckNode } from './deck';
 const cards: DeckCard[] = cardsOf(JSON.parse(readFileSync('public/deck.json', 'utf8')) as DeckNode);
 const ORIGIN = /(?:^|; |\n!?)(?:уменьш\. )?от: /;
 // No card for their parts yet: beetje is only ever een beetje; boarding is English; zich and the verbs wait for their own cards.
-const NO_PART_CARD = new Set(['een beetje', 'de boarding time', 'zich aankleden', 'zich herinneren', 'ervoor zorgen']);
+const NO_PART_CARD = new Set(['een beetje', 'de boarding time']);
 /** A phrase: several words, not a sentence, not a name, not a form of another card. */
 const isPhrase = (c: DeckCard) =>
   !c.k && c.b.replace(/^(de|het) /, '').includes(' ') && !/[?!.]$/.test(c.b) && !/^[A-Z]/.test(c.b)
