@@ -293,16 +293,19 @@ function promptOf(w: VueWrapper) {
 }
 
 /** Reveals, then says the card was mixed up with the first one the query finds. */
+/** Answers the card as taken for the one found by `query`: links it, closes the sheet, then Forgot. */
 async function doMixUp(w: VueWrapper, query: string) {
-  await w.get('[data-testid="reveal"]').trigger('click');
-  await nextTick();
-  await w.get('[data-testid="mixed-up"]').trigger('click');
-  await nextTick();
+  for (const testId of ['reveal', 'mixed-up']) {
+    await w.get(`[data-testid="${testId}"]`).trigger('click');
+    await nextTick();
+  }
   const search = w.get('[data-testid="mix-up-search"]');
   search.element.textContent = query;
   await search.trigger('input');
-  await w.get('[data-testid="mix-up-option"]').trigger('click');
-  await nextTick();
+  for (const testId of ['mix-up-option', 'mix-up-done', 'forgot']) {
+    await w.get(`[data-testid="${testId}"]`).trigger('click');
+    await nextTick();
+  }
 }
 
 async function doRecall(w: VueWrapper, remembered: boolean) {

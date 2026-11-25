@@ -7,5 +7,5 @@ const parts = computed(() => splitAffix(props.word, props.size ?? letterCount(pr
 </script>
 
 <template>
-  <span><span class="text-stone-400 dark:text-stone-500">{{ parts[0] }}</span><span data-testid="affix-part">{{ parts[1] }}</span><span class="text-stone-400 dark:text-stone-500">{{ parts[2] }}</span></span>
+  <span><span class="text-stone-400 dark:text-stone-500">{{ parts[0] }}</span><span class="font-semibold text-stone-700 dark:text-stone-200" data-testid="affix-part">{{ parts[1] }}</span><span class="text-stone-400 dark:text-stone-500">{{ parts[2] }}</span></span>
 </template>

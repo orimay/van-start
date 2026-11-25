@@ -41,24 +41,59 @@ describe('the mix-up sheet', () => {
     expect(optionsOf(w)).toEqual(['de slaapkamer']);
   });
 
-  it('leaves out the card itself and the ones already linked', async () => {
-    useStore().confuse('kamer', 'kameraad');
+  it('leaves out the card itself', async () => {
     using w = await doMount('kamer');
     await doSearch(w, 'kam');
-    expect(optionsOf(w)).toEqual(['het kamp', 'de slaapkamer']);
+    expect(optionsOf(w)).not.toContain('de kamer');
   });
 
-  it('says when nothing is found', async () => {
+  it('lists the cards already linked first, ticked', async () => {
+    useStore().confuse('kamer', 'koken');
+    using w = await doMount('kamer');
+    expect(readSections(w)).toEqual([
+      ['Mixed up with', 'koken ✓'],
+      ['Looks alike', 'de kameraad', 'de slaapkamer', 'het kamp'],
+    ]);
+  });
+
+  it('says when nothing is found, and clears the search on a tap', async () => {
     using w = await doMount('kamer');
     await doSearch(w, 'zzz');
-    expect(w.get('[data-testid="mix-up-none"]').text()).toBe('Nothing found');
+    expect(w.get('[data-testid="mix-up-none"]').text()).toContain('Nothing found');
+    await w.get('[data-testid="mix-up-clear"]').trigger('click');
+    expect(optionsOf(w).slice(0, 3)).toEqual(['de kameraad', 'de slaapkamer', 'het kamp']);
   });
 
-  it('hands over the card picked', async () => {
+  describe('a card tapped', () => {
+    it('is linked, handed over and stays in the list ticked', async () => {
+      using w = await doMount('kamer');
+      await doSearch(w, 'спал');
+      await doTap(w, 'de slaapkamer');
+      expect(useStore().confusions.value.kamer).toEqual(['slaapkamer']);
+      expect(w.emitted('pick')).toEqual([['slaapkamer']]);
+      expect(readOptions(w)).toEqual(['de slaapkamer ✓']);
+    });
+
+    it('is unlinked and handed back when tapped again', async () => {
+      using w = await doMount('kamer');
+      await doTap(w, 'het kamp');
+      await doTap(w, 'het kamp');
+      expect(useStore().confusions.value.kamer ?? []).toEqual([]);
+      expect(w.emitted('drop')).toEqual([['kamp']]);
+      expect(readOptions(w)).toContain('het kamp');
+    });
+  });
+
+  it('closes on Done', async () => {
     using w = await doMount('kamer');
-    await doSearch(w, 'спал');
-    await w.get('[data-testid="mix-up-option"]').trigger('click');
-    expect(w.emitted('pick')).toEqual([['slaapkamer']]);
+    await w.get('[data-testid="mix-up-done"]').trigger('click');
+    expect(w.emitted('close')).toHaveLength(1);
+  });
+
+  it('keeps the search and Done under the list, in thumb reach', async () => {
+    using w = await doMount('kamer');
+    const order = w.findAll('[data-testid="mix-up-options"], [data-testid="mix-up-search"], [data-testid="mix-up-done"]').map(e => e.attributes('data-testid'));
+    expect(order).toEqual(['mix-up-options', 'mix-up-search', 'mix-up-done']);
   });
 
   it('closes on the device back button', async () => {
@@ -72,7 +107,7 @@ describe('the mix-up sheet', () => {
 // declarative helpers
 
 async function doMount(id: string) {
-  const w = await mountSuspended(MixUpSheet, { props: { id } });
+  const w = await mountSuspended(MixUpSheet, { props: { id, open: true } });
   return Object.assign(w, { [Symbol.dispose]: () => w.unmount() });
 }
 
@@ -84,5 +119,20 @@ async function doSearch(w: VueWrapper, query: string) {
 }
 
 function optionsOf(w: VueWrapper) {
-  return w.findAll('[data-testid="mix-up-option"] span:first-child').map(o => o.text());
+  return w.findAll('[data-testid="mix-up-option"] [data-testid="mix-up-word"]').map(o => o.text());
+}
+
+/** Each option's word, with a tick when it is linked. */
+function readOptions(w: VueWrapper) {
+  return w.findAll('[data-testid="mix-up-option"]').map(o => `${o.get('[data-testid="mix-up-word"]').text()}${o.attributes('aria-pressed') === 'true' ? ' ✓' : ''}`);
+}
+
+/** Each section's header, then its options read as by `readOptions`. */
+function readSections(w: VueWrapper) {
+  return w.findAll('[data-testid="mix-up-section"]').map(section => [section.get('h3').text(), ...readOptions(section as unknown as VueWrapper)]);
+}
+
+async function doTap(w: VueWrapper, word: string) {
+  await w.findAll('[data-testid="mix-up-option"]').find(o => o.get('[data-testid="mix-up-word"]').text() === word)!.trigger('click');
+  await nextTick();
 }

@@ -8,8 +8,8 @@ const LOOK: Record<NoteKind, string> = {
   label: 'list-none text-stone-600 dark:text-stone-400',
   origin: 'list-none border-t border-stone-200 pt-2 text-stone-500 dark:border-stone-700 dark:text-stone-400',
 };
-/** An exception line reads red, its Dutch head too. */
-const EXCEPTION = 'text-[oklch(55.3%_0.2_25)]!';
+/** An exception line reads red, its Dutch head too; lighter on dark, to keep AA contrast. */
+const EXCEPTION = 'text-[oklch(55.3%_0.2_25)]! dark:text-[oklch(70.4%_0.191_22.2)]!';
 /** What the card is and where it comes from go before the examples of it; each rank is a group of its own. */
 const RANK: Record<NoteKind, number> = { rule: 0, label: 0, origin: 1, example: 2 };
 /** Lines of one group sit closer to each other than to the next group. */

@@ -31,6 +31,6 @@ onBeforeUnmount(() => recorder.value?.stop());
 
 <template>
   <div v-if="supported" class="flex flex-1 gap-2 text-sm">
-    <button type="button" class="btn-ghost flex-1" :class="{ 'text-red-600': recorder }" data-testid="record" @click="toggle">{{ recorder ? '■ Stop' : '🎤 Record (optional)' }}</button>
+    <button type="button" class="btn-ghost flex-1" :class="{ 'text-red-700 dark:text-red-400': recorder }" data-testid="record" @click="toggle">{{ recorder ? '■ Stop' : '🎤 Record (optional)' }}</button>
   </div>
 </template>

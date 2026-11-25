@@ -72,3 +72,8 @@ Every learner complaint so far, turned into a check. Walk it per card and per sc
 - [ ] An affix with a hyphen never wraps away from its hyphen (`KeepAffixes`).
 - [ ] A mix-up marks both cards missed, links them both ways, and brings both into the next decks together; the picker finds a card by Dutch and by meaning.
 - [ ] A row in a sheet never runs past its right edge on a phone: a long chip goes on its own line under the word, and a meaning is never squeezed to a word per line. Check a sheet row with the longest real values at 390px.
+- [ ] A mix-up keeps the card on screen; Remembered is off only for a mix-up picked on this step; a picked card can be unpicked; the other card comes back with cards between.
+- [ ] Every dialog keeps its actions and inputs in the footer, in thumb reach.
+- [ ] Nothing hides under a notch or rounded corner: page edges, sticky bars and sheets respect `env(safe-area-inset-*)`.
+- [ ] Every text colour reaches 4.5:1 on its background in light and dark (red/orange: -700 light, -400 dark).
+- [ ] Group settings open from the gear in the start menu title.

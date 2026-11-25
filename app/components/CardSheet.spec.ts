@@ -20,6 +20,7 @@ const cards = [
   { id: 'verkopen', f: 'продавать', b: 'verkopen', n: 'от: ver- (пере-, изменение) + kopen (покупать)' },
   { id: 'koper', f: 'покупатель', b: 'de koper', n: 'от: kopen (покупать)' },
   { id: 'kopers', f: 'покупатели', b: 'de kopers', n: 'мн. ч. от: de koper (покупатель)' },
+  { id: 'be', f: 'действие на кого-то', b: 'be-', tr: 'бэ', xb: 'begroeten', xf: 'приветствовать', xt: 'бэхру́тэн' },
 ];
 deck.value = shallowRef({ id: 'root', name: 'root', cards }).value;
 
@@ -116,6 +117,15 @@ describe('the details button on an answer card', () => {
   });
 });
 
+describe('a sheet on an affix', () => {
+  it('marks the affix in its example word and in the transcription of it', async () => {
+    const w = await doMountAnswer('be');
+    await w.get('[data-testid="card-details"]').trigger('click');
+    expect(readSheet(w).example).toEqual(['begroeten', '[бэхру́тэн]', 'приветствовать']);
+    expect(w.findAll('[data-testid="card-sheet-example"] [data-testid="affix-part"]').map(p => p.text())).toEqual(['be', 'бэ']);
+  });
+});
+
 describe('sheets stacked from links inside a sheet', () => {
   it('step back one at a time, then close', async () => {
     const w = await doMount('verkopen');
@@ -198,7 +208,7 @@ describe('a word mixed up with this one', () => {
     expect(mixUps.value).toEqual({});
   });
 
-  it('is added from the search', async () => {
+  it('is added from the search, which stays open till Done', async () => {
     const w = await doOpenKopen();
     await w.get('[data-testid="card-sheet-mixed-add"]').trigger('click');
     const search = w.get('[data-testid="mix-up-search"]');
@@ -207,6 +217,8 @@ describe('a word mixed up with this one', () => {
     await w.get('[data-testid="mix-up-option"]').trigger('click');
     await flushPromises();
     expect(readSheet(w).mixedUp).toEqual(['de kopers покупатели']);
+    await w.get('[data-testid="mix-up-done"]').trigger('click');
+    await flushPromises();
     expect(w.find('[data-testid="mix-up-sheet"]').exists()).toBe(false);
   });
 

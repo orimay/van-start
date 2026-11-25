@@ -4,9 +4,9 @@ import type { LetterKind } from '@/utils/answer';
 defineProps<{ letters: { char: string; kind: LetterKind }[] }>();
 
 const STYLE: Record<LetterKind, string> = {
-  ok: 'text-green-600',
+  ok: 'text-green-700 dark:text-green-600',
   extra: 'rounded bg-red-200 text-red-800 line-through dark:bg-red-900 dark:text-red-100',
-  missing: 'text-red-600',
+  missing: 'text-red-600 dark:text-red-400',
   wrong: 'rounded bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-100',
 };
 </script>

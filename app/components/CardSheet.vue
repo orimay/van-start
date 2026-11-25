@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { toStudyCard } from '@/utils/deck';
+import { letterCount, toStudyCard } from '@/utils/deck';
 import { cardKey, exampleKey } from '@/utils/play';
 import { speak, speakExample } from '@/utils/speak';
-import { useEventListener } from '@vueuse/core';
 
 const sheet = useCardSheet();
-const { isLearned, confusions, confuse, unconfuse } = useStore();
+const { isLearned, confusions, unconfuse } = useStore();
 const layer = computed(() => sheet.layers.value.at(-1));
 const card = computed(() => layer.value && sheet.index.value.byId.get(layer.value.id));
 const study = computed(() => card.value && toStudyCard(card.value));
@@ -31,71 +30,8 @@ const mixedUp = computed(() => (card.value ? (confusions.value[card.value.id] ??
 /** The search for a card to link as mixed up with this one is open. */
 const mixing = shallowRef(false);
 
-function mixUp(other: string) {
-  mixing.value = false;
-  confuse(card.value!.id, other);
-}
-
-// The panel follows the finger down; let go past a quarter of its height it closes, short of that it springs back.
-// The body owns the gesture while scrolled or moving up, so its own scroll still works.
-const DRAG_SLOP_PX = 6;
 const body = useTemplateRef('body');
-const dragY = shallowRef(0);
-const dragging = shallowRef(false);
-let drag: { id: number; startY: number; fromBody: boolean; panel: HTMLElement } | undefined;
-let stopListening: (() => void)[] = [];
-
-function endDrag(dismiss: boolean) {
-  for (const stop of stopListening) stop();
-  stopListening = [];
-  const wasDragging = dragging.value;
-  const past = dismiss && wasDragging && !!drag && dragY.value > drag.panel.offsetHeight / 4;
-  drag = undefined;
-  dragging.value = false;
-  // Closing slides on from where the finger let go, once the drag's no-transition style is off.
-  if (past) return void nextTick(() => sheet.close());
-  dragY.value = 0;
-  // A drag let go over the button it started on would otherwise press it.
-  if (wasDragging) {
-    const swallow = (e: Event) => e.stopPropagation();
-    window.addEventListener('click', swallow, { capture: true, once: true });
-    setTimeout(() => window.removeEventListener('click', swallow, { capture: true }));
-  }
-}
-
-function onDragMove(e: PointerEvent) {
-  if (!drag || e.pointerId !== drag.id) return;
-  const dy = e.clientY - drag.startY;
-  if (!dragging.value) {
-    if (dy < 0 && drag.fromBody) return endDrag(false);
-    if (Math.abs(dy) < DRAG_SLOP_PX) return;
-    dragging.value = true;
-  }
-  dragY.value = Math.max(0, dy);
-}
-
-function onDragStart(e: PointerEvent) {
-  if (!e.isPrimary || e.button !== 0) return;
-  const fromBody = !!body.value?.contains(e.target as Node);
-  if (fromBody && body.value!.scrollTop > 0) return;
-  endDrag(false);
-  drag = { id: e.pointerId, startY: e.clientY, fromBody, panel: e.currentTarget as HTMLElement };
-  stopListening = [
-    useEventListener(window, 'pointermove', onDragMove),
-    useEventListener(window, 'pointerup', (ev: PointerEvent) => ev.pointerId === drag?.id && endDrag(true)),
-    useEventListener(window, 'pointercancel', (ev: PointerEvent) => ev.pointerId === drag?.id && endDrag(false)),
-  ];
-}
-
-// At scrollTop 0 the browser would take a downward swipe as a scroll and cancel the pointer stream.
-useEventListener(
-  body,
-  'touchmove',
-  (e: TouchEvent) => {
-    if (drag?.fromBody && (dragging.value || (e.touches[0]?.clientY ?? 0) > drag.startY)) e.preventDefault();
-  },
-  { passive: false },
-);
+const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close());
 </script>
 
 <template>
@@ -105,7 +41,7 @@ useEventListener(
   <Transition name="sheet-slide" @after-leave="dragY = 0">
     <div
       v-if="card && study"
-      class="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85dvh] max-w-md flex-col rounded-t-2xl bg-white pb-[env(safe-area-inset-bottom)] dark:bg-stone-900"
+      class="sheet-panel fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[85dvh] max-w-md flex-col rounded-t-2xl bg-white pb-[max(0.5rem,env(safe-area-inset-bottom))] dark:bg-stone-900"
       :class="{ 'sheet-dragging': dragging }"
       :style="dragY ? { translate: `0 ${dragY}px` } : undefined"
       role="dialog"
@@ -129,7 +65,8 @@ useEventListener(
         <NoteList v-if="card.n" :note="card.n" :kinds="study?.promptKinds" :self="card.id" class="mx-0!" testid="card-sheet-note" />
         <div v-if="card.xb" class="flex items-start gap-2" data-testid="card-sheet-example">
           <div class="flex-1 text-sm">
-            <p>{{ card.xb }}</p>
+            <p><AffixWord v-if="study?.affix" :word="card.xb" :affix="study.affix.dutch" /><template v-else>{{ card.xb }}</template></p>
+            <p v-if="study?.affix?.tr && study.tr" class="text-stone-500">[<AffixWord :word="study.tr" :affix="study.affix.dutch" :size="letterCount(study.affix.tr)" />]</p>
             <p v-if="card.xf" class="text-stone-500">{{ card.xf }}</p>
           </div>
           <PlayButton class="btn-ghost px-2" aria-label="Play example" :sound="exampleKey(study)" @play="speakExample(study)" />
@@ -168,17 +105,5 @@ useEventListener(
       </div>
     </div>
   </Transition>
-  <MixUpSheet v-if="mixing && card" :id="card.id" @pick="mixUp" @close="mixing = false" />
+  <MixUpSheet v-if="card" :id="card.id" :open="mixing" @close="mixing = false" />
 </template>
-
-<style scoped>
-.sheet-fade-enter-active { transition: opacity 200ms cubic-bezier(0, 0, 0.2, 1); }
-.sheet-fade-leave-active { transition: opacity 150ms cubic-bezier(0.4, 0, 1, 1); }
-.sheet-fade-enter-from, .sheet-fade-leave-to { opacity: 0; }
-/* Springs back from a short pull; follows the finger without lag while held. */
-[data-testid='card-sheet'] { transition: translate 200ms cubic-bezier(0, 0, 0.2, 1); }
-[data-testid='card-sheet'].sheet-dragging { transition: none; }
-.sheet-slide-enter-active { transition: transform 200ms cubic-bezier(0, 0, 0.2, 1); }
-.sheet-slide-leave-active { transition: transform 150ms cubic-bezier(0.4, 0, 1, 1); }
-.sheet-slide-enter-from, .sheet-slide-leave-to { transform: translateY(100%); }
-</style>

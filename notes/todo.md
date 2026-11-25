@@ -49,7 +49,7 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [x] A group that still does not fit after displacing every single takes an arbitrary subset of itself.
 - [x] Several groups in and not all fit: drop the smallest group until all fit; fill the shortfall from singles.
 - [x] After building: check it visually (phone viewport, light and dark) and fix the UX until it is the best and most convenient it can be, no glitches. Shoot, fix, shoot again.
-- [ ] TDD black-box specs, CLAUDE.md + review checklist, deploy, verify live.
+- [x] TDD black-box specs, CLAUDE.md + review checklist, deploy, verify live.
 
 ## Affix cards in pronounce
 
@@ -89,3 +89,26 @@ Work through every item before stopping. Never stop on a question: pick the sens
   - Decided: de mazelen, de rode hond, het basketbal, het kickboksen, de gymnastiek, de fitness, de wifi, de oudejaarsavond; "no article" notes dropped. Kept bare: department names (personeelszaken, burgerzaken), address forms (meneer, mevrouw), retour, months, days.
 - [x] Where it is not obvious the article is needed (phrases, sentences), the prompt says specific or general in words: «(конкретный)» for de/het, «(какой-нибудь)» for een. Never by naming de/het. Sweep all 6 languages.
   - Decided: marked the 39 adjective + noun examples, where the -e ending hangs on it (ru marker agreeing with the noun, tr `(belirli)` / `bir`, en/es/pt/ro their own article, ro articulated form). Fixed phrases and instructions (in de klas, beantwoord de vragen, op het werk) stay unmarked: the article there is idiom, not a choice, and en/es/pt/ro already show it.
+
+## Recall: hint, affix transcription, mixed up (2026-11-25)
+
+- [x] The `?` button shows only once the card is revealed; before that it lets you cheat.
+- [x] Affix cards: the affix part of the example's transcription is not highlighted (the Dutch word highlights the affix, its transcription does not). Highlight it the same way.
+- [x] Marking a card mixed up (af- picked as mixed up with ver-) jumped to the next card at once. Sudden. Instead:
+  - stay on the card; the success button(s) are disabled on this step while a mix-up picked on this step stands;
+  - removing that mix-up again on this step (if it was added here) enables them back;
+  - a better UX is welcome, propose it.
+  - clarified: Remembered is disabled only when the mix-up was set on this very step and not removed again; one linked earlier does not disable it.
+- [x] After picking, af- vanished from the list. What if I was wrong, or want to split them again? The picked card stays visible and can be unpicked right there.
+- [x] If the mix-up stands, the other card joins the deck ahead, unless it is already there; not right after the current card: mixed-up cards are better kept apart by other cards.
+- [x] Dialog interactions are awkward. Look at how focus-assistant (`~/Projects/private/apps/focus-assistant`) uses dialogs and do the same here. Clarified: it is about where buttons and inputs sit in dialogs (actions and the search field in thumb reach at the bottom, as focus-assistant does).
+- [x] Respect the screen's safe areas everywhere, so the rounded corners and notch of a phone hide nothing (sheets, fixed bars, page edges, landscape too).
+- [x] Group settings (which cards it plays) open not from the "Cards" button but from a gear, e.g. top right of the dialog's title row.
+- [x] Red text (the exceptions on cards) fails a11y contrast; make it pass, lighter probably. Check both themes.
+- [ ] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
+
+## Phone back: confirm leaving the app (2026-11-25)
+- [ ] Phone back closes every open layer one press at a time, then leaves the app. Instead of leaving, ask to confirm leaving:
+  - confirmed: leave (as if the user pressed back, without hiding the sheet first, so the app really leaves);
+  - declined, or back pressed again: the sheet closes and the user stays in the app.
+- [ ] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useIntervalFn } from '@vueuse/core';
-import { onBeforeUnmount, shallowRef } from 'vue';
+import { computed, onBeforeUnmount, shallowRef } from 'vue';
 import type { StudyCard } from '@/utils/deck';
 import { play } from '@/utils/play';
 import { speak } from '@/utils/speak';
@@ -9,8 +9,9 @@ import { speak } from '@/utils/speak';
  * `dutchShown`: the prompt is the Dutch side, voiced and playable from the start; `quiet`: only once revealed.
  * `listening`: it is only heard, untimed, until revealed; `pronouncing`: said aloud, untimed, optionally recorded.
  */
-const props = defineProps<{ card: StudyCard; dutchShown?: boolean; quiet?: boolean; listening?: boolean; pronouncing?: boolean; state?: { revealed?: 'self' | 'timeout' } }>();
-const emit = defineEmits<{ result: [ok: boolean, guessed?: boolean]; progress: [state: { revealed: 'self' | 'timeout' }]; mixed: [other: string] }>();
+const props = defineProps<{ card: StudyCard; dutchShown?: boolean; quiet?: boolean; listening?: boolean; pronouncing?: boolean; state?: { revealed?: 'self' | 'timeout'; mixed?: string[] } }>();
+/** `mixed`: the card was answered as taken for these others, linked on this step. */
+const emit = defineEmits<{ result: [ok: boolean, guessed?: boolean]; progress: [state: { revealed?: 'self' | 'timeout'; mixed?: string[] }]; mixed: [others: string[]] }>();
 
 if (props.dutchShown && !props.quiet && !props.state?.revealed) speak(props.card);
 
@@ -24,11 +25,20 @@ const mine = shallowRef<string>();
 onBeforeUnmount(() => mine.value && URL.revokeObjectURL(mine.value));
 /** The picker for the card this one was taken for is open. */
 const mixing = shallowRef(false);
+/** Mix-ups linked on this step: while any stands, the card cannot pass as remembered. One linked earlier does not count. */
+const mixedHere = shallowRef(props.state?.mixed ?? []);
+const { index } = useCardSheet();
+const mixedWords = computed(() => mixedHere.value.map(id => index.value.byId.get(id)?.b ?? id).join(', '));
 
-function mixUp(other: string) {
-  mixing.value = false;
-  store.confuse(props.card.id, other);
-  emit('mixed', other);
+function setMixed(ids: string[]) {
+  mixedHere.value = ids;
+  emit('progress', { mixed: ids });
+}
+
+/** A miss; with a mix-up standing, the cards it was taken for are missed too. */
+function miss() {
+  if (mixedHere.value.length) emit('mixed', mixedHere.value);
+  else emit('result', false);
 }
 
 const timer = useIntervalFn(() => {
@@ -57,9 +67,18 @@ function reveal(how: 'self' | 'timeout') {
     <div class="relative flex flex-1 flex-col gap-2">
       <Prompt v-if="!listening || revealed" :card="card" :secret="!revealed && !pronouncing" />
       <ListenButton v-else :card="card" />
-      <Answer :card="card" :hidden="!revealed && !pronouncing" :no-transcription="pronouncing && !revealed" :silent="dutchShown">
+      <Answer :card="card" :hidden="!revealed && !pronouncing" :no-transcription="pronouncing && !revealed" :no-details="!revealed" :silent="dutchShown">
         <template v-if="revealed" #corner>
-          <button type="button" class="flex size-7 items-center justify-center rounded-full border border-stone-300 text-lg text-stone-500 dark:border-stone-600 dark:text-stone-400" aria-label="Mixed up" data-testid="mixed-up" @click="mixing = true">≈</button>
+          <button
+            type="button"
+            class="flex h-7 min-w-7 items-center justify-center gap-1 rounded-full border text-lg"
+            :class="mixedHere.length ? 'border-orange-700 bg-orange-700 px-2 text-white' : 'border-stone-300 text-stone-500 dark:border-stone-600 dark:text-stone-400'"
+            aria-label="Mixed up"
+            data-testid="mixed-up"
+            @click="mixing = true"
+          >
+            ≈<span v-if="mixedHere.length" class="max-w-32 truncate text-sm font-semibold">{{ mixedWords }}</span>
+          </button>
         </template>
       </Answer>
     </div>
@@ -73,17 +92,18 @@ function reveal(how: 'self' | 'timeout') {
       </div>
       <div v-else class="flex gap-2">
         <ExampleButton class="flex-1" :card="card" :disabled="!revealed && (!dutchShown || quiet)" />
-        <button v-if="revealed === 'self'" class="btn-ghost" data-testid="guessed" @click="emit('result', false, true)">Guessed</button>
+        <button v-if="revealed === 'self'" class="btn-ghost" :disabled="!!mixedHere.length" data-testid="guessed" @click="emit('result', false, true)">Guessed</button>
       </div>
+      <p v-if="mixedHere.length" class="text-center text-sm text-orange-700 dark:text-orange-400" data-testid="mixed-hint">Taken for {{ mixedWords }}: both come back as missed</p>
       <div class="actions flex gap-2"><BackButton /><LaterButton /><div class="grid flex-1">
       <button v-if="!revealed" class="btn-primary" data-testid="reveal" @click="reveal('self')">Reveal</button>
       <div v-else-if="revealed === 'self'" class="grid grid-cols-2 gap-2">
-        <button class="btn-ghost" data-testid="forgot" @click="emit('result', false)">{{ pronouncing ? 'Said wrong' : 'Forgot' }}</button>
-        <button class="btn-primary" data-testid="remembered" @click="emit('result', true)">{{ pronouncing ? 'Said right' : 'Remembered' }}</button>
+        <button :class="mixedHere.length ? 'btn-primary' : 'btn-ghost'" data-testid="forgot" @click="miss">{{ pronouncing ? 'Said wrong' : 'Forgot' }}</button>
+        <button class="btn-primary" :disabled="!!mixedHere.length" data-testid="remembered" @click="emit('result', true)">{{ pronouncing ? 'Said right' : 'Remembered' }}</button>
       </div>
-      <button v-else class="btn-primary" data-testid="next" @click="emit('result', false)">Next</button>
+      <button v-else class="btn-primary" data-testid="next" @click="miss">Next</button>
       </div></div>
     </div>
-    <MixUpSheet v-if="mixing" :id="card.id" @pick="mixUp" @close="mixing = false" />
+    <MixUpSheet :id="card.id" :open="mixing" @pick="other => setMixed([...mixedHere, other])" @drop="other => setMixed(mixedHere.filter(id => id !== other))" @close="mixing = false" />
   </div>
 </template>

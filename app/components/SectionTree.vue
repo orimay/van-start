@@ -41,8 +41,8 @@ const fullOf = (node: DeckNode) => (library.value && findSection(library.value, 
 const switchable = (node: DeckNode) => kindsIn(fullOf(node)).length > 0;
 const ownKinds = (node: DeckNode) => Object.keys(settings.value.groupKinds?.[node.id] ?? {}).length > 0;
 const switching = shallowRef<DeckNode>();
-function openKinds(node: DeckNode) {
-  menu.hide();
+async function openKinds(node: DeckNode) {
+  await menu.hide();
   switching.value = fullOf(node);
 }
 
@@ -101,12 +101,16 @@ function linkTo(page: 'learn' | 'review', i: number, game?: ReviewGame) {
           <div v-if="menu.openKey.value === keyOf(i)" class="contents">
             <div class="fixed inset-0 z-20" @click="menu.hide()" />
             <div class="menu z-30 flex w-44 flex-col gap-1 rounded-xl bg-white p-1.5 shadow-lg ring-1 ring-stone-200 dark:bg-stone-900 dark:ring-stone-700" data-testid="start-menu">
-              <p class="mb-1 hidden border-b border-stone-200 px-2 py-3 text-center font-semibold max-sm:block dark:border-stone-700" data-testid="sheet-title">{{ node.name }}</p>
+              <div class="mb-1 flex items-center gap-2 border-b border-stone-200 pl-2 dark:border-stone-700" :class="switchable(node) ? 'py-0.5' : 'hidden py-3 max-sm:flex'" data-testid="start-menu-header">
+                <p class="flex-1 truncate font-semibold" data-testid="sheet-title">{{ node.name }}</p>
+                <button v-if="switchable(node)" type="button" class="flex size-10 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800" aria-label="Group settings" data-testid="kinds" @click="openKinds(node)">
+                  <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
+                </button>
+              </div>
               <NuxtLink v-for="o in optionsOf(node, i)" :key="o.id" :to="o.to" replace class="flex flex-col gap-1 rounded-lg px-3 py-2" :class="o.id === 'learn' ? 'bg-orange-600 text-white' : 'hover:bg-stone-100 dark:hover:bg-stone-800'" :data-testid="o.id" :data-primary="o.id === 'learn' || undefined" v-on="longPress(() => askReset(node, o))">
                 <span class="flex justify-between gap-2"><span>{{ o.label }}</span><span v-if="o.total" class="text-xs tabular-nums" :class="o.id === 'learn' ? 'text-orange-100' : 'text-stone-500'">{{ o.done }}/{{ o.total }}</span></span>
                 <ProgressBar v-if="o.total" :value="o.done / o.total" :inverted="o.id === 'learn'" />
               </NuxtLink>
-              <button v-if="switchable(node)" class="rounded-lg px-3 py-2 text-left hover:bg-stone-100 dark:hover:bg-stone-800" data-testid="kinds" @click="openKinds(node)">Cards</button>
             </div>
           </div>
           </Transition>

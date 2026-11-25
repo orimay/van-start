@@ -78,6 +78,19 @@ describe('an exception line', () => {
     const w = await mountSuspended(Answer, { props: { card: toStudyCard(card), silent: true } });
     expect(w.findAll('[data-testid="note-dutch"]').map(d => d.classes().some(c => c.includes('oklch')))).toEqual([false, true]);
   });
+
+  // WCAG AA asks 4.5:1 for body text, on the card and on the grey box inside it.
+  for (const [theme, backgrounds] of [
+    ['light', ['#ffffff', '#f5f5f4']],
+    ['dark', ['#1c1917', '#292524']],
+  ] as const) {
+    it(`reads at AA contrast in the ${theme} theme`, async () => {
+      const w = await mountSuspended(Answer, { props: { card: toStudyCard(card), silent: true } });
+      const line = w.findAll('[data-testid="answer-note-line"]')[1]!;
+      const colour = line.classes().find(c => c.includes('oklch') && c.startsWith('dark:') === (theme === 'dark'))!;
+      for (const background of backgrounds) expect(contrastOf(colour, background)).toBeGreaterThanOrEqual(4.5);
+    });
+  }
 });
 
 describe('native example lines', () => {
@@ -425,3 +438,17 @@ describe('a scrolling card', () => {
     expect(findThumb(w, 'answer').exists()).toBe(true);
   });
 });
+
+/** WCAG contrast of an `oklch(L%_C_H)` Tailwind colour against a hex background. */
+function contrastOf(colour: string, background: string) {
+  const [l, c, h] = colour.match(/oklch\(([\d.]+)%_([\d.]+)_([\d.]+)\)/)!.slice(1).map(Number) as [number, number, number];
+  const L = l / 100;
+  const a = c * Math.cos((h * Math.PI) / 180);
+  const b = c * Math.sin((h * Math.PI) / 180);
+  const [lm, mm, sm] = [L + 0.3963377774 * a + 0.2158037573 * b, L - 0.1055613458 * a - 0.0638541728 * b, L - 0.0894841775 * a - 1.291485548 * b].map(x => x ** 3) as [number, number, number];
+  const rgb = [4.0767416621 * lm - 3.3077115913 * mm + 0.2309699292 * sm, -1.2684380046 * lm + 2.6097574011 * mm - 0.3413193965 * sm, -0.0041960863 * lm - 0.7034186147 * mm + 1.707614701 * sm].map(x => Math.min(1, Math.max(0, x)));
+  const bg = [1, 3, 5].map(i => parseInt(background.slice(i, i + 2), 16) / 255).map(x => (x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4));
+  const luminance = (v: number[]) => 0.2126 * v[0]! + 0.7152 * v[1]! + 0.0722 * v[2]!;
+  const [hi, lo] = [luminance(rgb), luminance(bg)].sort((x, y) => y - x) as [number, number];
+  return (hi + 0.05) / (lo + 0.05);
+}

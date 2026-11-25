@@ -93,7 +93,7 @@ function deleteCard(id: string) {
     <section v-if="!isRoot" class="flex gap-2">
       <TextField v-model="name" class="flex-1" placeholder="Section name" data-testid="name" @enter="rename" />
       <button class="btn-ghost" data-testid="rename" @click="rename">Rename</button>
-      <button class="btn-ghost text-red-600" data-testid="delete-section" @click="deleteSection">Delete</button>
+      <button class="btn-ghost text-red-700 dark:text-red-400" data-testid="delete-section" @click="deleteSection">Delete</button>
     </section>
 
     <section v-if="isRoot || isOwn || section.children?.length" class="flex flex-col gap-2">
@@ -111,7 +111,7 @@ function deleteCard(id: string) {
         <button class="tile flex-1 text-left" :class="{ 'border-orange-600': editing === card.id }" data-testid="card" @click="edit(card.id)">
           <b>{{ card.b }}</b> — {{ card.f }}
         </button>
-        <button class="btn-ghost text-red-600" aria-label="Delete" data-testid="delete-card" @click="deleteCard(card.id)">✕</button>
+        <button class="btn-ghost text-red-700 dark:text-red-400" aria-label="Delete" data-testid="delete-card" @click="deleteCard(card.id)">✕</button>
       </div>
     </section>
 

@@ -36,7 +36,7 @@ textarea {
   @apply rounded-xl border-2 border-stone-300 bg-white px-3 py-2 text-left shadow-sm transition dark:border-stone-600 dark:bg-stone-900;
 }
 @utility actions {
-  @apply sticky bottom-0 z-10 bg-stone-50 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] dark:bg-stone-950;
+  @apply sticky bottom-0 z-10 bg-stone-50 pt-1.5 pb-[max(1rem,env(safe-area-inset-bottom))] dark:bg-stone-950;
 }
 /* A menu opens under its button and flips to stay on screen; without anchor positioning it just hangs below. */
 @utility menu-anchor {
@@ -93,3 +93,13 @@ textarea {
     }
   }
 }
+
+/* A bottom sheet: its backdrop fades, its panel slides; a short pull springs back, a held one follows the finger without lag. */
+.sheet-fade-enter-active { transition: opacity 200ms cubic-bezier(0, 0, 0.2, 1); }
+.sheet-fade-leave-active { transition: opacity 150ms cubic-bezier(0.4, 0, 1, 1); }
+.sheet-fade-enter-from, .sheet-fade-leave-to { opacity: 0; }
+.sheet-panel { transition: translate 200ms cubic-bezier(0, 0, 0.2, 1); }
+.sheet-panel.sheet-dragging { transition: none; }
+.sheet-slide-enter-active { transition: transform 200ms cubic-bezier(0, 0, 0.2, 1); }
+.sheet-slide-leave-active { transition: transform 150ms cubic-bezier(0.4, 0, 1, 1); }
+.sheet-slide-enter-from, .sheet-slide-leave-to { transform: translateY(100%); }

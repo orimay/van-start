@@ -156,7 +156,7 @@ watch(draft, value => store.updateSettings(value));
         </label>
         <p v-if="ownGroups(kind)" class="-mt-1 flex items-center justify-between gap-2 text-xs text-stone-500" :data-testid="`kind-own-${kind}`">
           {{ ownGroups(kind) === 1 ? '1 group keeps its own' : `${ownGroups(kind)} groups keep their own` }}
-          <button class="font-medium text-orange-600" :data-testid="`kind-reset-${kind}`" @click="resetGroups(kind)">Reset</button>
+          <button class="font-medium text-orange-700 dark:text-orange-400" :data-testid="`kind-reset-${kind}`" @click="resetGroups(kind)">Reset</button>
         </p>
       </template>
       <p class="-mt-1 text-xs text-stone-500">Off leaves those cards out of learning and review; what was learned comes back when on. A section can keep its own choice from its menu.</p>

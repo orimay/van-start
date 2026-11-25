@@ -67,19 +67,83 @@ describe('a card mixed up with another', () => {
     });
   }
 
-  it('brings the other back as missed too', async () => {
+  it('stays on the card, Remembered off while the mix-up picked on it stands', async () => {
+    givenDeck(cards(6));
+    const w = await doMount({ cards: cards(6), stages: ['recall'] });
+    const first = promptOf(w);
+    await doRecall(w, true);
+    const second = promptOf(w);
+    await doMixUp(w, idOf(first));
+    expect(promptOf(w)).toBe(second);
+    ensureDisabled(w, 'remembered');
+    ensureDisabled(w, 'guessed');
+    ensureContains(w, 'mixed-hint', answerFor(first));
+  });
+
+  it('turns Remembered back on once that mix-up is taken back', async () => {
     givenDeck(cards(6));
     const w = await doMount({ cards: cards(6), stages: ['recall'] });
     const first = promptOf(w);
     await doRecall(w, true);
     await doMixUp(w, idOf(first));
+    await doMixUp(w, idOf(first));
+    ensureDisabled(w, 'remembered', false);
+    expect(w.find('[data-testid="mixed-hint"]').exists()).toBe(false);
+  });
+
+  it('keeps Remembered on for a mix-up linked earlier, also once unlinked', async () => {
+    givenDeck(cards(6));
+    const w = await doMount({ cards: cards(6), stages: ['recall'] });
+    const first = promptOf(w);
+    await doRecall(w, true);
+    useStore().confuse(idOf(promptOf(w)), idOf(first));
+    await doClick(w, 'reveal');
+    ensureDisabled(w, 'remembered', false);
+    await doMixUp(w, idOf(first));
+    ensureDisabled(w, 'remembered', false);
+  });
+
+  it('keeps the mix-up picked on the card when continued', async () => {
+    givenDeck(cards(6));
+    const before = await doMount({ cards: cards(6), stages: ['recall'] });
+    const first = promptOf(before);
+    await doRecall(before, true);
+    await doMixUp(before, idOf(first));
+    const after = await doMount({ cards: cards(6), stages: ['recall'], resumeAt: lastPosition(before), announce: true });
+    await doClick(after, 'start-game');
+    ensureDisabled(after, 'remembered');
+  });
+
+  it('brings the other back as missed, with other cards between', async () => {
+    givenDeck(cards(8));
+    const w = await doMount({ cards: cards(8), stages: ['recall'], retryGap: 4 });
+    const first = promptOf(w);
+    await doRecall(w, true);
+    const second = promptOf(w);
+    await doMixUp(w, idOf(first));
+    await doClick(w, 'forgot');
     const seen: string[] = [];
     while (!w.emitted('finished')) {
       seen.push(promptOf(w));
       await doRecall(w, true);
     }
-    expect(seen).toContain(first);
+    expect(seen.indexOf(first)).toBeGreaterThan(1);
+    expect(seen.indexOf(first)).toBeLessThan(seen.indexOf(second));
     expect(w.emitted('answer')).toContainEqual([idOf(first), 'recall', false]);
+  });
+
+  it('brings in a deck card the session did not hold', async () => {
+    givenDeck(cards(8));
+    const w = await doMount({ cards: cards(6), pool: cards(8), stages: ['recall'] });
+    await doMixUp(w, 'c7');
+    await doClick(w, 'forgot');
+    const seen: string[] = [];
+    while (!w.emitted('finished')) {
+      seen.push(promptOf(w));
+      await doRecall(w, true);
+    }
+    expect(seen).toContain('p7');
+    expect(w.emitted('answer')).toContainEqual(['c7', 'recall', false]);
   });
 });
 
@@ -215,6 +279,13 @@ describe('pronouncing', () => {
     await doClick(w, 'reveal');
     expect(w.get('[data-testid="transcription"]').classes()).not.toContain('invisible');
     expect(w.get('[data-testid="transcription"]').text()).toBe('[aa]');
+  });
+
+  it('offers the details only on reveal, as they give the transcription away', async () => {
+    const w = await doMount({ cards: [{ ...cards(1)[0]!, tr: 'aa' }], stages: ['pronounce'] });
+    expect(w.find('[data-testid="card-details"]').exists()).toBe(false);
+    await doClick(w, 'reveal');
+    expect(w.find('[data-testid="card-details"]').exists()).toBe(true);
   });
 
   it('voices the Dutch and shows its meaning on reveal', async () => {
@@ -715,6 +786,12 @@ describe('an affix', () => {
         expect(w.get('[data-testid="transcription"] [data-testid="affix-part"]').text()).toBe('bu');
       });
 
+      it('sets its own transcription part in bold, as grey on grey does not show', async () => {
+        const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
+        await doClick(w, 'reveal');
+        expect(w.get('[data-testid="transcription"] [data-testid="affix-part"]').classes()).toContain('font-semibold');
+      });
+
       it('marks itself in its example word', async () => {
         const w = await doMount({ cards: [affix], stages: ['pronounce'], introducing });
         await doClick(w, 'reveal');
@@ -955,13 +1032,13 @@ describe('typing', () => {
       await doClick(w, 'show-answer');
       await doClick(w, 'try-again');
       await doType(w, 'input', answerFor(first));
-      expect(w.get('[data-testid="answer"]').classes()).toContain('text-green-600');
+      expect(w.get('[data-testid="answer"]').classes()).toContain('text-green-700');
     });
 
     it('stays orange after No idea', async () => {
       const w = await doMount({ cards: cards(2), stages: ['type'] });
       await doClick(w, 'unknown');
-      expect(w.get('[data-testid="answer"]').classes()).toContain('text-orange-600');
+      expect(w.get('[data-testid="answer"]').classes()).toContain('text-orange-700');
     });
 
     it('is voiced again once retyped right', async () => {
@@ -1652,7 +1729,8 @@ describe('after matching', () => {
       const w = await doMount({ cards: deck, stages: ['match', 'recall'], seed: `s${run}` });
       const lastRound: string[] = [];
       for (let round = 0; round < 2; round++) {
-        await vi.waitFor(() => expect(visiblePairs(w)).toHaveLength(5));
+        // 15 sessions in one test: a loaded machine needs more than the default second per round.
+        await vi.waitFor(() => expect(visiblePairs(w)).toHaveLength(5), { timeout: 5000 });
         const pairs = visiblePairs(w);
         if (round === 1) lastRound.push(...pairs);
         for (const p of pairs) await doMatch(w, 'c' + p.slice(1));
@@ -1660,7 +1738,7 @@ describe('after matching', () => {
       await doStartNextGame(w);
       expect(lastRound).not.toContain(promptOf(w));
     }
-  }, 20_000);
+  }, 60_000);
 });
 
 describe('saved position', () => {
@@ -2157,14 +2235,23 @@ async function doClick(w: VueWrapper, testId: string) {
 }
 
 /** Takes the card on screen for card `other`, picked in the mix-up sheet stood in for by a button. */
+/** Reveals the card if hidden, ticks or unticks `other` in the mix-up sheet and closes it. */
 async function doMixUp(w: VueWrapper, other: string) {
-  await doClick(w, 'reveal');
+  if (w.find('[data-testid="reveal"]').exists()) await doClick(w, 'reveal');
   await doClick(w, 'mixed-up');
   const search = w.get('[data-testid="mix-up-search"]');
   search.element.textContent = answerFor(promptOfId(other));
   await search.trigger('input');
   await w.get('[data-testid="mix-up-option"]').trigger('click');
-  await nextTick();
+  await doClick(w, 'mix-up-done');
+}
+
+function ensureDisabled(w: VueWrapper, testId: string, disabled = true) {
+  expect(w.get(`[data-testid="${testId}"]`).attributes('disabled') !== undefined).toBe(disabled);
+}
+
+function ensureContains(w: VueWrapper, testId: string, text: string) {
+  expect(w.get(`[data-testid="${testId}"]`).text()).toContain(text);
 }
 
 const promptOfId = (id: string) => 'p' + id.slice(1);

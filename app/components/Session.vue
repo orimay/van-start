@@ -93,7 +93,7 @@ type SavedItem = Position['queue'][number];
 type SavedStep = { stage: number; size: number; answers: string[] } & ({ queue: SavedItem[]; reported: string[] } | { runs: Runs<SavedItem>; reportedRuns: Runs<string> });
 
 /** A card game's state mid-answer, so a reload shows it as it was. */
-export type CardState = { revealed?: 'self' | 'timeout'; picked?: string; options?: string[]; input?: string; verdict?: boolean; phase?: 'typing' | 'missed' | 'shown' | 'done' | 'fixing'; retried?: boolean; again?: boolean };
+export type CardState = { revealed?: 'self' | 'timeout'; picked?: string; options?: string[]; input?: string; verdict?: boolean; phase?: 'typing' | 'missed' | 'shown' | 'done' | 'fixing'; retried?: boolean; again?: boolean; mixed?: string[] };
 
 /** `round`: how many times the item was missed before; a later round waits for the earlier one to finish. */
 /** `skip`: passed before, so it goes by unasked yet keeps its place for Back. */
@@ -406,7 +406,7 @@ function advance(missed: Item[]) {
   // A missed card climbs the ladder: back after 4 cards, then further at each right answer, until it passes the top.
   // Rungs climb only between the game's own cards; a miss they cannot space any more is carried to the next group.
   const clean = missed.map((i): Item => (i.kind === 'card' ? { ...i, state: undefined } : i));
-  const retry = clean.map((i): Item => (i.kind === 'card' ? { ...i, round: 0, rung: 0, missedAt: step.value, spacing: gapOf(0) } : { ...i, round }));
+  const retry = clean.map((i): Item => (i.kind === 'card' ? { ...i, round: 0, rung: 0, missedAt: step.value, spacing: i.spacing ?? gapOf(0) } : { ...i, round }));
   const own = new Set(current.value ? idsOf(current.value) : []);
   const othersLeft = queue.value.slice(1).some(i => (i.kind !== 'card' || !i.skip) && idsOf(i).some(id => !own.has(id)));
   const climbed = current.value?.rung === undefined ? undefined : current.value.rung + 1;
@@ -419,7 +419,7 @@ function advance(missed: Item[]) {
   const pending = [...others, ...retry];
   const carried = stranded(pending);
   const rest = carried.length ? [] : pending;
-  for (const id of carried.flatMap(idsOf)) emit('carried', id, gameOf(id));
+  for (const id of carried.flatMap(idsOf)) if (inGroupIds.has(id)) emit('carried', id, gameOf(id));
   const left = new Set(pending.flatMap(idsOf));
   if (!skipped) steppingBack = false;
   for (const id of current.value && !skipped ? idsOf(current.value) : []) if (!left.has(id) && inGroupIds.has(id)) emit('passed', id, stage.value);
@@ -537,10 +537,11 @@ function onMissAgain(id: string) {
   emit('answer', id, gameOf(id), false);
 }
 
-/** The learner took `card` for `other`: both are missed, and the other comes back too when the session holds it. */
-function onMixedUp(card: StudyCard, other: string) {
-  onMissAgain(other);
-  onCard(card, false, false, 0, props.cards.filter(c => c.id === other));
+/** The learner took `card` for `others`: all are missed, and each other one that plays in its game comes back sooner than `card`, so cards come between them. */
+function onMixedUp(card: StudyCard, others: string[]) {
+  for (const id of others) onMissAgain(id);
+  const along = others.flatMap(id => byId.get(id) ?? []).filter(c => playsIn(!!c.affix, gameOf(c.id)));
+  onCard(card, false, false, 0, along);
 }
 
 /** `guessed`: right by luck, so it comes back like a miss but is graded neither way. */
@@ -552,7 +553,8 @@ function onCard(card: StudyCard, ok: boolean, guessed = false, typingMs = 0, alo
   else report(card.id, ok, true);
   const item = current.value?.kind === 'card' && current.value.card.id === card.id ? current.value : { kind: 'card' as const, card };
   logShow(item, guessed ? 'guessed' : ok ? 'plus' : 'minus', typingMs);
-  advance(ok && !slow ? [] : [card, ...along].map(c => ({ kind: 'card', card: c })));
+  const sooner = Math.max(1, Math.floor(gapOf(0) / 2));
+  advance(ok && !slow ? [] : [{ kind: 'card', card }, ...along.map((c): Item => ({ kind: 'card', card: c, spacing: sooner }))]);
 }
 
 function onMatch(cards: StudyCard[], mistakes: string[]) {
@@ -600,11 +602,11 @@ function optionsFor(card: StudyCard): StudyCard[] {
         <span v-if="cardColour && rungShown === undefined" class="absolute right-2 top-2 z-10 text-(--known)" :style="{ '--known': cardColour }" role="img" data-testid="known" aria-label="How well it is known" title="How well you know it in this game"><FillerIcon /></span>
         <span v-else-if="rungShown !== undefined" class="absolute right-2 top-2 z-10 text-(--known)" :style="{ '--known': cardColour }" role="img" data-testid="shows-left" :aria-label="`${steps.length - rungShown} left`" :title="`${steps.length - rungShown} more right answers to go`"><ProgressPie :done="rungShown" :total="steps.length" /></span>
         <IntroGame v-if="game === 'intro'" :key="view" :card="current.card" @result="ok => current?.kind === 'card' && onCard(current.card, ok)" />
-        <ChoiceGame v-else-if="game === 'choice'" :key="view" :card="current.card" :options="options" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(other: string) => current?.kind === 'card' && onMixedUp(current.card, other)" />
-        <RecallGame v-else-if="game === 'listen'" :key="view" :card="flip(current.card)" dutch-shown listening :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(other: string) => current?.kind === 'card' && onMixedUp(current.card, other)" />
-        <RecallGame v-else-if="game === 'pronounce'" :key="view" :card="meeting ? current.card : flip(current.card)" dutch-shown quiet pronouncing :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(other: string) => current?.kind === 'card' && onMixedUp(current.card, other)" />
-        <RecallGame v-else-if="game === 'recallNative'" :key="view" :card="flip(current.card)" dutch-shown quiet :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(other: string) => current?.kind === 'card' && onMixedUp(current.card, other)" />
-        <RecallGame v-else-if="game === 'recall'" :key="view" :card="current.card" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(other: string) => current?.kind === 'card' && onMixedUp(current.card, other)" />
+        <ChoiceGame v-else-if="game === 'choice'" :key="view" :card="current.card" :options="options" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />
+        <RecallGame v-else-if="game === 'listen'" :key="view" :card="flip(current.card)" dutch-shown listening :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(others: string[]) => current?.kind === 'card' && onMixedUp(current.card, others)" />
+        <RecallGame v-else-if="game === 'pronounce'" :key="view" :card="meeting ? current.card : flip(current.card)" dutch-shown quiet pronouncing :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(others: string[]) => current?.kind === 'card' && onMixedUp(current.card, others)" />
+        <RecallGame v-else-if="game === 'recallNative'" :key="view" :card="flip(current.card)" dutch-shown quiet :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(others: string[]) => current?.kind === 'card' && onMixedUp(current.card, others)" />
+        <RecallGame v-else-if="game === 'recall'" :key="view" :card="current.card" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" @mixed="(others: string[]) => current?.kind === 'card' && onMixedUp(current.card, others)" />
         <TypeGame v-else :key="view" :card="current.card" :lang="lang" :listening="game === 'dictation'" :state="current.state" @progress="onCardProgress" @miss="current?.kind === 'card' && onMissAgain(current.card.id)" @result="(ok, guessed, typingMs) => current?.kind === 'card' && onTyped(current.card, ok, guessed, typingMs)" />
       </div>
     </template>

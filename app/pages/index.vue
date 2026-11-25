@@ -82,7 +82,7 @@ if (!store.configured.value) await navigateTo('/settings');
     <section class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
         <h2 class="font-semibold">Sections</h2>
-        <NuxtLink to="/edit" class="text-sm text-orange-600" data-testid="edit">Edit</NuxtLink>
+        <NuxtLink to="/edit" class="text-sm text-orange-700 dark:text-orange-400" data-testid="edit">Edit</NuxtLink>
       </div>
       <SectionTree v-if="deck" :nodes="[deck]" :path="[]" whole />
     </section>
