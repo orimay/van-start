@@ -105,10 +105,10 @@ Work through every item before stopping. Never stop on a question: pick the sens
 - [x] Respect the screen's safe areas everywhere, so the rounded corners and notch of a phone hide nothing (sheets, fixed bars, page edges, landscape too).
 - [x] Group settings (which cards it plays) open not from the "Cards" button but from a gear, e.g. top right of the dialog's title row.
 - [x] Red text (the exceptions on cards) fails a11y contrast; make it pass, lighter probably. Check both themes.
-- [ ] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
+- [x] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.
 
 ## Phone back: confirm leaving the app (2026-11-25)
-- [ ] Phone back closes every open layer one press at a time, then leaves the app. Instead of leaving, ask to confirm leaving:
+- [x] Phone back closes every open layer one press at a time, then leaves the app. Instead of leaving, ask to confirm leaving:
   - confirmed: leave (as if the user pressed back, without hiding the sheet first, so the app really leaves);
   - declined, or back pressed again: the sheet closes and the user stays in the app.
 - [ ] TDD black-box specs, CLAUDE.md + review checklist, check visually (phone, light/dark), deploy, verify live.

@@ -4,5 +4,6 @@
     <NuxtPage />
     <Toast />
     <CardSheet />
+    <LeaveSheet />
   </main>
 </template>
