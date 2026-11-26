@@ -41,6 +41,8 @@ const cards = [
   { id: 'verkopen', f: 'продавать', b: 'verkopen', n: 'от: ver- (пере-, изменение) + kopen (покупать)' },
   { id: 'koper', f: 'покупатель', b: 'de koper', n: 'от: kopen (покупать)' },
   { id: 'kopers', f: 'покупатели', b: 'de kopers', n: 'мн. ч. от: de koper (покупатель)' },
+  { id: 'zus', f: 'звук ү, как в нидерландском слове «сестра»', b: 'u', tr: 'ү', k: 'sound', xb: 'de zus, de bus', xm: 'de z[u]s, de b[u]s', xt: 'дэ з[ү]с, дэ б[ү]с', xf: 'Примеры: сестра, автобус.' },
+  { id: 'ltr-u', f: 'буква «үү»', b: 'u', tr: 'үү', p: 'letter', xb: 'de bus, nu', xm: 'de b[u]s, n[u]', xf: 'Примеры: автобус, сейчас.' },
   { id: 'be', f: 'действие на кого-то', b: 'be-', tr: 'бэ', xb: 'begroeten', xf: 'приветствовать', xt: 'бэхру́тэн' },
 ];
 deck.value = shallowRef({ id: 'root', name: 'root', cards }).value;
@@ -145,6 +147,24 @@ describe('a sheet on an affix', () => {
     await w.get('[data-testid="card-details"]').trigger('click');
     expect(readSheet(w).example).toEqual(['begroeten', '[бэхру́тэн]', 'приветствовать']);
     expect(w.findAll('[data-testid="card-sheet-example"] [data-testid="affix-part"]').map(p => p.text())).toEqual(['be', 'бэ']);
+  });
+});
+
+describe('a sheet on a sound', () => {
+  it('marks the sound in its example words and in their transcription', async () => {
+    const w = await doMountAnswer('zus');
+    await w.get('[data-testid="card-details"]').trigger('click');
+    expect(readSheet(w).example).toEqual(['de zus, de bus', '[дэ зүс, дэ бүс]', 'Примеры: сестра, автобус.']);
+    expect(w.findAll('[data-testid="card-sheet-example"] [data-testid="sound-part"]').map(p => p.text())).toEqual(['u', 'u', 'ү', 'ү']);
+  });
+});
+
+describe('a sheet on a letter', () => {
+  it('marks the letter in its example words', async () => {
+    const w = await doMountAnswer('ltr-u');
+    await w.get('[data-testid="card-details"]').trigger('click');
+    expect(readSheet(w).example).toEqual(['de bus, nu', 'Примеры: автобус, сейчас.']);
+    expect(w.findAll('[data-testid="card-sheet-example"] [data-testid="sound-part"]').map(p => p.text())).toEqual(['u', 'u']);
   });
 });
 

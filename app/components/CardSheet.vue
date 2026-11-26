@@ -91,8 +91,9 @@ const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close())
         <NoteList v-if="card.n" :note="card.n" :kinds="study?.promptKinds" :self="card.id" class="mx-0!" testid="card-sheet-note" />
         <div v-if="card.xb" class="flex items-start gap-2" data-testid="card-sheet-example">
           <div class="flex-1 text-sm">
-            <p><AffixWord v-if="study?.affix" :word="card.xb" :affix="study.affix.dutch" /><template v-else>{{ card.xb }}</template></p>
+            <p><AffixWord v-if="study?.affix" :word="card.xb" :affix="study.affix.dutch" /><SoundWord v-else-if="study?.marks" :text="study.marks.nl" /><template v-else>{{ card.xb }}</template></p>
             <p v-if="study?.affix?.tr && study.tr" class="text-stone-500 dark:text-stone-400">[<AffixWord :word="study.tr" :affix="study.affix.dutch" :size="letterCount(study.affix.tr)" />]</p>
+            <p v-else-if="study?.marks?.tr" class="text-stone-500 dark:text-stone-400">[<SoundWord :text="study.marks.tr" />]</p>
             <p v-if="card.xf" class="text-stone-500 dark:text-stone-400">{{ card.xf }}</p>
           </div>
           <PlayButton class="btn-ghost px-2" aria-label="Play example" :sound="exampleKey(study)" @play="speakExample(study)" />

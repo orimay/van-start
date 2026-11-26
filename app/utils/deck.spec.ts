@@ -16,10 +16,27 @@ describe('the affix part of a word', () => {
 });
 
 describe('a sound card', () => {
+  const sound = toStudyCard({ id: 'u', f: 'звук ү, как в нидерландском слове «автобус»', b: 'u', tr: 'ү', au: 'u-clip', xb: 'de zus, de bus', xm: 'de z[u]s, de b[u]s', xt: 'дэ з[ү]с, дэ б[ү]с', axb: 'zus-clip', k: 'sound' });
+  const letter = toStudyCard({ id: 'l', f: 'буква «үү»', b: 'u', tr: 'үү', au: 'u-clip', xb: 'de bus', xm: 'de b[u]s', axb: 'bus-clip' });
+
   it('is told from a letter card', () => {
-    const sound = toStudyCard({ id: 'u', f: 'ү (как в «автобус»)', b: 'u', xb: 'de bus', k: 'sound' });
-    const letter = toStudyCard({ id: 'l', f: 'үү (буква)', b: 'u', xb: 'de bus' });
     expect([sound.sound, letter.sound]).toEqual([true, undefined]);
+  });
+
+  it('voices its example words, never the letter', () => {
+    speak(sound);
+    expect(vi.mocked(play).mock.calls.at(-1)![0].split('/').at(-1)).toEqual('zus-clip.mp3');
+  });
+
+  it('is transcribed by its example words, the sound marked in them', () => {
+    expect([sound.nl, sound.tr, sound.marks]).toEqual(['de zus, de bus', 'дэ зүс, дэ бүс', { nl: 'de z[u]s, de b[u]s', tr: 'дэ з[ү]с, дэ б[ү]с' }]);
+  });
+});
+
+describe('a letter card', () => {
+  it('keeps its own voice and name, the letter marked in its example', () => {
+    const letter = toStudyCard({ id: 'l', f: 'буква «үү»', b: 'u', tr: 'үү', au: 'u-clip', xb: 'de bus', xm: 'de b[u]s', axb: 'bus-clip' });
+    expect([letter.nl, letter.tr, letter.audio, letter.marks]).toEqual(['u', 'үү', 'u-clip', { nl: 'de b[u]s' }]);
   });
 });
 

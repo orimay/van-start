@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { watch } from 'vue';
 import { copyText } from '@/utils/copy';
-import { letterCount, type StudyCard } from '@/utils/deck';
+import { letterCount, unmark, type StudyCard } from '@/utils/deck';
 import { surfaceOf } from '@/utils/surface';
 import { speak } from '@/utils/speak';
 import { wordsWithAffix } from '@/utils/links';
@@ -13,6 +13,8 @@ const { isLearned } = useStore();
 const props = defineProps<{ card: StudyCard; hidden?: boolean; silent?: boolean; right?: boolean; noTranscription?: boolean; noDetails?: boolean }>();
 /** An affix's example on this side is its Dutch word, with the affix marked; otherwise this is the side of its meaning. */
 const dutchExample = computed(() => !!props.card.affix && props.card.answerExample === props.card.nl);
+/** Sound and letter cards mark their sound in the Dutch example words. */
+const markedExample = computed(() => props.card.marks && unmark(props.card.marks.nl) === props.card.answerExample ? props.card.marks.nl : undefined);
 /** Words the deck builds on the affix, four at most, the learned ones first: one or two leave it abstract. */
 const affixWords = computed(() => {
   if (!props.card.affix) return [];
@@ -29,11 +31,11 @@ watch(() => props.hidden, hidden => hidden || props.silent || speak(props.card),
     <p data-testid="answer" :class="right ? 'text-green-700 dark:text-green-600' : 'text-orange-700 dark:text-orange-400'" class="cursor-copy px-7 text-xl font-semibold" @click="hidden || copyText(card.answer)"><KeepAffixes :text="card.answer" /><AffixTag :card="card" :text="card.answer" /></p>
     <!-- Only the word stays put, clear of the corner buttons; the rest scrolls. The transcription sits by its word, each block after it a group apart. -->
     <ScrollBox v-if="card.tr || card.answerNote || card.answerExample || card.breakdown || affixWords.length" box-class="gap-3" :class="{ 'mt-2': !card.tr }" testid="answer-scroll">
-    <p v-if="card.tr" class="text-stone-500 dark:text-stone-400" :class="{ invisible: noTranscription }" data-testid="transcription">[<AffixWord v-if="card.affix?.tr" :word="card.tr" :affix="card.affix.dutch" :size="letterCount(card.affix.tr)" /><template v-else>{{ card.tr }}</template>]</p>
+    <p v-if="card.tr" class="text-stone-500 dark:text-stone-400" :class="{ invisible: noTranscription }" data-testid="transcription">[<AffixWord v-if="card.affix?.tr" :word="card.tr" :affix="card.affix.dutch" :size="letterCount(card.affix.tr)" /><SoundWord v-else-if="card.marks?.tr" :text="card.marks.tr" /><template v-else>{{ card.tr }}</template>]</p>
     <!-- Where the example comes from, then the example, apart from the rules below. -->
     <div v-if="card.answerExample || (card.affix && !dutchExample && card.breakdown)" class="flex w-fit max-w-full flex-col items-center gap-0.5 rounded-lg bg-stone-100 px-3 py-1.5 dark:bg-stone-800" data-testid="answer-context">
     <p v-if="card.affix && !dutchExample && card.breakdown" class="text-sm text-stone-600 dark:text-stone-300" data-testid="breakdown"><NoteText :text="card.breakdown" :self="card.id" breakdown /></p>
-    <p v-if="card.answerExample" class="text-sm text-stone-700 dark:text-stone-200"><ContextIcon class="mr-1 inline-block align-text-bottom" data-testid="context-icon" /><span class="cursor-copy" data-testid="answer-example" @click="hidden || copyText(card.answerExample)"><AffixWord v-if="dutchExample" :word="card.answerExample" :affix="card.affix!.dutch" /><template v-else>{{ card.answerExample }}</template></span></p>
+    <p v-if="card.answerExample" class="text-sm text-stone-700 dark:text-stone-200"><ContextIcon class="mr-1 inline-block align-text-bottom" data-testid="context-icon" /><span class="cursor-copy" data-testid="answer-example" @click="hidden || copyText(card.answerExample)"><AffixWord v-if="dutchExample" :word="card.answerExample" :affix="card.affix!.dutch" /><SoundWord v-else-if="markedExample" :text="markedExample" /><template v-else>{{ card.answerExample }}</template></span></p>
     </div>
     <NoteList v-if="card.answerNote" :note="card.answerNote" :kinds="card.answerKinds" :self="card.id" testid="answer-note" />
     <ul v-if="affixWords.length" class="flex flex-col items-center gap-0.5 text-sm" aria-label="Words with it" data-testid="affix-words">

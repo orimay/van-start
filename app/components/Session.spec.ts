@@ -1091,7 +1091,7 @@ describe('listening', () => {
 });
 
 describe('a sound', () => {
-  const sound: StudyCard = { id: 'snd', prompt: 'өй (как в «дом»)', answer: 'ui', nl: 'ui', sound: true, answerExample: 'uit, de tuin' };
+  const sound: StudyCard = { id: 'snd', prompt: 'звук өй, как в нидерландском слове «сад»', answer: 'ui', nl: 'uit, de tuin', sound: true, answerExample: 'uit, de tuin', promptExample: 'Примеры: из, сад.', tr: 'өйт, дэ төйн', marks: { nl: '[ui]t, de t[ui]n', tr: '[өй]т, дэ т[өй]н' } };
 
   it('sits out listening', async () => {
     const w = await doMount({ cards: [sound, ...cards(1)], stages: ['listen'] });
@@ -1104,6 +1104,37 @@ describe('a sound', () => {
     const w = await doMount({ cards: [sound], stages: ['intro', 'dictation'] });
     await doClick(w, 'next');
     expect(w.emitted('finished')).toBeTruthy();
+  });
+
+  for (const stage of ['pronounce', 'recall'] as const) {
+    describe(stage === 'pronounce' ? 'pronounced' : 'recalled', () => {
+      it('marks itself in its example words', async () => {
+        const w = await doMount({ cards: [sound], stages: [stage] });
+        await doClick(w, 'reveal');
+        expect(w.findAll('[data-testid$="-example"]').map(e => e.text())).toContain('uit, de tuin');
+        expect(w.findAll('[data-testid$="-example"] [data-testid="sound-part"]').map(e => e.text())).toEqual(['ui', 'ui']);
+      });
+
+      it('marks itself in bold in the transcription of its example words', async () => {
+        const w = await doMount({ cards: [sound], stages: [stage] });
+        await doClick(w, 'reveal');
+        expect(w.get('[data-testid="transcription"]').text()).toBe('[өйт, дэ төйн]');
+        const parts = w.findAll('[data-testid="transcription"] [data-testid="sound-part"]');
+        expect(parts.map(e => e.text())).toEqual(['өй', 'өй']);
+        expect(parts.every(e => e.classes().includes('font-semibold'))).toBe(true);
+      });
+    });
+  }
+});
+
+describe('a letter', () => {
+  const letter: StudyCard = { id: 'ltr', prompt: 'буква «үү»', answer: 'u', nl: 'u', tr: 'үү', answerExample: 'de bus, nu', promptExample: 'Примеры: автобус, сейчас.', marks: { nl: 'de b[u]s, n[u]' } };
+
+  it('marks itself in its example words', async () => {
+    const w = await doMount({ cards: [letter], stages: ['recall'] });
+    await doClick(w, 'reveal');
+    expect(w.findAll('[data-testid$="-example"] [data-testid="sound-part"]').map(e => e.text())).toEqual(['u', 'u']);
+    expect(w.get('[data-testid="transcription"]').text()).toBe('[үү]');
   });
 });
 

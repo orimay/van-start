@@ -1,15 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-type Card = { b: string; f: string; n?: string };
+type Card = { b: string; f: string; n?: string; k?: string };
 type Node = { cards?: Card[]; children?: Node[] };
 const cardsOf = (node: Node): Card[] => [...(node.cards ?? []), ...(node.children ?? []).flatMap(cardsOf)];
 const deck = cardsOf(JSON.parse(readFileSync('public/deck.json', 'utf8')));
 
 const FORM = /(^|; )(мн\. ч\. от|уменьш\. от|форма от|женский род от|сравнительная степень от|превосходная степень от|порядковое от|причастие)/;
-/** A single word of its own: no phrase, affix, plural or form of another card. */
+/** A single word of its own: no sound, phrase, affix, plural or form of another card. */
 const isBase = (card: Card) =>
-  !/[ ,.!?]/.test(card.b.replace(/^(de|het) /, '')) && !/^-|-$/.test(card.b) && !/\(мн\.\)/.test(card.f) && !FORM.test(card.n ?? '');
+  card.k !== 'sound' && !/[ ,.!?]/.test(card.b.replace(/^(de|het) /, '')) && !/^-|-$/.test(card.b) && !/\(мн\.\)/.test(card.f) && !FORM.test(card.n ?? '');
 /** The front's senses, split at `; ` and at `, ` outside brackets. */
 const piecesOf = (front: string) => front.split(/; |, (?![^(]*\))/).map(s => s.trim());
 const LABEL = /^(от|не путать с|синоним|вариант|родственное|форма от|мн\. ч\. от|уменьш\. от|женский род от|процесс): ?/;

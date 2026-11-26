@@ -23,8 +23,10 @@ export interface DeckCard {
   axb?: string;
   /** Affix cards: the example word broken into its parts. */
   xl?: string;
-  /** Affix cards: the example word's transcription. */
+  /** Affix cards: the example word's transcription; sound cards: the example words', the sound in brackets. */
   xt?: string;
+  /** Sound and letter cards: the example words, the sound or letter in brackets, `de b[u]s`. */
+  xm?: string;
   /** A card the learner can switch off (an example sentence or one of a rule-built series), or a sound. */
   k?: Kind | 'sound';
   /** Part of speech; set by scripts/flag-kinds.py. */
@@ -65,8 +67,10 @@ export interface StudyCard {
   promptExample?: string;
   answerExample?: string;
   img?: string;
-  /** A sound like `ui`: its clip says the letter's name, so it has no sound of its own to hear. */
+  /** A sound like `ui`, voiced and transcribed by its example words: heard alone it would be the letter's name. */
   sound?: boolean;
+  /** Sound and letter cards: the Dutch example and its transcription with the sound or letter in brackets, `de b[u]s`. */
+  marks?: { nl: string; tr?: string };
   /** A prefix or a suffix, voiced and transcribed by its example word; its own spelling and transcription mark it there. */
   affix?: { dutch: string; tr?: string };
   /** An affix's example word broken into its parts. */
@@ -96,6 +100,9 @@ export function splitAffix(word: string, size: number, prefix: boolean): [string
   return [word.slice(0, start), word.slice(start, i), word.slice(i)];
 }
 
+/** The text without the brackets that mark a sound or a letter in it. */
+export const unmark = (text: string) => text.replace(/[[\]]/g, '');
+
 /** A prefix or a suffix with an example word to voice it. */
 export const isAffixCard = (card: DeckCard) => isAffix(card.b) && !!card.xb;
 /** An affix or a sound: no clip of its own, so it sits out the games played by ear. */
@@ -109,8 +116,12 @@ export function cardsOf(node: DeckNode): DeckCard[] {
 
 export function toStudyCard(card: DeckCard): StudyCard {
   const promptNote = [card.n, card.nx].filter(Boolean).join('\n') || undefined;
-  const voice = isAffixCard(card) ? { affix: { dutch: card.b, tr: card.tr }, nl: card.xb!, audio: card.axb, tr: card.xt } : { nl: card.b, audio: card.au, nlExample: card.xb, exampleAudio: card.axb, tr: card.tr };
-  return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, promptKinds: promptNote ? kindsOf(card, promptNote) : undefined, answerKinds: card.nb ? noteLines(card.nb).map((): NoteKind => 'example') : undefined, id: card.id, ...voice, prompt: card.f, answer: card.b, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, breakdown: card.xl, img: card.img, part: partOf(card), promptSenses: card.ps, ...(card.k === 'sound' && { sound: true }) };
+  const voice = isAffixCard(card)
+    ? { affix: { dutch: card.b, tr: card.tr }, nl: card.xb!, audio: card.axb, tr: card.xt }
+    : card.k === 'sound' && card.xb
+      ? { nl: card.xb, audio: card.axb, tr: card.xt && unmark(card.xt) }
+      : { nl: card.b, audio: card.au, nlExample: card.xb, exampleAudio: card.axb, tr: card.tr };
+  return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, promptKinds: promptNote ? kindsOf(card, promptNote) : undefined, answerKinds: card.nb ? noteLines(card.nb).map((): NoteKind => 'example') : undefined, id: card.id, ...voice, prompt: card.f, answer: card.b, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, breakdown: card.xl, img: card.img, part: partOf(card), promptSenses: card.ps, ...(card.k === 'sound' && { sound: true }), ...(card.xm && { marks: { nl: card.xm, ...(card.k === 'sound' && card.xt && { tr: card.xt }) } }) };
 }
 
 /** The same card asked the other way round: Dutch shown, native side recalled. */

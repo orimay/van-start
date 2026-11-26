@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { copyText } from '@/utils/copy';
-import { givesAway, noteLines, processLabel, type StudyCard } from '@/utils/deck';
+import { givesAway, noteLines, processLabel, unmark, type StudyCard } from '@/utils/deck';
 import { senseColourOf, surfaceOf } from '@/utils/surface';
 
 /** `secret`: the answer is not out yet, so note items giving it away are taken out of the layout. */
@@ -9,6 +9,8 @@ const process = computed(() => props.card.promptNote && noteLines(props.card.pro
 const base = useRuntimeConfig().app.baseURL;
 /** An affix's example on this side is its Dutch word, with the affix marked; otherwise this is the side of its meaning. */
 const dutchExample = computed(() => !!props.card.affix && props.card.promptExample === props.card.nl);
+/** Sound and letter cards mark their sound in the Dutch example words. */
+const markedExample = computed(() => props.card.marks && unmark(props.card.marks.nl) === props.card.promptExample ? props.card.marks.nl : undefined);
 /** The example would prompt the word, so a closed card keeps it back until asked for, at no cost. */
 const contextShown = shallowRef(false);
 const contextHidden = computed(() => props.secret && !contextShown.value);
@@ -29,7 +31,7 @@ const hasContext = computed(() => !!props.card.promptExample || heldBack.value.s
     <!-- Where the example comes from, then the example, apart from the rules below. -->
     <div v-if="card.promptExample || (card.affix && !dutchExample && card.breakdown)" v-show="!secret || (card.promptExample && !contextHidden)" class="flex w-fit max-w-full flex-col items-center gap-0.5 rounded-lg bg-stone-100 px-3 py-1.5 dark:bg-stone-800" data-testid="prompt-context">
     <p v-if="card.affix && !dutchExample && card.breakdown" v-show="!secret" class="text-sm text-stone-600 dark:text-stone-300" data-testid="breakdown"><NoteText :text="card.breakdown" :self="card.id" :secret="secret" breakdown /></p>
-    <p v-if="card.promptExample" v-show="!contextHidden" class="text-sm text-stone-700 dark:text-stone-200"><ContextIcon class="mr-1 inline-block align-text-bottom" data-testid="context-icon" /><span class="cursor-copy" data-testid="prompt-example" @click="copyText(card.promptExample)"><AffixWord v-if="dutchExample" :word="card.promptExample" :affix="card.affix!.dutch" /><template v-else>{{ card.promptExample }}</template></span></p>
+    <p v-if="card.promptExample" v-show="!contextHidden" class="text-sm text-stone-700 dark:text-stone-200"><ContextIcon class="mr-1 inline-block align-text-bottom" data-testid="context-icon" /><span class="cursor-copy" data-testid="prompt-example" @click="copyText(card.promptExample)"><AffixWord v-if="dutchExample" :word="card.promptExample" :affix="card.affix!.dutch" /><SoundWord v-else-if="markedExample" :text="markedExample" /><template v-else>{{ card.promptExample }}</template></span></p>
     </div>
     <NoteList v-if="card.promptNote" :note="card.promptNote" :kinds="card.promptKinds" :self="card.id" :secret="secret" :hidden="hidden" testid="prompt-note" />
     </ScrollBox>
