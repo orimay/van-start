@@ -526,6 +526,9 @@ const AMBIGUOUS: Record<string, Record<string, string>> = {
     'sítio': 'rural ou lugar',
   },
   ro: {
+    'articol': 'gramatical, de ziar sau de vânzare', 'declarație': 'afirmație sau fiscală', 'înțelegere': 'acord sau pricepere', 'număr': 'de telefon sau câte',
+    'cărucior': 'de mână, de copil sau de cumpărături', 'fel': 'tip sau mod', 'acțiune': 'activitate sau funcționare', 'impresie': 'vizuală sau trăită',
+    'servire': 'la masă sau calitatea', 'regulă': 'normă sau aranjament',
     'pas': 'călcătură sau etapă',
     'a chema': 'cu glas tare sau a numi',
     'a călca': 'cu fierul sau cu piciorul',
@@ -730,6 +733,7 @@ const CLEAR = new Set([
   'pt:het plaatje', 'pt:jij vraagt', 'pt:u vraagt', 'pt:hij vraagt', 'pt:zij vraagt', 'pt:vraag aan', 'pt:ik mis', 'pt:zij mist', 'pt:het beeldje', 'pt:het maatje', // figura, você pergunta, sinto falta, estatueta, amigo
   'pt:hij stuurt', 'pt:ik heb gestuurd', 'pt:vaar', 'pt:hij is gevaren', 'pt:zij rijden', 'pt:wij reden', 'pt:het stukje', // manda, enviei, navegue, foi de barco, vão de carro, pedacinho
   'pt:jij verliest', 'pt:ik heb verloren', 'pt:verlies niet', // perder: both senses of verliezen
+  'ro:het beeldje', // statuetă
   'tr:het groepje', 'tr:het beeldje', // küçük grup, biblo
   'es:hij noemt', 'es:tik', 'es:hij speelt', 'es:ik speelde', 'es:wij speelden', // él nombra, ¡pulsa!, él juega, jugaba
   'es:het busje', 'es:het tijdje', 'es:het doosje', 'es:het bosje', 'es:het lijstje', // microbús, un rato, cajita, manojito, listita
