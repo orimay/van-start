@@ -1090,6 +1090,23 @@ describe('listening', () => {
   });
 });
 
+describe('a sound', () => {
+  const sound: StudyCard = { id: 'snd', prompt: 'өй (как в «дом»)', answer: 'ui', nl: 'ui', sound: true, answerExample: 'uit, de tuin' };
+
+  it('sits out listening', async () => {
+    const w = await doMount({ cards: [sound, ...cards(1)], stages: ['listen'] });
+    await doRecall(w, true);
+    expect(w.emitted('answer')).toEqual([['c0', 'listen', true]]);
+    expect(w.emitted('finished')).toBeTruthy();
+  });
+
+  it('sits out dictation', async () => {
+    const w = await doMount({ cards: [sound], stages: ['intro', 'dictation'] });
+    await doClick(w, 'next');
+    expect(w.emitted('finished')).toBeTruthy();
+  });
+});
+
 describe('an affix', () => {
   const affix: StudyCard = { id: 'af', prompt: 'acting on someone', answer: 'be-', nl: 'bewonen', affix: { dutch: 'be-', tr: 'bu' }, promptExample: 'to inhabit', answerExample: 'bewonen', breakdown: 'be- (on) + wonen (to live)', tr: 'buvónun' };
 

@@ -15,6 +15,14 @@ describe('the affix part of a word', () => {
   });
 });
 
+describe('a sound card', () => {
+  it('is told from a letter card', () => {
+    const sound = toStudyCard({ id: 'u', f: 'ү (как в «автобус»)', b: 'u', xb: 'de bus', k: 'sound' });
+    const letter = toStudyCard({ id: 'l', f: 'үү (буква)', b: 'u', xb: 'de bus' });
+    expect([sound.sound, letter.sound]).toEqual([true, undefined]);
+  });
+});
+
 describe('an affix card', () => {
   const affix = toStudyCard({ id: 'be', f: 'acting on someone', b: 'be-', tr: 'bu', au: 'be-clip', xb: 'bewonen', xt: 'buvónun', xf: 'to inhabit', axb: 'bewonen-clip' });
 

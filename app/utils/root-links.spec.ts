@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-type Card = { id: string; b: string; n?: string };
+type Card = { id: string; b: string; n?: string; p?: string };
 type Node = { cards?: Card[]; children?: Node[] };
 const cards = (node: Node): Card[] => [...(node.cards ?? []), ...(node.children ?? []).flatMap(cards)];
 const deck = cards(JSON.parse(readFileSync('public/deck.json', 'utf8')));
@@ -21,7 +21,7 @@ const LABEL: Record<string, Record<string, string>> = {
   superlative: { ru: 'превосходная степень от', en: 'superlative of', es: 'superlativo de', pt: 'superlativo de', tr: 'en üstünlük derecesi', ro: 'superlativul lui' },
 };
 /** A note's items, an es/pt/ro gender prefix (`f. `, `pl. m. `) set aside. */
-const itemsOf = (note: string) => note.split('\n').flatMap(line => line.replace(/^!/, '').split('; ')).map(item => item.replace(/^(pl\. )?[mfn]\.(\/[mfn]\.)? /, ''));
+const itemsOf = (note: string) => note.split('\n').flatMap(line => line.replace(/^!/, '').split('; ')).map(item => item.replace(/^(pl\. )?[mfn]\.(\/(pl\. )?[mfn]\.)? /, ''));
 /** One link names several words as `label: a (…), b (…)`. */
 const names = (note: string, label: string, word: string) =>
   itemsOf(note).some(item => item.startsWith(`${label}: `) && [`: ${word} (`, `: ${word} +`, `), ${word} (`, ` + ${word} (`].some(part => item.includes(part)));
@@ -114,5 +114,50 @@ describe('words made from one base', () => {
     const note = noteIn(lang);
     const unnamed = peersOf().filter(([word, other]) => !names(note(byWord.get(word)!), LABEL.related![lang]!, other)).map(([word, other]) => `${word} -> ${other}`);
     expect(unnamed).toEqual([]);
+  });
+});
+
+/** Infinitives a noun's stem makes: de fiets -> fietsen, de val -> vallen, de koop -> kopen, de reis -> reizen, de barbecue -> barbecueën. */
+const infinitivesOf = (stem: string) => {
+  const voiced = (c: string) => ({ f: 'v', s: 'z' } as Record<string, string>)[c] ?? c;
+  const long = /^(.*)(aa|ee|oo|uu)([^aeiou])$/.exec(stem);
+  return [
+    `${stem}en`, `${stem}ën`, `${stem}n`,
+    ...(/[aeiou][bdfgklmnprst]$/.test(stem) && !/(aa|ee|oo|uu|ie|ei|ij|ui|ou|au|eu|oe)[^aeiou]$/.test(stem) ? [`${stem}${stem.at(-1)}en`] : []),
+    ...(long ? [`${long[1]}${long[2]![0]}${voiced(long[3]!)}en`, `${long[1]}${long[2]}${voiced(long[3]!)}en`] : []),
+    ...(/[^aeiou][fs]$/.test(stem) ? [`${stem.slice(0, -1)}${voiced(stem.at(-1)!)}en`] : []),
+  ];
+};
+// Same letters, unrelated or long drifted apart: de kop is a cup, kopen to buy
+const NOT_KIN = new Set([
+  'de kop|kopen', 'het spel|spellen', 'de rok|roken', 'de lever|leveren', 'de wet|weten', 'de pas|passen', 'het afval|afvallen', 'de hal|halen', 'de zak|zakken',
+]);
+const nounVerbPairs = deck.filter(card => card.p === 'noun' && /^(de|het) [a-zë]+$/.test(card.b)).flatMap(noun =>
+  infinitivesOf(noun.b.split(' ')[1]!).filter(verb => byWord.get(verb)?.p === 'verb').map(verb => [noun.b, verb] as const))
+  .filter(pair => !NOT_KIN.has(pair.join('|')));
+
+describe('a noun and a verb of one stem', () => {
+  it('are found', () => {
+    expect(nounVerbPairs).toContainEqual(['de barbecue', 'barbecueën']);
+  });
+
+  it.each(LANGS)('are linked in %s', (lang) => {
+    const note = noteIn(lang);
+    const linked = (a: string, b: string) => [LABEL.from![lang]!, LABEL.related![lang]!].some(label => names(note(byWord.get(a)!), label, b));
+    const unlinked = nounVerbPairs.filter(([noun, verb]) => !linked(noun, verb) && !linked(verb, noun)).map(pair => pair.join(' | '));
+    expect(unlinked).toEqual([]);
+  });
+});
+
+// allebei is the everyday word, of people and things, and takes de before a noun; beiden is formal and only of people
+describe('allebei and beiden', () => {
+  const STYLE: Record<string, [RegExp, RegExp]> = {
+    ru: [/разговорное/, /книжное/], en: [/everyday/, /formal/], es: [/coloquial/, /formal/], pt: [/coloquial/, /formal/], tr: [/günlük/, /resmî/], ro: [/familiar/, /formal/],
+  };
+  it.each(LANGS)('say which is everyday and which formal in %s', (lang) => {
+    const note = noteIn(lang);
+    expect(note(byWord.get('allebei')!)).toMatch(STYLE[lang]![0]);
+    expect(note(byWord.get('beiden')!)).toMatch(STYLE[lang]![1]);
+    expect(note(byWord.get('allebei')!)).toContain('allebei de');
   });
 });

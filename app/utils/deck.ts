@@ -25,8 +25,8 @@ export interface DeckCard {
   xl?: string;
   /** Affix cards: the example word's transcription. */
   xt?: string;
-  /** A card the learner can switch off: an example sentence or one of a rule-built series. */
-  k?: Kind;
+  /** A card the learner can switch off (an example sentence or one of a rule-built series), or a sound. */
+  k?: Kind | 'sound';
   /** Part of speech; set by scripts/flag-kinds.py. */
   p?: Part;
   /** A word of several parts: the part of each `; ` group of its front, vroeg (рано; ранний). */
@@ -65,6 +65,8 @@ export interface StudyCard {
   promptExample?: string;
   answerExample?: string;
   img?: string;
+  /** A sound like `ui`: its clip says the letter's name, so it has no sound of its own to hear. */
+  sound?: boolean;
   /** A prefix or a suffix, voiced and transcribed by its example word; its own spelling and transcription mark it there. */
   affix?: { dutch: string; tr?: string };
   /** An affix's example word broken into its parts. */
@@ -96,6 +98,8 @@ export function splitAffix(word: string, size: number, prefix: boolean): [string
 
 /** A prefix or a suffix with an example word to voice it. */
 export const isAffixCard = (card: DeckCard) => isAffix(card.b) && !!card.xb;
+/** An affix or a sound: no clip of its own, so it sits out the games played by ear. */
+export const isEarless = (card: DeckCard) => isAffixCard(card) || card.k === 'sound';
 const partOf = (card: DeckCard): StudyCard['part'] =>
   isAffixCard(card) ? 'affix' : /^\p{L}$/u.test(card.b) ? 'letter' : card.k === 'sentence' ? 'sentence' : card.p;
 
@@ -106,7 +110,7 @@ export function cardsOf(node: DeckNode): DeckCard[] {
 export function toStudyCard(card: DeckCard): StudyCard {
   const promptNote = [card.n, card.nx].filter(Boolean).join('\n') || undefined;
   const voice = isAffixCard(card) ? { affix: { dutch: card.b, tr: card.tr }, nl: card.xb!, audio: card.axb, tr: card.xt } : { nl: card.b, audio: card.au, nlExample: card.xb, exampleAudio: card.axb, tr: card.tr };
-  return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, promptKinds: promptNote ? kindsOf(card, promptNote) : undefined, answerKinds: card.nb ? noteLines(card.nb).map((): NoteKind => 'example') : undefined, id: card.id, ...voice, prompt: card.f, answer: card.b, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, breakdown: card.xl, img: card.img, part: partOf(card), promptSenses: card.ps };
+  return { promptSecret: promptNote ? secretLines(card, promptNote) : undefined, promptKinds: promptNote ? kindsOf(card, promptNote) : undefined, answerKinds: card.nb ? noteLines(card.nb).map((): NoteKind => 'example') : undefined, id: card.id, ...voice, prompt: card.f, answer: card.b, promptNote, answerNote: card.nb, promptExample: card.xf, answerExample: card.xb, breakdown: card.xl, img: card.img, part: partOf(card), promptSenses: card.ps, ...(card.k === 'sound' && { sound: true }) };
 }
 
 /** The same card asked the other way round: Dutch shown, native side recalled. */

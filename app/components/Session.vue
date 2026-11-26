@@ -113,7 +113,9 @@ const shown = new Map<string, number>();
 const mistakes = new Map<string, number>();
 const odds = new Map(Object.entries(props.scores ?? {}).map(([id, s]) => [id, oddsOf(s)]));
 /** Asked in the game: not passed in it yet, and played by the card. */
-const isDue = (card: StudyCard, game: string, passed?: Record<string, string[]>) => !passed?.[card.id]?.includes(game) && playsIn(!!card.affix, game);
+/** An affix or a sound has no clip of its own to hear. */
+const earless = (card: StudyCard) => !!card.affix || !!card.sound;
+const isDue = (card: StudyCard, game: string, passed?: Record<string, string[]>) => !passed?.[card.id]?.includes(game) && playsIn(earless(card), game);
 /** Games passed when the session began, so a stage's ladder keeps its length while its cards pass. */
 const passedAtStart: Record<string, string[]> = JSON.parse(JSON.stringify(props.passed ?? {}));
 /** A stage's ladder is as long as the words it asks, not the whole group. */
@@ -547,7 +549,7 @@ function onMissAgain(id: string) {
 /** The learner took `card` for `others`: all are missed, and each other one that plays in its game comes back sooner than `card`, so cards come between them. */
 function onMixedUp(card: StudyCard, others: string[], typingMs = 0) {
   for (const id of others) onMissAgain(id);
-  const along = others.flatMap(id => byId.get(id) ?? []).filter(c => playsIn(!!c.affix, gameOf(c.id)));
+  const along = others.flatMap(id => byId.get(id) ?? []).filter(c => playsIn(earless(c), gameOf(c.id)));
   onCard(card, false, false, typingMs, along);
 }
 
@@ -570,7 +572,7 @@ function missLinked(id: string): StudyCard[] {
   // A card picked as the mix-up on this step is missed already.
   const linked = (store.confusions.value[id] ?? []).filter(other => !answers.includes(other));
   for (const other of linked) onMissAgain(other);
-  return linked.flatMap(other => byId.get(other) ?? []).filter(c => playsIn(!!c.affix, gameOf(c.id)));
+  return linked.flatMap(other => byId.get(other) ?? []).filter(c => playsIn(earless(c), gameOf(c.id)));
 }
 
 function onMatch(cards: StudyCard[], mistakes: string[]) {

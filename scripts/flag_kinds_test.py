@@ -16,6 +16,8 @@ fails = []
 fails += [f'not a sentence: {b}' for b in SENTENCE if not m.is_sentence(b)]
 fails += [f'a sentence: {b}' for b in NOT_SENTENCE if m.is_sentence(b)]
 fails += [f'not in series {i}: {b}' for b, i in COMBINATION.items() if not m.SERIES[i].fullmatch(b)]
+# A sound names a word it is heard in; a letter is named.
+fails += [f'{b}: sound is {m.is_sound({"b": b, "f": f})}' for b, f, sound in [('ij', 'эй (как в «hij»)', True), ('n', 'эн (буква)', False)] if m.is_sound({'b': b, 'f': f}) != sound]
 
 # A part of speech: a noun by its article, a verb by its Russian infinitive, the rest by its word or its gloss.
 PARTS = [('de boeken', 'книги (мн.)', 'noun'), ('boeken', 'бронировать (поездку)', 'verb'), ('pijn doen', 'болеть', 'verb'),
@@ -43,7 +45,7 @@ for first, series in [('de zaterdagmiddag', 0), ('eenentwintig', 1)]:
     card = by_b[first]
     if card.get('k') or not all(item in card.get('n', '') for item in m.RULES[series][0]):
         fails.append(f'first of the series lost its rule: {first}')
-if by_b['dinsdagochtend'].get('k') != 'combination' or by_b['de boeken'].get('p') != 'noun' or by_b['goed'].get('ps') != ['adjective', 'adverb']:
+if by_b['dinsdagochtend'].get('k') != 'combination' or by_b['ui'].get('k') != 'sound' or by_b['de boeken'].get('p') != 'noun' or by_b['goed'].get('ps') != ['adjective', 'adverb']:
     fails.append('deck not flagged: run python3 -I scripts/flag-kinds.py')
 
 print('\n'.join(fails) or 'ok')

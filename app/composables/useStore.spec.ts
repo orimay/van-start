@@ -63,6 +63,30 @@ describe('an affix', () => {
   });
 });
 
+// A sound card plays its letter's clip, so like an affix it has no sound of its own to hear.
+describe('a sound', () => {
+  beforeEach(() => {
+    const store = useStore();
+    store.saveCustom({ id: CUSTOM_ID, name: 'My cards', cards: [{ id: 'snd', f: 'өй (как в «дом»)', b: 'ui', xb: 'uit, de tuin', k: 'sound' }] });
+    store.updateSettings({ games: ['listen', 'recall', 'dictation'], pronounceFirst: false });
+  });
+  afterEach(() => useStore().saveCustom(emptyCustom()));
+
+  it('is through without the games played by ear', () => {
+    const store = useStore();
+    store.pass('snd', 'intro');
+    store.pass('snd', 'recall');
+    expect(store.isThrough('snd')).toBe(true);
+  });
+
+  it('is never due in the games played by ear', () => {
+    const store = useStore();
+    store.rate('snd', store.Rating.Good);
+    const later = new Date(Date.now() + 100 * 86_400_000);
+    expect(['listen', 'dictation', 'recall'].map(g => store.isDue('snd', later, g as 'recall'))).toEqual([false, false, true]);
+  });
+});
+
 describe('a review schedule', () => {
   beforeEach(() => vi.useFakeTimers({ now: new Date('2026-01-01T09:00:00Z'), toFake: ['Date'] }));
   afterEach(() => vi.useRealTimers());

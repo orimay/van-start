@@ -11,7 +11,7 @@ export type KindState = 'global' | 'on' | 'off' | 'mixed';
 /** The deck without the cards whose kind is off where they sit; the nearest group switch beats the global one. */
 export function shownCards(node: DeckNode, global: KindSwitches, groups: Record<string, KindSwitches>, inherited: KindSwitches = global): DeckNode {
   const on = { ...inherited, ...groups[node.id] };
-  const cards = node.cards?.filter(c => !c.k || on[c.k] !== false);
+  const cards = node.cards?.filter(c => !c.k || c.k === 'sound' || on[c.k] !== false);
   const children = node.children?.map(child => shownCards(child, global, groups, on));
   return { ...node, ...(cards && { cards }), ...(children && { children }) };
 }

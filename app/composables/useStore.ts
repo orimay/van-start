@@ -3,7 +3,7 @@ import { type CardInput, createEmptyCard, fsrs, type Grade, Rating, State } from
 import { computed, shallowRef, triggerRef } from 'vue';
 import { withUuids } from '@/utils/course-ids';
 import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
-import { cardsOf, type DeckNode, isAffixCard } from '@/utils/deck';
+import { cardsOf, type DeckNode, isEarless } from '@/utils/deck';
 import { applyEdits, type Edits, noEdits } from '@/utils/edits';
 import { type KindSwitches, shownCards } from '@/utils/kinds';
 import { type Confusions, linked, unlinkedWithForms, withBases } from '@/utils/confusions';
@@ -84,8 +84,8 @@ const settings = shallowRef<Settings>({ language: 'en', groupSize: 15, games: [.
 /** False until the learner has saved settings once: the app then opens on them. */
 const configured = shallowRef(false);
 let loading: Promise<void> | undefined;
-/** Prefixes and suffixes of the deck: they sit out the games played by ear. */
-const affixes = computed(() => new Set(deck.value ? cardsOf(deck.value).filter(isAffixCard).map(c => c.id) : []));
+/** Prefixes, suffixes and sounds of the deck: they sit out the games played by ear. */
+const earless = computed(() => new Set(deck.value ? cardsOf(deck.value).filter(isEarless).map(c => c.id) : []));
 /** Course cards whose kind is switched off: learned ones keep their progress but are not reviewed. */
 const hidden = computed(() => {
   if (!library.value || !deck.value) return new Set<string>();
@@ -93,7 +93,7 @@ const hidden = computed(() => {
   return new Set(cardsOf(library.value).filter(c => !shown.has(c.id)).map(c => c.id));
 });
 /** The card plays the game. */
-const playedIn = (id: string, game: string) => playsIn(affixes.value.has(id), game);
+const playedIn = (id: string, game: string) => playsIn(earless.value.has(id), game);
 
 /** Through every learning game on now, `stages` by default; a card learned before games were tracked counts as through. */
 function isThrough(id: string, stages: readonly string[] = learnStages(settings.value.games, settings.value.pronounceFirst)) {

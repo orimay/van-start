@@ -29,11 +29,11 @@ export const GAME_TITLES: Record<Game | 'intro', string> = {
   dictation: 'Dictation',
 };
 
-/** Games played by ear: an affix has no sound of its own, so it sits them out. */
+/** Games played by ear: an affix or a sound has no clip of its own, so it sits them out. */
 const EAR_GAMES: readonly string[] = ['listen', 'dictation'];
 /** A prefix or a suffix, like `be-` or `-heid`. */
 export const isAffix = (dutch: string) => dutch.startsWith('-') || dutch.endsWith('-');
-export const playsIn = (affix: boolean | undefined, game: string) => !affix || !EAR_GAMES.includes(game);
+export const playsIn = (earless: boolean | undefined, game: string) => !earless || !EAR_GAMES.includes(game);
 
 export const isReviewGame = (g: string): g is ReviewGame => (REVIEW_GAMES as readonly string[]).includes(g);
 

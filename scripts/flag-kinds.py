@@ -275,6 +275,11 @@ def sense_part(gloss, fallback):
     return fallback
 
 
+def is_sound(c):
+    """A sound like ui, its ru front `өй (как в «дом»)`: it has no clip of its own, so it sits out the games played by ear."""
+    return bool(re.search(r'\(как в «', c['f']))
+
+
 def part_of(c, adjectives=frozenset()):
     """A card's part of speech: by a word list, its article, its Russian gloss, or how many words it has; affixes and sentences stay untagged."""
     b, f = c['b'], c['f']
@@ -339,6 +344,8 @@ def main():
                 firsts[series] = c
         elif is_sentence(c['b']):
             c['k'] = 'sentence'
+        elif is_sound(c):
+            c['k'] = 'sound'
     add_rules(firsts)
     for c in all_cards:
         c.pop('ps', None)
