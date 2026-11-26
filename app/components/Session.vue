@@ -210,19 +210,25 @@ const byId = new Map(props.cards.concat(props.pool).map(c => [c.id, c]));
 const rungShown = computed(() => {
   const item = current.value;
   if (item?.kind !== 'card') return undefined;
-  const { verdict, picked, phase } = item.state ?? {};
-  if (verdict === false || (picked !== undefined && picked !== item.card.id)) return 0;
+  const { verdict, picked } = item.state ?? {};
+  if (verdict === false || (picked !== undefined && picked !== item.card.answer)) return 0;
   if (item.rung === undefined) return undefined;
-  const rightNow = picked === item.card.id || (verdict === true && phase === 'done');
-  return rightNow ? Math.min(item.rung + 1, steps.value.length) : item.rung;
+  return rightNow.value ? Math.min(item.rung + 1, steps.value.length) : item.rung;
+});
+/** The card shows its right answer, not yet reported: that happens on moving on. */
+const rightNow = computed(() => {
+  const item = current.value;
+  if (item?.kind !== 'card') return false;
+  const { verdict, picked, phase } = item.state ?? {};
+  return picked === item.card.answer || (verdict === true && phase === 'done');
 });
 const cardColour = computed(() => {
   const item = current.value;
   if (item?.kind !== 'card') return undefined;
   const stored = props.gameScores?.[item.card.id]?.[gameOf(item.card.id)] ?? props.scores?.[item.card.id];
-  // A card new to the game has nothing to show yet.
-  if (!stored && !mistakes.has(item.card.id)) return undefined;
-  return knownColour(stored?.right ?? 0, (stored?.wrong ?? 0) + (mistakes.get(item.card.id) ?? 0));
+  // A card new to the game has nothing to show until it is answered.
+  if (!stored && !mistakes.has(item.card.id) && !rightNow.value) return undefined;
+  return knownColour((stored?.right ?? 0) + Number(rightNow.value), (stored?.wrong ?? 0) + (mistakes.get(item.card.id) ?? 0));
 });
 const currentCard = computed(() => (current.value?.kind === 'card' ? current.value.card : undefined));
 const options = computed(() => {

@@ -1632,6 +1632,20 @@ describe('a missed card', () => {
     await answerUntil(w, missed);
     expect(w.get('[data-testid="shows-left"]').attributes('aria-label')).toBe(`${needed - 1} left`);
   });
+
+  it('counts a right pick at once', async () => {
+    vi.useFakeTimers();
+    const w = await doMount({ cards: cards(20), stages: ['choice'], retryGap: 20 });
+    const missed = promptOf(w);
+    await doPick(w, w.findAll('[data-testid="option"]').map(o => o.text()).find(o => !o.startsWith(answerFor(missed)))!);
+    await doClick(w, 'next');
+    while (promptOf(w) !== missed) {
+      await doPick(w, answerFor(promptOf(w)));
+      await vi.advanceTimersByTimeAsync(500);
+    }
+    await doPick(w, answerFor(missed));
+    expect(w.get('[data-testid="shows-left"]').attributes('aria-label')).toBe(`${ladder(20).length - 1} left`);
+  });
 });
 
 describe('typing again', () => {
@@ -1839,6 +1853,28 @@ describe('the known mark', () => {
 
   it('turns red for a card missed once without fixes', async () => {
     expect(await hueOf({ right: 0, wrong: 1 })).toBeLessThan(40);
+  });
+
+  describe('after a right answer', () => {
+    const hueAfterTyping = async (gameScores?: Record<string, Record<string, { right: number; wrong: number }>>) => {
+      const w = await doMount({ cards: cards(1), stages: ['type'], gameScores });
+      await doType(w, 'input', 'a0');
+      return Number(/oklch\([^ ]+ [^ ]+ ([\d.]+)\)/.exec(w.get('[data-testid="known"]').attributes('style')!)![1]);
+    };
+
+    it('shows green on a card new to the game', async () => {
+      expect(await hueAfterTyping()).toBeGreaterThan(130);
+    });
+
+    it('moves up on a card already scored', async () => {
+      expect(await hueAfterTyping({ c0: { type: { right: 0, wrong: 2 } } })).toBeGreaterThan(await hueOf({ right: 0, wrong: 2 }));
+    });
+
+    it('shows on a right pick', async () => {
+      const w = await doMount({ cards: cards(4), stages: ['choice'] });
+      await doPick(w, answerFor(promptOf(w)));
+      ensureHas(w, 'known');
+    });
   });
 
   it('gives way to the ring once the card is missed', async () => {
