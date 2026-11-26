@@ -38,7 +38,7 @@ const NOT_SPLIT = [
   'de conjunctie', 'de locatie', 'de specificatie', 'de conditie', 'de notitie', 'de portie', 'de intercity', 'inclusief', 'installeren',
   'de presentatie', 'de promotie', 'de expositie', 'de communicatie', 'introduceren', 'de advertentie', 'de medicatie', 'de vaccinatie',
   'het ingrediënt', 'het insect', 'intensief', 'individueel', 'informatief', 'de instantie', 'de motivatie', 'de prestatie',
-  'de administratie', 'online', 'de toerist', 'de passagier', 'het formulier',
+  'de administratie', 'online', 'de toerist', 'de passagier', 'de caissier', 'het formulier',
   // Loanwords whose ending only looks Dutch: -er, -es, -te, -je
   'de partner', 'de computer', 'super', 'de dokter', 'de letter', 'de centimeter', 'het adres', 'het nummer', 'de burger',
   'de manager', 'de tante', 'de kastanje', 'de gitaar', 'het theater', 'het succes', 'het karakter', 'de visite', 'de courgette',

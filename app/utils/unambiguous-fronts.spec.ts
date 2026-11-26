@@ -477,6 +477,9 @@ const CLEAR = new Set([
   'tr:jij spaart', // biriktiriyorsun
   'voer telefoongesprekken', // the object says it: phone calls
   'noem de film', // name the film
+  'ro:zet een kruis door', // the object says it: a cross
+  'stel vragen over', // the object says it: questions
+  'stel de volgende vragen', // the object says it: questions
   'pt:jij strijkt', 'pt:ik strijk', 'pt:ik heb gestreken', // passar roupa
   'hij eet', 'ik eet', 'wij aten', 'ik heb gegeten', 'jij hebt gegeten', 'ze hebben gegeten', // «ест», «ел»: только кушать
   'hij vindt', 'u vindt', 'zij vinden', 'ik heb gevonden', 'wij hebben gevonden', 'zij vinden het leuk', // находить, нравиться
