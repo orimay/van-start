@@ -27,8 +27,8 @@ const NOT_SPLIT = [
   'zalig', 'de camping', 'veilig', 'de benzine', 'de geit', 'de hersenen', 'de catering', 'de geest', 'de bende', 'stevig', 'de versie',
   'bezig', 'plotseling', 'ig', 'lijk', 'twaalfhonderdvijftig', 'geloven', 'gebruiken', 'gebeuren', 'genieten', 'genezen', 'genoeg',
   'gezond', 'gewoon', 'beneden', 'het geslacht', 'de genoot', 'de beek', 'het beest', 'nauwelijks',
-  // Made from a word the deck lacks or holds in another sense: rechten (prepare); old voor + raad; schenken (give)
-  'het aanrecht', 'de voorraad', 'het geschenk',
+  // Made from a word the deck lacks or holds in another sense: rechten (prepare); old voor + raad; schenken (give); hakken (chop), not de hakken (heels)
+  'het aanrecht', 'de voorraad', 'het geschenk', 'het gehakt',
   // A frozen form, named as related instead: rechter (right-hand) beside recht, eerste beside eerst
   'rechter', 'eerste',
   // Loanwords taken whole: -tie, -ie, -ief, in-, inter- came with the word, no Dutch base inside
