@@ -20,7 +20,11 @@ fails += [f'not in series {i}: {b}' for b, i in COMBINATION.items() if not m.SER
 # A part of speech: a noun by its article, a verb by its Russian infinitive; a look-alike stays untagged.
 PARTS = [('de boeken', 'книги (мн.)', 'noun'), ('boeken', 'бронировать (поездку)', 'verb'), ('pijn doen', 'болеть', 'verb'),
          ('het kan', 'это возможно, можно', None), ('kwart over negen', 'четверть десятого', None), ('zesentwintig', 'двадцать шесть', None),
-         ('vraag', 'спроси!; попроси!', None), ('op-', 'вверх', None), ('weg', 'прочь', None)]
+         ('vraag', 'спроси!; попроси!', None), ('op-', 'вверх', None), ('weg', 'прочь', None),
+         # A phrase led by its article is typed with it, like a noun card: het dagelijkse leven.
+         ('het dagelijkse leven', 'повседневная жизнь', 'noun'), ('de soep van de dag', 'суп дня', 'noun'),
+         ('het spijt me', 'мне жаль', None), ('de trein ging', 'поезд поехал', None), ('de brug over', 'через мост', None), ('het gaat goed', 'всё хорошо', None), ('het heeft gesmaakt', 'было вкусно', None), ('het heerst nu', 'это сейчас ходит', None),
+         ('het licht uitdoen', 'выключать свет (в комнате)', 'verb'), ('het saldo opladen', 'пополнить баланс (свой)', 'verb'), ('het koud hebben', 'мёрзнуть', 'verb'), ('het is begonnen', 'оно началось', None), ('een kopje koffie', 'чашечка кофе', None)]
 fails += [f'{b}: {m.part_of({"b": b, "f": f})} not {part}' for b, f, part in PARTS if m.part_of({'b': b, 'f': f}) != part]
 
 # The applied deck: the first of a series stays and carries the rule.

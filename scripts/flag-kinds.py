@@ -197,6 +197,8 @@ NUMERAL = re.compile(r'(пять|шесть|девять|десять|дцать
 # Glossed like an infinitive, but not a verb.
 NOT_VERB = {'четверть', 'пусть', 'вплоть', 'поблизости', 'эти', 'ответь', 'кровать', 'память', 'часть', 'мать'}
 SUBJECT = re.compile(r'^(een|ik|je|jij|u|hij|zij|ze|we|wij|jullie|het|dat|er|daar|hier|wat|hoe)\b', re.I)
+# A finite verb or a trailing preposition makes an article-led phrase a clause: het spijt me, de trein ging, de brug over.
+CLAUSE = re.compile(r'\b(is|was|ging|gaat|deed|heeft|heerst|wordt|spijt)\b|\bover$')
 
 
 def part_of(c):
@@ -205,10 +207,15 @@ def part_of(c):
     if c.get('k') == 'sentence' or b.startswith('-') or b.endswith('-'):
         return None
     head = re.sub(r'\([^)]*\)', '', re.split(r'[;,:]', f)[0]).split()
+    # het before a noun or an adjective is an article, not a subject: het licht uitdoen, het koud hebben.
+    subject = SUBJECT.match(b) and not (b.startswith('het ') and not CLAUSE.search(b))
     if re.fullmatch(r'(de|het) \S+', b) and not re.match(r'(оно|это|он|она)\b', f):
         return 'noun'
-    if head and INFINITIVE.match(head[0]) and not NUMERAL.search(head[0]) and head[0] not in NOT_VERB and not SUBJECT.match(b) and '!' not in f and any(w.endswith('n') for w in b.split()):
+    if head and INFINITIVE.match(head[0]) and not NUMERAL.search(head[0]) and head[0] not in NOT_VERB and not subject and '!' not in f and any(w.endswith('n') for w in b.split()):
         return 'verb'
+    # Typed with its article, like a noun card: het dagelijkse leven.
+    if re.fullmatch(r'(de|het) \S+ .+', b) and not CLAUSE.search(b) and not (head and INFINITIVE.match(head[0])):
+        return 'noun'
     return None
 
 
