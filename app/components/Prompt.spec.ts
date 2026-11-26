@@ -318,6 +318,23 @@ describe('the context of a closed card', () => {
     expect(exampleShown(w)).toBe(true);
     expect(w.find('[data-testid="show-context"]').exists()).toBe(false);
   });
+
+  describe('with usage examples in its note', () => {
+    const noted = flip(toStudyCard({ id: 'c14', f: 'дорогой', b: 'duur', nb: 'De telefoon is duur.\neen duur restaurant', nx: 'Телефон дорогой.\nдорогой ресторан' }));
+    const linesShown = (w: VueWrapper) => w.findAll('[data-testid="prompt-note-line"]').filter(l => l.isVisible()).map(l => l.text());
+
+    it('keeps them back until asked for', async () => {
+      const w = await mountSuspended(Prompt, { attachTo: document.body, props: { card: noted, secret: true } });
+      expect(linesShown(w)).toEqual([]);
+      await w.get('[data-testid="show-context"]').trigger('click');
+      expect(linesShown(w)).toEqual(['De telefoon is duur.', 'een duur restaurant']);
+    });
+
+    it('shows them once the card is open', async () => {
+      const w = await mountSuspended(Prompt, { attachTo: document.body, props: { card: noted } });
+      expect(linesShown(w)).toEqual(['De telefoon is duur.', 'een duur restaurant']);
+    });
+  });
 });
 
 describe('a note of several kinds', () => {

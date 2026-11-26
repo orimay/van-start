@@ -12,7 +12,12 @@ const dutchExample = computed(() => !!props.card.affix && props.card.promptExamp
 /** The example would prompt the word, so a closed card keeps it back until asked for, at no cost. */
 const contextShown = shallowRef(false);
 const contextHidden = computed(() => props.secret && !contextShown.value);
-const hidden = computed(() => props.secret && props.card.promptNote ? noteLines(props.card.promptNote).map((line, i) => props.card.promptSecret?.[i] ?? givesAway(line.text, props.card.answer)) : undefined);
+const lines = computed(() => props.card.promptNote ? noteLines(props.card.promptNote) : []);
+const givenAway = computed(() => props.secret ? lines.value.map((line, i) => props.card.promptSecret?.[i] ?? givesAway(line.text, props.card.answer)) : []);
+/** Usage examples are context too; what explains the word stays. */
+const heldBack = computed(() => contextHidden.value ? lines.value.map((_, i) => !givenAway.value[i] && props.card.promptKinds?.[i] === 'example') : []);
+const hidden = computed(() => props.secret && lines.value.length ? lines.value.map((_, i) => !!givenAway.value[i] || !!heldBack.value[i]) : undefined);
+const hasContext = computed(() => !!props.card.promptExample || heldBack.value.some(Boolean));
 </script>
 
 <template>
@@ -28,6 +33,6 @@ const hidden = computed(() => props.secret && props.card.promptNote ? noteLines(
     </div>
     <NoteList v-if="card.promptNote" :note="card.promptNote" :kinds="card.promptKinds" :self="card.id" :secret="secret" :hidden="hidden" testid="prompt-note" />
     </ScrollBox>
-    <button v-if="card.promptExample && contextHidden" type="button" class="absolute top-1 left-1 flex size-7 items-center justify-center rounded-full border border-stone-300 text-sm dark:border-stone-600" aria-label="Show context" title="Show context" data-testid="show-context"><ContextIcon /></button>
+    <button v-if="hasContext && contextHidden" type="button" class="absolute top-1 left-1 flex size-7 items-center justify-center rounded-full border border-stone-300 text-sm dark:border-stone-600" aria-label="Show context" title="Show context" data-testid="show-context"><ContextIcon /></button>
   </div>
 </template>
