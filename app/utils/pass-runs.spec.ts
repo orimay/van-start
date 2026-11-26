@@ -2,19 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { passRuns, type Run } from './pass-runs';
 
 describe('pass runs', () => {
-  it('line the words up the same way in every game, gaps as far left as they go', () => {
+  it('line the words up the same way in every game, passes as far left as they go', () => {
     expect(drawn([
       '##', '##', '##', '#_', '_#', '_#', '#_', '##',
     ])).toEqual([
-      '__######',
-      '##__####',
+      '######__',
+      '####__##',
     ]);
   });
 
   it('put the words no game passed last', () => {
     expect(drawn(['__', '#_', '__', '_#'])).toEqual([
-      '_#__',
       '#___',
+      '_#__',
     ]);
   });
 

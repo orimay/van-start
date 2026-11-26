@@ -26,3 +26,20 @@ describe('a front', () => {
     });
   }
 });
+
+// de buur is a neighbor of either sex; de buurman left as «сосед» reads as the same word.
+describe('a -man noun built on a word for either sex', () => {
+  const MAN: Record<string, RegExp> = { ru: /мужчин/, en: /\bman\b|\bmen\b/, es: /hombre/, pt: /homem|homens/, ro: /bărba/, tr: /erkek/ };
+  const eitherSex = new Set(deck.filter(card => /м\. или ж\./.test(card.f)).map(card => card.b));
+  const men = deck.filter(card => /man(nen)?$/.test(card.b) && [...eitherSex].some(base => (card as Card & { n?: string }).n?.includes(`${base} (`)));
+
+  it('exists in the deck', () => {
+    expect(men.map(card => card.b)).toContain('de buurman');
+  });
+
+  it.each(Object.keys(MAN))('names the man in its %s front', (lang) => {
+    const rows: Record<string, string[]> = lang === 'ru' ? {} : JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
+    const front = (card: Card) => (lang === 'ru' ? card.f : rows[card.id]?.[0] ?? '');
+    expect(men.filter(card => !MAN[lang]!.test(front(card))).map(card => `${card.b}: ${front(card)}`)).toEqual([]);
+  });
+});

@@ -1,6 +1,8 @@
 import tailwindcss from '@tailwindcss/vite';
 import { defineNuxtConfig } from 'nuxt/config';
-import { revisionInLetters, stampInSeconds } from './app/utils/build-digits';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { manifestInSeconds, revisionInLetters, stampInSeconds } from './app/utils/build-digits';
 
 const themeColor = '#ea580c';
 const baseURL = process.env.NUXT_APP_BASE_URL ?? '/';
@@ -80,6 +82,13 @@ export default defineNuxtConfig({
       'prerender:generate'(route) {
         if (typeof route.contents === 'string' && route.fileName?.endsWith('.html')) route.contents = stampInSeconds(route.contents);
       },
+    },
+  },
+  hooks: {
+    async 'nitro:build:public-assets'(nitro) {
+      const builds = join(nitro.options.output.publicDir, '_nuxt/builds');
+      const files = (await readdir(builds, { recursive: true }).catch(() => [])).filter(f => f.endsWith('.json')).map(f => join(builds, f));
+      await Promise.all(files.map(async f => writeFile(f, manifestInSeconds(await readFile(f, 'utf8')))));
     },
   },
   compatibilityDate: '2026-11-01',

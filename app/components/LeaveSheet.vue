@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, shallowRef } from 'vue';
+import { useStore } from '@/composables/useStore';
 import { guardLeaving, leaveApp, stayInApp } from '@/utils/back';
 
-/** Back on the app's first page asks before leaving: Leave goes on as back would, Stay or another back keeps the app open. */
+/**
+ * Back on the app's first page asks before leaving: Leave goes on as back would, Stay or another back keeps the app open.
+ * A page opened in home's place (a lesson) goes home on that back instead.
+ */
 const open = shallowRef(false);
+const route = useRoute();
+const router = useRouter();
+const store = useStore();
 /** Nothing comes before the app to go back to (an installed app): the next back leaves it. */
 const stuck = shallowRef(false);
 let unguard: (() => void) | undefined;
@@ -27,7 +34,7 @@ async function leave() {
 const onPageShow = (event: PageTransitionEvent) => event.persisted && open.value && stay();
 
 onMounted(() => {
-  unguard = guardLeaving(ask);
+  unguard = guardLeaving(ask, () => (route.path === '/' || !store.configured.value ? undefined : router.replace('/')));
   window.addEventListener('pageshow', onPageShow);
 });
 onBeforeUnmount(() => {

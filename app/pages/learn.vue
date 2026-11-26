@@ -272,7 +272,7 @@ function takeDone() {
           <li v-for="g in groupProgress" :key="g.title" class="flex flex-col gap-1" data-testid="resume-progress">
             <span class="flex justify-between"><span data-testid="resume-game">{{ g.title }}</span><span class="tabular-nums">{{ g.passed }}/{{ g.of }}</span></span>
             <div class="relative h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800" role="progressbar" :aria-label="g.title" :aria-valuenow="g.passed" aria-valuemin="0" :aria-valuemax="g.of">
-              <div v-for="r in g.runs" :key="r.from" class="absolute inset-y-0 rounded-full bg-orange-600" data-testid="resume-run" :style="{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }" />
+              <div v-for="r in g.runs" :key="r.from" class="absolute inset-y-0 bg-orange-600" data-testid="resume-run" :style="{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }" />
             </div>
           </li>
         </ul>

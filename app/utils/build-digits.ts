@@ -12,3 +12,9 @@ export function stampInSeconds(html: string): string {
 
 /** A precache revision is a hex hash; its digits spelled as the letters g-p keep it unique to the content. */
 export const revisionInLetters = (revision: string): string => revision.replace(/\d/g, d => 'ghijklmnop'[Number(d)]!);
+
+/** Nuxt stamps the build manifests (`builds/latest.json`, `builds/meta/<id>.json`) in milliseconds; the client reads only their id. */
+export function manifestInSeconds(json: string): string {
+  const manifest: { timestamp?: unknown } = JSON.parse(json);
+  return typeof manifest.timestamp === 'number' ? JSON.stringify({ ...manifest, timestamp: Math.floor(manifest.timestamp / 1000) }) : json;
+}

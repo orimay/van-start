@@ -3,7 +3,7 @@
  * history entry of their own, so back never leaves the page while a layer is open, and the
  * entry goes once the last layer closes.
  * With no layer open, back on the app's first entry would leave the app: an entry of ours over it
- * catches that back and asks first.
+ * catches that back and asks first, or goes home when a page stands there in home's place.
  * On a touch screen with CloseWatcher (Chrome on Android), back closes a watcher before it moves
  * history, so layers and the guard are watchers there: Chrome skips an entry pushed on back with no tap
  * since, and the back after it would leave the app.
@@ -21,6 +21,8 @@ let listening = false;
 let ownBacks = 0;
 /** Asks whether to leave the app, while the app guards against leaving on back. */
 let askLeave: (() => void) | undefined;
+/** Puts home in place of the page on the first entry; nothing when home stands there. */
+let toHome: (() => Promise<unknown> | undefined) | undefined;
 /** Set once the user chose to leave: back then goes on as the browser's own. */
 let leaving = false;
 
@@ -35,7 +37,7 @@ function guard() {
   guardWatcher = watch(() => {
     guardWatcher = undefined;
     // Armed on the first entry, left armed by a page the router opened over it: that back is the page's.
-    if (atFirst()) askLeave?.();
+    if (atFirst()) leaveOrGoHome();
     else history.back();
   });
 }
@@ -57,12 +59,20 @@ function onPopState() {
   if (ownBacks) ownBacks--;
   else if (handlers.length) handlers.pop()!();
   else if (atFirst() && state().forward != null) arrivedFromPage();
-  else if (askLeave && atFirst()) askLeave();
+  else if (askLeave && atFirst()) leaveOrGoHome();
   restore();
+}
+
+/** Back that would leave the app: from a page standing in home's place it goes home, from home it asks. */
+function leaveOrGoHome() {
+  const going = toHome?.();
+  if (!going) return askLeave?.();
+  void going.finally(holdBack());
 }
 
 /** Back took the layers' entry; layers still open need it again. */
 function restore() {
+  if (held) return;
   if (!watching() && handlers.length && !state().backLayer) history.pushState({ ...state(), backLayer: true }, '', location.href);
   guard();
 }
@@ -133,15 +143,20 @@ function watchLayer(handler: () => void): () => void {
   };
 }
 
-/** Calls `ask` on a back that would leave the app, in its place; the returned function stops guarding. */
-export function guardLeaving(ask: () => void): () => void {
+/**
+ * Calls `ask` on a back that would leave the app, in its place; the returned function stops guarding.
+ * `goHome` takes that back off a page standing in home's place to home, and returns nothing on home.
+ */
+export function guardLeaving(ask: () => void, goHome?: () => Promise<unknown> | undefined): () => void {
   listen();
   askLeave = ask;
+  toHome = goHome;
   guard();
   return () => {
     if (askLeave !== ask) return;
     unguard();
     askLeave = undefined;
+    toHome = undefined;
     leaving = false;
   };
 }

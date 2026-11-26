@@ -3,6 +3,7 @@ import type { VueWrapper } from '@vue/test-utils';
 import { flushPromises } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LEAVE_WAIT } from '@/utils/back';
+import { useStore } from '@/composables/useStore';
 import LeaveSheet from './LeaveSheet.vue';
 
 afterEach(() => {
@@ -61,6 +62,34 @@ describe('back to the first page from a page opened on it', () => {
     using w = await doMount({ onPage: true });
     await w.browser.pressBack();
     expect(isAsking(w)).toBe(false);
+    await w.browser.pressBack();
+    expect(isAsking(w)).toBe(true);
+    expect(w.browser.left).toBe(false);
+  });
+});
+
+describe('back on a lesson opened in place of the first page', () => {
+  it('goes home, asking nothing', async () => {
+    using w = await doMount({ route: '/learn' });
+    await doBackHome(w);
+    expect(isAsking(w)).toBe(false);
+    expect(w.browser.left).toBe(false);
+    expect(pathOf()).toBe('/');
+  });
+
+  it('asks on the next back, from home', async () => {
+    using w = await doMount({ route: '/learn' });
+    await doBackHome(w);
+    await w.browser.pressBack();
+    expect(isAsking(w)).toBe(true);
+    expect(w.browser.left).toBe(false);
+  });
+
+  it('goes home on a phone too', async () => {
+    using w = await doMount({ route: '/learn', phone: true });
+    await doBackHome(w);
+    expect(isAsking(w)).toBe(false);
+    expect(pathOf()).toBe('/');
     await w.browser.pressBack();
     expect(isAsking(w)).toBe(true);
     expect(w.browser.left).toBe(false);
@@ -149,8 +178,11 @@ type Mounted = VueWrapper & { browser: FakeBrowser };
 /**
  * `onPage`: the app stands on a page it opened from its first one before it guarded against leaving.
  * `phone`: Chrome on a touch screen, see `useFakeBrowser`.
+ * `route`: the page the app stands on, in place of its first one.
  */
-async function doMount({ pageBefore = true, onPage = false, phone = false } = {}) {
+async function doMount({ pageBefore = true, onPage = false, phone = false, route = '/' } = {}) {
+  useStore().configured.value = true;
+  await useRouter().replace(route);
   vi.useFakeTimers();
   vi.spyOn(window, 'close').mockImplementation(() => undefined);
   const browser = useFakeBrowser(pageBefore, phone);
@@ -158,7 +190,7 @@ async function doMount({ pageBefore = true, onPage = false, phone = false } = {}
     history.replaceState({ ...history.state, forward: '/settings' }, '', location.href);
     history.pushState({ ...history.state, back: '/', forward: null }, '', location.href);
   }
-  const w = await mountSuspended(LeaveSheet);
+  const w = await mountSuspended(LeaveSheet, { route });
   await flushPromises();
   return Object.assign(w, { browser, [Symbol.dispose]: () => w.unmount() });
 }
@@ -173,6 +205,15 @@ async function doLeave(w: VueWrapper) {
   await vi.advanceTimersByTimeAsync(LEAVE_WAIT);
   await flushPromises();
 }
+
+/** Back off the lesson, letting the router's navigation home settle. */
+async function doBackHome(w: Mounted) {
+  await w.browser.pressBack();
+  await vi.runOnlyPendingTimersAsync();
+  await flushPromises();
+}
+
+const pathOf = () => useRouter().currentRoute.value.path;
 
 function isAsking(w: VueWrapper) {
   return w.find('[data-testid="leave-sheet"]').exists();

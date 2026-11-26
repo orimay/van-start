@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { revisionInLetters, stampInSeconds } from './build-digits';
+import { manifestInSeconds, revisionInLetters, stampInSeconds } from './build-digits';
 
 const CARD_NUMBER = /\d(?:[ -]?\d){11,}/;
 const PAGE = '<body><div id="__nuxt"></div><script type="application/json" data-nuxt-data="nuxt-app" data-ssr="false" id="__NUXT_DATA__">[{"prerenderedAt":1,"serverRendered":2},1795691941038,false]</script></body>';
@@ -29,5 +29,17 @@ describe('a precache revision', () => {
   it('stays distinct for distinct contents', () => {
     expect(revisionInLetters('0a')).not.toBe(revisionInLetters('a0'));
     expect(revisionInLetters('01')).not.toBe(revisionInLetters('10'));
+  });
+});
+
+describe('a build manifest', () => {
+  const MANIFEST = '{"id":"ac12230e-3a01-4014-99aa-5cde7c7b789a","timestamp":1795692463795,"prerendered":[]}';
+
+  it('holds no run of digits a leak scanner reads as a card number', () => {
+    expect(manifestInSeconds(MANIFEST)).not.toMatch(CARD_NUMBER);
+  });
+
+  it('keeps its build id, stamped in seconds', () => {
+    expect(JSON.parse(manifestInSeconds(MANIFEST))).toEqual({ id: 'ac12230e-3a01-4014-99aa-5cde7c7b789a', timestamp: 1795692463, prerendered: [] });
   });
 });

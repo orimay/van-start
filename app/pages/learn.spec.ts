@@ -245,7 +245,7 @@ describe('a group left halfway', () => {
     useStore().updateSettings({ games: ['listen', 'recall', 'dictation'] });
     await doLeaveAfter(2);
     const w = await doMount();
-    expect(readRuns(w)).toEqual(['##___', '_#___', '_____', '_#___']);
+    expect(readRuns(w)).toEqual(['##___', '#____', '_____', '#____']);
   });
 
   it('asks before dropping the games its words passed', async () => {
