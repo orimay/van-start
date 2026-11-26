@@ -6,7 +6,7 @@ const LOOK: Record<NoteKind, string> = {
   rule: 'list-disc text-stone-700 dark:text-stone-300',
   example: 'ml-1 list-none border-l-2 border-stone-300 pl-2 italic text-stone-500 dark:border-stone-600 dark:text-stone-400',
   label: 'list-none text-stone-600 dark:text-stone-400',
-  origin: 'list-none border-t border-stone-200 pt-2 text-stone-500 dark:border-stone-700 dark:text-stone-400',
+  origin: 'list-none border-stone-200 text-stone-500 dark:border-stone-700 dark:text-stone-400',
 };
 /** An exception line reads red, its Dutch head too; lighter on dark, to keep AA contrast. */
 const EXCEPTION = 'text-[oklch(55.3%_0.2_25)]! dark:text-[oklch(70.4%_0.191_22.2)]!';
@@ -18,10 +18,11 @@ function splitGender<T extends { text: string; kind: NoteKind }>(line: T): T[] {
   const [, mark, rest] = line.kind === 'example' ? GENDER.exec(line.text) ?? [] : [];
   return mark && rest ? [{ ...line, text: mark, kind: 'label' }, { ...line, text: rest }] : [line];
 }
-/** Lines of one group sit closer to each other than to the next group. */
+/** Lines of one group sit closer to each other than to the next group; a rule opens the origin, its old words follow under it. */
 function gapBefore(previous: NoteKind | undefined, kind: NoteKind) {
-  if (!previous) return undefined;
-  return RANK[previous] === RANK[kind] ? 'mt-1' : 'mt-2';
+  const rule = kind === 'origin' && previous !== 'origin' ? 'border-t pt-2' : '';
+  if (!previous) return rule || undefined;
+  return `${RANK[previous] === RANK[kind] ? 'mt-1' : 'mt-2'} ${rule}`.trim();
 }
 const HEAD: Record<NoteKind, string> = {
   rule: '',

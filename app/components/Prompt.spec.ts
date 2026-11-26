@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import Prompt from './Prompt.vue';
 import Toast from './Toast.vue';
 import Answer from './Answer.vue';
-import { flip, toStudyCard, type DeckCard } from '@/utils/deck';
+import { flip, noteKind, toStudyCard, type DeckCard } from '@/utils/deck';
 import { useStore } from '@/composables/useStore';
 import { contrastOf } from '../../tests/contrast';
 
@@ -366,6 +366,26 @@ describe('a note of several kinds', () => {
     expect(texts(w, 'answer-note-line')).toEqual(['m.', 'op tijd - a tiempo', 'het is tijd - es hora']);
     expect(kinds(w)).toEqual(['label', 'example', 'example']);
     expect(texts(w, 'note-dutch')).toEqual(['op tijd', 'het is tijd']);
+  });
+
+  it('reads the old word of an origin as the origin, ruled off once', async () => {
+    const ru = 'от: ont- (навстречу); moeten — старое «встречать»; ik ontmoet hem — я встречаю его';
+    const en = { id: 'c14', f: 'to meet', b: 'ontmoeten', n: 'from: ont- (toward); moeten — old word for "meet"; ik ontmoet hem - I meet him', nr: ru };
+    for (const card of [{ ...en, n: ru, nr: undefined }, en]) {
+      const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(card)), silent: true } });
+      expect(kinds(w)).toEqual(['origin', 'origin', 'example']);
+      expect(w.findAll('[data-testid="answer-note-line"]').map(l => l.classes().includes('border-t'))).toEqual([true, false, false]);
+    }
+    expect(['belangen — касаться (старое)', 'liezen — старое «терять»'].map(noteKind)).toEqual(['origin', 'origin']);
+  });
+
+  it('labels an origin by its lead word, never by the old word', async () => {
+    const ru = 'от: de strijd (борьба); wed — старое «заклад»: букв. «борьба на спор»';
+    const es = { id: 'c15', f: 'el partido', b: 'de wedstrijd', n: 'deriva de: de strijd (lucha); wed — antiguo: «apuesta»', nr: ru };
+    for (const card of [{ ...es, n: ru, nr: undefined }, es]) {
+      const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(card)), silent: true } });
+      expect(w.findAll('[data-testid="note-label"]').map(h => h.text().replace(/\s*:$/, ''))).toEqual([card.n === ru ? 'от' : 'deriva de']);
+    }
   });
 
   it('keeps the kinds of the Russian note in a translation', async () => {

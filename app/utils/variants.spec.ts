@@ -18,6 +18,14 @@ describe('a variant or synonym', () => {
     );
     expect(oneWay).toEqual([]);
   });
+
+  const VARIANT: Record<string, string> = { ru: 'вариант', en: 'also', es: 'también', pt: 'também', tr: 'ayrıca', ro: 'variantă' };
+  const CONFUSE: Record<string, string> = { ru: 'не путать с', en: "don't confuse with", es: 'no confundir con', pt: 'não confundir com', tr: 'karıştırma', ro: 'a nu se confunda cu' };
+  it.each(Object.keys(VARIANT))('is never also a look-alike in %s', (lang) => {
+    const note = noteIn(lang);
+    const both = deck.flatMap(card => named(note(card), VARIANT[lang]!).filter(word => named(note(card), CONFUSE[lang]!).includes(word)).map(word => `${card.b}: ${word}`));
+    expect(both).toEqual([]);
+  });
 });
 
 // One action said as one verb or as a noun with a light verb: each card says when it is the natural pick and names the other

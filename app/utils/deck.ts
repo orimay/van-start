@@ -219,10 +219,16 @@ function secretLines(card: DeckCard, promptNote: string): boolean[] {
 /** A rule in plain words, a Dutch example, a labelled item (`не путать с: …`) or the word's origin (`от: …`). */
 export type NoteKind = 'rule' | 'example' | 'label' | 'origin';
 
+/** The old word behind a part of the origin: `moeten — старое «встречать»`, `belangen — касаться (старое)`. */
+const OLD_WORD = /^\S+ — (старое |.*\(старое\)$)/;
+/** A head that quotes or glosses a word is an old word, never a label. */
+const OLD_HEAD = / [—=-] |[«"„]/;
+
 /** Kind of a Russian note item: the Russian says it plainly, while a translation's Dutch and labels read alike. */
 export function noteKind(russian: string): NoteKind {
   const label = /^([а-яё][^:«(]{0,30}):\s/i.exec(russian)?.[1];
   if (label) return /(^|[\s,])от$/.test(label) ? 'origin' : 'label';
+  if (OLD_WORD.test(russian)) return 'origin';
   return /^(zich )?[a-zà-ÿ'…]/i.test(russian) ? 'example' : 'rule';
 }
 
@@ -241,5 +247,8 @@ function kindsOf(card: DeckCard, note: string): NoteKind[] {
 export function noteHead(text: string, kind: NoteKind): string | undefined {
   if (kind === 'rule') return undefined;
   const end = kind === 'example' ? text.search(/ \(|: | [—-] /) : text.indexOf(': ');
-  return end < 0 ? kind === 'example' ? text : undefined : text.slice(0, end);
+  if (end < 0) return kind === 'example' ? text : undefined;
+  const head = text.slice(0, end);
+  // An old word (`wed — старое «заклад»: букв. …`) is the line itself, not its label.
+  return kind === 'origin' && OLD_HEAD.test(head) ? undefined : head;
 }
