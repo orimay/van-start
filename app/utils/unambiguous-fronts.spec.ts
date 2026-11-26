@@ -615,6 +615,11 @@ const AMBIGUOUS: Record<string, Record<string, string>> = {
     'vedere': 'priveliște, văz sau carte poștală',
   },
   tr: {
+    'alan': 'açık arazi, inşaat veya boş yer', 'bağ': 'insanlar arası veya duygusal', 'beyan': 'açıklama veya vergi', 'borç': 'para veya ödünç',
+    'izlenim': 'görsel veya yaşanan', 'kampanya': 'indirim veya tanıtım', 'koridor': 'mağazada veya evde',
+    'makale': 'gazetede veya yazı', 'muayene': 'teknik veya tıbbi', 'servis': 'masaya veya otobüs', 'hizmet': 'müşteri veya kamu',
+    'söz': 'söylenen veya ifade', 'talep': 'resmî, piyasada veya istek', 'yorum': 'not veya film, kitap', 'çizgi': 'kalemle, şerit veya yön',
+    'grup': 'insan veya müzik', 'yenilemek': 'tadilat veya süresini', 'saklamak': 'kendine veya gizlemek',
     'adım': 'ayak adımı ya da aşama',
     'anahtar': 'kapı veya elektrik',
     'geçmek': 'sınavı veya bir yerden',
@@ -725,6 +730,7 @@ const CLEAR = new Set([
   'pt:het plaatje', 'pt:jij vraagt', 'pt:u vraagt', 'pt:hij vraagt', 'pt:zij vraagt', 'pt:vraag aan', 'pt:ik mis', 'pt:zij mist', 'pt:het beeldje', 'pt:het maatje', // figura, você pergunta, sinto falta, estatueta, amigo
   'pt:hij stuurt', 'pt:ik heb gestuurd', 'pt:vaar', 'pt:hij is gevaren', 'pt:zij rijden', 'pt:wij reden', 'pt:het stukje', // manda, enviei, navegue, foi de barco, vão de carro, pedacinho
   'pt:jij verliest', 'pt:ik heb verloren', 'pt:verlies niet', // perder: both senses of verliezen
+  'tr:het groepje', 'tr:het beeldje', // küçük grup, biblo
   'es:hij noemt', 'es:tik', 'es:hij speelt', 'es:ik speelde', 'es:wij speelden', // él nombra, ¡pulsa!, él juega, jugaba
   'es:het busje', 'es:het tijdje', 'es:het doosje', 'es:het bosje', 'es:het lijstje', // microbús, un rato, cajita, manojito, listita
   'es:het groepje', 'es:hij draagt', 'es:zij draagt', 'es:ik neem', 'es:vaste', 'es:ik heb genomen', 'es:hij hangt', 'es:zij hangen', // grupito, él lleva, me llevo, fijo, está colgado
