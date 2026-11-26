@@ -495,7 +495,7 @@ describe('choice', () => {
     vi.useFakeTimers();
     const w = await doMount({ cards: cards(6), stages: ['choice'] });
     const missed = promptOf(w);
-    await doPick(w, w.findAll('[data-testid="option"]').map(o => o.text()).find(o => !o.startsWith(answerFor(missed)))!);
+    await doPick(w, w.findAll('[data-testid="option"]').map(o => o.text()).find(o => !startsWithAnswer(o, answerFor(missed)))!);
     await doClick(w, 'next');
     const pass: string[] = [];
     for (let i = 0; i < 4; i++) {
@@ -512,7 +512,7 @@ describe('choice', () => {
     const w = await doMount({ cards: cards(8), stages: ['choice'] });
     const options = w.findAll('[data-testid="option"]').map(o => o.text());
     expect(options).toHaveLength(5);
-    expect(options.some(o => o.startsWith(answerFor(promptOf(w))))).toBe(true);
+    expect(options.some(o => startsWithAnswer(o, answerFor(promptOf(w))))).toBe(true);
   });
 
   it('offers the words that look most like the answer', async () => {
@@ -548,7 +548,7 @@ describe('choice', () => {
   it('waits for Next after a wrong pick', async () => {
     const w = await doMount({ cards: cards(8), stages: ['choice'] });
     const first = promptOf(w);
-    const wrong = w.findAll('[data-testid="option"]').map(o => o.text()).find(o => !o.startsWith(answerFor(first)))!;
+    const wrong = w.findAll('[data-testid="option"]').map(o => o.text()).find(o => !startsWithAnswer(o, answerFor(first)))!;
     await doPick(w, wrong);
     expect(promptOf(w)).toBe(first);
     await doClick(w, 'next');
@@ -1668,7 +1668,7 @@ describe('a missed card', () => {
     vi.useFakeTimers();
     const w = await doMount({ cards: cards(20), stages: ['choice'], retryGap: 20 });
     const missed = promptOf(w);
-    await doPick(w, w.findAll('[data-testid="option"]').map(o => o.text()).find(o => !o.startsWith(answerFor(missed)))!);
+    await doPick(w, w.findAll('[data-testid="option"]').map(o => o.text()).find(o => !startsWithAnswer(o, answerFor(missed)))!);
     await doClick(w, 'next');
     while (promptOf(w) !== missed) {
       await doPick(w, answerFor(promptOf(w)));
@@ -1734,7 +1734,7 @@ describe('a fresh miss', () => {
   it('shows its progress while the right answer is out', async () => {
     const w = await doMount({ cards: cards(20), stages: ['choice'], retryGap: 20 });
     const prompt = promptOf(w);
-    await doPick(w, w.findAll('[data-testid="option"]').map(o => o.text()).find(o => !o.startsWith(answerFor(prompt)))!);
+    await doPick(w, w.findAll('[data-testid="option"]').map(o => o.text()).find(o => !startsWithAnswer(o, answerFor(prompt)))!);
     expect(w.get('[data-testid="shows-left"]').attributes('aria-label')).toBe(`${ladder(20).length} left`);
   });
 
@@ -2114,7 +2114,7 @@ describe('resume of a card in progress', () => {
   it('keeps a wrong choice waiting for Next', async () => {
     const deck = cards(8);
     const before = await doMount({ cards: deck, stages: ['choice'] });
-    const wrong = before.findAll('[data-testid="option"]').map(o => o.text()).find(o => !o.startsWith(answerFor(promptOf(before))))!;
+    const wrong = before.findAll('[data-testid="option"]').map(o => o.text()).find(o => !startsWithAnswer(o, answerFor(promptOf(before))))!;
     await doPick(before, wrong);
     const after = await doMount({ cards: deck, stages: ['choice'], resumeAt: lastPosition(before) });
     expect(after.get('[data-testid="next"]').classes()).not.toContain('invisible');
@@ -2732,6 +2732,11 @@ function answerFor(prompt: string) {
   return 'a' + prompt.slice(1);
 }
 
+/** `a1` opens the option `a1`, never `a10`. */
+function startsWithAnswer(text: string, answer: string) {
+  return text.startsWith(answer) && !/\d/.test(text.charAt(answer.length));
+}
+
 /** A tap as a browser does it: the button takes focus unless its mousedown is cancelled. */
 async function doPress(w: VueWrapper, testId: string) {
   const button = w.get(`[data-testid="${testId}"]`).element as HTMLElement;
@@ -2804,7 +2809,7 @@ function visiblePairs(w: VueWrapper) {
 }
 
 async function doPick(w: VueWrapper, answer: string) {
-  await w.findAll('[data-testid="option"]').find(o => o.text().startsWith(answer))!.trigger('click');
+  await w.findAll('[data-testid="option"]').find(o => startsWithAnswer(o.text(), answer))!.trigger('click');
   await nextTick();
 }
 

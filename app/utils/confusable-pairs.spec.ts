@@ -25,7 +25,7 @@ const DIFFERENT = new Set([
 ]);
 
 // Pairs learners mix up though their fronts differ: one Russian word covers both
-const MIXED = [['het spel', 'de game'], ['hoog', 'lang'], ['hoge', 'lange'], ['zich', 'zichzelf'], ['praten', 'spreken'], ['allebei', 'beiden'], ['allebei', 'beide']];
+const MIXED = [['het spel', 'de game'], ['hoog', 'lang'], ['hoge', 'lange'], ['zich', 'zichzelf'], ['praten', 'spreken'], ['allebei', 'beiden'], ['allebei', 'beide'], ['leiden', 'lijden'], ['het pak', 'pak']];
 
 const bases = deck.filter(isBase);
 const keyOf = (a: Card, b: Card) => [a.b, b.b].sort().join('|');
