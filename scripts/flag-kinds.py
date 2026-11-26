@@ -202,6 +202,14 @@ SUBJECT = re.compile(r'^(een|ik|je|jij|u|hij|zij|ze|we|wij|jullie|het|dat|er|daa
 CLAUSE = re.compile(r'\b(is|was|ging|gaat|deed|heeft|heerst|wordt|spijt)\b|\bover$')
 
 
+def one_verb(words):
+    """One verb, with zich before it or its particle or preposition after it (zich voelen, letten op, zet aan); any other word makes a phrase (pijn doen, gaan zitten)."""
+    words = words[1:] if words[:1] == ['zich'] else words
+    while len(words) > 1 and (words[-1] in PARTICLES or words[-1] in WORD_PREP):
+        words = words[:-1]
+    return len(words) == 1
+
+
 def noun_or_verb(c):
     """A noun or a verb, by its article or its Russian infinitive; anything else stays untagged."""
     b, f = c['b'], c['f']
@@ -211,7 +219,7 @@ def noun_or_verb(c):
     if re.fullmatch(r'(de|het) \S+', b) and not re.match(r'(оно|это|он|она)\b', f):
         return 'noun'
     if head and INFINITIVE.match(head[0]) and not NUMERAL.search(head[0]) and head[0] not in NOT_VERB and not subject and '!' not in f and any(w.endswith('n') for w in b.split()):
-        return 'verb'
+        return 'verb' if one_verb(b.lower().split()) else 'phrase'
     # Typed with its article, like a noun card: het dagelijkse leven.
     if re.fullmatch(r'(de|het) \S+ .+', b) and not CLAUSE.search(b) and not (head and INFINITIVE.match(head[0])):
         return 'noun'
@@ -245,6 +253,7 @@ PART = {
     'vrijstaand': 'adjective', 'vrijstaande': 'adjective', 'stampvol': 'adjective', 'stampvolle': 'adjective', 'levensgevaarlijk': 'adjective', 'levensgevaarlijke': 'adjective', 'doodmoe': 'adjective',
     'verkrijgbaar': 'adjective', 'wakker': 'adjective', 'verkeerd': 'adjective', 'verkeerde': 'adjective', 'hele': 'adjective', 'grotere': 'adjective', 'inbegrepen': 'adjective', 'smakelijk': 'adjective',
     'eerst': 'adverb', 'alweer': 'adverb', 'bijna': 'adverb', 'haast': 'adverb', 'trouwens': 'adverb', 'weg': 'adverb', 'alvast': 'adverb', 'liever': 'adverb', 'vannacht': 'adverb', 'vooraf': 'adverb',
+    'ik wil graag': 'phrase', 'het regent': 'verb', 'het klopt': 'verb', 'het rook': 'verb', 'het wordt': 'verb', 'samenvatten': 'verb', 'vasthouden': 'verb', 'thuisblijven, thuis blijven': 'verb', 'dol': 'adjective',
     'het heeft gesmaakt': 'phrase', 'goede keuze': 'interjection', 'veel plezier ermee': 'interjection', 'sterkte': 'interjection', 'succes': 'interjection', 'beterschap': 'interjection', 'oei': 'interjection', 'groetjes': 'interjection',
 }
 # Glossed like an infinitive, but an adverb.
@@ -301,7 +310,9 @@ def part_of(c, adjectives=frozenset()):
     if len(words) > 1:
         if b[0].isupper() and not b.endswith('?'):
             return 'noun'
-        if words[0] in VERB_FORM_SUBJECT or ('!' in g0 and IMPERATIVE.match(head_of(g0))):
+        if '!' in g0 and IMPERATIVE.match(head_of(g0)) and words[0] not in VERB_FORM_SUBJECT:
+            return 'verb' if one_verb(words) else 'phrase'
+        if words[0] in VERB_FORM_SUBJECT:
             return 'verb' if len(words) == 2 or (len(words) == 3 and (words[2] in PARTICLES or (words[1] in AUXILIARY and PARTICIPLE.match(words[2])) or any(PAST.match(w) for w in re.findall(r'[а-яё]+', f)))) else 'phrase'
         return 'phrase'
     if MONTH.match(words[0]):

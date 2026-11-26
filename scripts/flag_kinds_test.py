@@ -20,15 +20,20 @@ fails += [f'not in series {i}: {b}' for b, i in COMBINATION.items() if not m.SER
 fails += [f'{b}: sound is {m.is_sound({"b": b, "f": f})}' for b, f, sound in [('ij', 'эй (как в «hij»)', True), ('n', 'эн (буква)', False)] if m.is_sound({'b': b, 'f': f}) != sound]
 
 # A part of speech: a noun by its article, a verb by its Russian infinitive, the rest by its word or its gloss.
-PARTS = [('de boeken', 'книги (мн.)', 'noun'), ('boeken', 'бронировать (поездку)', 'verb'), ('pijn doen', 'болеть', 'verb'),
+PARTS = [('de boeken', 'книги (мн.)', 'noun'), ('boeken', 'бронировать (поездку)', 'verb'), ('pijn doen', 'болеть', 'phrase'),
          ('het kan', 'это возможно, можно', 'verb'), ('kwart over negen', 'четверть десятого', 'phrase'), ('zesentwintig', 'двадцать шесть', 'numeral'),
          ('vraag', 'спроси!; попроси!', 'verb'), ('op-', 'вверх', None), ('weg', 'прочь', 'adverb'),
          # A phrase led by its article is typed with it, like a noun card: het dagelijkse leven.
          ('het dagelijkse leven', 'повседневная жизнь', 'noun'), ('de soep van de dag', 'суп дня', 'noun'),
          # A longer clause is a set phrase; a pronoun and its verb are a verb form, with its participle or its particle too.
          ('het spijt me', 'мне жаль', 'phrase'), ('de trein ging', 'поезд поехал', 'phrase'), ('de brug over', 'через мост', 'phrase'), ('het gaat goed', 'всё хорошо', 'phrase'), ('het heeft gesmaakt', 'было вкусно', 'phrase'), ('het heerst nu', 'это сейчас ходит', 'phrase'),
-         ('het licht uitdoen', 'выключать свет (в комнате)', 'verb'), ('het saldo opladen', 'пополнить баланс (свой)', 'verb'), ('het koud hebben', 'мёрзнуть', 'verb'), ('het is begonnen', 'оно началось', 'verb'), ('een kopje koffie', 'чашечка кофе', 'phrase'), ('ik ben', 'я есть', 'verb'),
+         ('het licht uitdoen', 'выключать свет (в комнате)', 'phrase'), ('het saldo opladen', 'пополнить баланс (свой)', 'phrase'), ('het koud hebben', 'мёрзнуть', 'phrase'), ('het is begonnen', 'оно началось', 'verb'), ('een kopje koffie', 'чашечка кофе', 'phrase'), ('ik ben', 'я есть', 'verb'),
          ('ik heb gefietst', 'я катался на велосипеде', 'verb'), ('zij halen op', 'они забирают', 'verb'), ('het is groot', 'оно большое', 'phrase'), ('ik heb gebracht', 'я отвёз', 'verb'), ('het wordt bezorgd', 'это доставляют', 'verb'), ('ik heb geen plannen', 'у меня нет планов', 'phrase'),
+         # A verb is one verb: with its particle, zich or the preposition it takes; with any other word it is a phrase.
+         ('letten op', 'обращать внимание на', 'verb'), ('zich voelen', 'чувствовать себя', 'verb'), ('zet aan', 'включи!', 'verb'), ('kijk naar', 'посмотри на!', 'verb'),
+         ('foto\'s maken', 'фотографировать', 'phrase'), ('een vraag stellen', 'задать вопрос', 'phrase'), ('geef antwoord', 'дай ответ!', 'phrase'), ('gaan zitten', 'садиться', 'phrase'), ('ervoor zorgen', 'следить за тем, чтобы', 'phrase'), ('zich thuis voelen', 'чувствовать себя как дома', 'phrase'),
+         ('Sinterklaas vieren', 'праздновать Синтерклаас', 'phrase'), ('het regent', 'идёт дождь', 'verb'), ('samenvatten', 'кратко излагать, резюмировать', 'verb'), ('thuisblijven, thuis blijven', 'оставаться дома', 'verb'), ('dol', 'без ума (от чего-то)', 'adjective'),
+         ('ik wil graag', 'я хотел бы', 'phrase'), ('hij opgeruimd heeft', 'что он убрал', 'verb'),
          ('mooi', 'красивый', 'adjective'), ('gisteren', 'вчера', 'adverb'), ('hij', 'он', 'pronoun'), ('omdat', 'потому что', 'conjunction'), ('naast', 'рядом с', 'preposition'),
          ('hallo', 'привет', 'interjection'), ('twintigste', 'двадцатый', 'numeral'), ('januari', 'январь', 'noun'), ('ij', 'эй (как в «hij»)', 'letter'), ('n', 'эн (буква)', 'letter')]
 # A card whose senses are different parts of speech names each, in the order of its front.

@@ -11,8 +11,8 @@ const CLAUSE = /\b(is|was|ging|gaat|deed|heeft|heerst|wordt|spijt)\b|\bover$/;
 
 describe('a phrase led by de or het', () => {
   // A sentence card keeps its own tint: het goede woord, de tomaten zijn in de aanbieding.
-  it('is tinted as the noun or the verb phrase it is', () => {
-    const untyped = deck.filter(c => /^(de|het) \S+ .+/.test(c.b) && !CLAUSE.test(c.b) && c.k !== 'sentence' && c.p !== 'noun' && c.p !== 'verb');
+  it('is tinted as the noun or the phrase it is', () => {
+    const untyped = deck.filter(c => /^(de|het) \S+ .+/.test(c.b) && !CLAUSE.test(c.b) && c.k !== 'sentence' && c.p !== 'noun' && c.p !== 'phrase');
     expect(untyped.map(c => `${c.b}: ${c.p}`)).toEqual([]);
   });
 });
