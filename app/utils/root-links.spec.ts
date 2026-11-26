@@ -84,7 +84,7 @@ describe('a related word', () => {
 // Words made from one base by a suffix or none are peers: het bezit, de bezitter and bezittelijk all come from bezitten
 const NOT_PEERS = new Set([
   // a participle or -end form, linked to its verb
-  'gesloten', 'gegeven', 'gescheiden', 'gefeliciteerd', 'beantwoord', 'gemiddeld', 'pratend',
+  'gesloten', 'gegeven', 'gescheiden', 'gefeliciteerd', 'beantwoord', 'gemiddeld', 'pratend', 'aankomend',
   // a compound, linked to its parts
   'het vliegtuig', 'de glucosemeting',
   // a variant or a feminine, linked as such

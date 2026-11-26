@@ -10,21 +10,15 @@ const word = (b: string) => b.replace(/^(de|het) /, '');
 const affixes = (shape: RegExp) => deck.map(c => c.b).filter(b => shape.test(b)).map(b => b.replace('-', ''));
 const PREFIXES = affixes(/^[a-z]+-$/);
 const SUFFIXES = affixes(/^-[a-z]+$/);
-const WORDS = new Set(deck.map(c => word(c.b)));
-/** Deck words a stem can be a form of: itself, its infinitive, its spelling with the vowel or consonant doubling undone (langzam → langzaam, dunn → dun). */
-const basesOf = (stem: string) => [
-  stem, `${stem}en`, `${stem}n`, `${stem}e`, stem.replace(/(.)\1$/, '$1'), `${stem.replace(/(.)\1$/, '$1')}en`,
-  stem.replace(/([^aeiou])([aeou])([^aeiou])$/, '$1$2$2$3'), `${stem.replace(/([^aeiou])([aeou])([^aeiou])$/, '$1$2$2$3')}en`,
-].filter(base => base.length > 2 && WORDS.has(base));
-/** A word that is a deck affix plus another deck word. */
+/** A word that starts with a deck prefix or ends with a deck suffix, with at least three letters left. */
 const looksAffixed = (w: string) =>
-  PREFIXES.some(p => w.startsWith(p) && basesOf(w.slice(p.length)).length > 0) || SUFFIXES.some(s => w.endsWith(s) && basesOf(w.slice(0, -s.length)).length > 0);
+  PREFIXES.some(p => w.startsWith(p) && w.length - p.length >= 3) || SUFFIXES.some(s => w.endsWith(s) && w.length - s.length >= 3);
 // Words that only look affixed: the rest is a deck word by chance (de kamer is no kam + -er, het water no wat + -er)
 const NOT_SPLIT = [
-  'achter', 'geen', 'over', 'meer', 'haar', 'de heer', 'de kamer', 'het water', 'bijten', 'per', 'de broer', 'het gezin', 'het paar',
-  'lekker', 'open', 'de lente', 'het tennis', 'het dier', 'het haar', 'de eer', 'het leger', 'de boer', 'de haring', 'de boter',
-  'de paling', 'de meter', 'de veter', 'de peer', 'de latte', 'de halte', 'het gevaar', 'de hoes', 'de beker', 'beide', 'de kier',
-  'de wekker', 'de kies', 'de navel', 'de penis', 'het been', 'de lever', 'misselijk', 'het zeer', 'mager', 'de nagel', 'de schaar',
+  'achter', 'geen', 'de kamer', 'het water', 'bijten', 'de broer', 'het gezin', 
+  'lekker', 'de lente', 'het tennis', 'het leger', 'de haring', 'de boter',
+  'de paling', 'de meter', 'de veter', 'de latte', 'de halte', 'het gevaar', 'de beker', 'beide', 
+  'de wekker', 'de navel', 'de penis', 'het been', 'de lever', 'misselijk', 'mager', 'de nagel', 'de schaar',
   'de meester', 'de inversie', 'de optie', 'het weekend',
   // A marked affix only by look (geen, de koning), or a fossil one (bellen, plotseling, geloven)
   'het beeld', 'geven', 'gelden', 'de koning', 'best', 'bellen', 'weinig', 'de bezem', 'het bed', 'de herfst', 'de bek', 'geel', 'gek',
@@ -36,6 +30,33 @@ const NOT_SPLIT = [
   'de bijslag', 'de toeslag', 'de uitslag', 'de slager', 'het aanrecht', 'de voorraad',
   // A frozen form, named as related instead: rechter (right-hand) beside recht, eerste beside eerst
   'rechter', 'eerste',
+  // Loanwords taken whole: -tie, -ie, -ief, in-, inter- came with the word, no Dutch base inside
+  'de politie', 'informeren', 'de infinitief', 'de nationaliteit', 'de combinatie', 'het interview', 'de vakantie', 'de receptie',
+  'de positie', 'de relatie', 'het instituut', 'interessant', 'de functie', 'de suggestie', 'de attractie', 'de negatie', 'de situatie',
+  'de interesse', 'de traktatie', 'het internet', 'de instructie', 'de prepositie', 'de garantie', 'de reparatie', 'internationaal',
+  'de conjunctie', 'de locatie', 'de specificatie', 'de conditie', 'de notitie', 'de portie', 'de intercity', 'inclusief', 'installeren',
+  'de presentatie', 'de promotie', 'de expositie', 'de communicatie', 'introduceren', 'de advertentie', 'de medicatie', 'de vaccinatie',
+  'het ingrediënt', 'het insect', 'intensief', 'individueel', 'informatief', 'de instantie', 'de motivatie', 'de prestatie',
+  'de administratie', 'online', 'de toerist', 'de passagier', 'het formulier',
+  // Loanwords whose ending only looks Dutch: -er, -es, -te, -je
+  'de partner', 'de computer', 'super', 'de dokter', 'de letter', 'de centimeter', 'het adres', 'het nummer', 'de burger', 'de website',
+  'de manager', 'de tante', 'de kastanje', 'de gitaar', 'het theater', 'het succes', 'het karakter', 'de visite', 'de courgette',
+  'de frites', 'het papier', 'de slipper', 'de sneaker', 'de bloes', 'het servies', 'de jenever', 'de folder', 'de manier', 'het advies',
+  'precies', 'het diner', 'de sfeer', 'de route', 'de minister', 'de scooter', 'de sigaar', 'de container', 'de glitter', 'de update',
+  'de anekdote', 'de rente', 'het plezier', 'de makelaar',
+  // Months and countries
+  'oktober', 'september', 'december', 'november', 'Spanje', 'Turkije', 'Egypte',
+  // Native words with no affix: -er, -end, -te, in-, on-, na- are part of the root (de moeder, de ochtend, de nacht)
+  'ander', 'onder', 'de vriend', 'de natuur', 'wanneer', 'klein', 'de moeder', 'de winter', 'de moeite', 'de ochtend', 'de zomer',
+  'de dochter', 'de vader', 'de zwager', 'de trein', 'de peper', 'de honger', 'de kleuter', 'de luier', 'de ooievaar', 'de peuter',
+  'zeker', 'zonder', 'de nacht', 'stoer', 'de suiker', 'het vlees', 'duizend', 'bruin', 'donker', 'zilver', 'oranje', 'de vijver',
+  'de spijker', 'jammer', 'de komkommer', 'ongeveer', 'bitter', 'het plein', 'de koffer', 'het wonder', 'de rivier', 'de vlinder',
+  'de zolder', 'de kelder', 'ieder', 'de vloer', 'de schouder', 'de vinger', 'de spier', 'de pleister', 'wakker', 'het cijfer',
+  'het terrein', 'het ijzer', 'naaien',
+  // A frozen form: naast was the superlative of na; het sprookje has no sprook left
+  'naast', 'het sprookje',
+  // The base of a word in the deck: schilderen is made from de schilder
+  'de schilder',
 ];
 // Affixes that mark a word even when the rest has no card (geloven, de schoonheid): the word names its root anyway.
 const MARKED = /^(ge|be|ver|ont|her)|(ing|heid|lijks?|ig|baar|loos|schap|nis|ling|achtig)$/;
