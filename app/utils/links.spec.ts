@@ -44,6 +44,11 @@ describe('a reference in a note', () => {
     expect(links('уменьш. от: het boek (книга)')).toEqual([['het boek', 'boek']]);
   });
 
+  // de ronde (круг) is a noun; the card ronde is the -e form of rond.
+  it('leaves a noun named with its article as text when only an articleless card spells it', () => {
+    expect(links('уменьш. от: de kopen (круг)')).toEqual([]);
+  });
+
   it('reads labels in every language, a gender mark before them', () => {
     expect(links('pl. m. plural de: het boek')).toEqual([['het boek', 'boek']]);
     expect(links('kökü: kopen (almak)')).toEqual([['kopen', 'kopen']]);

@@ -66,7 +66,22 @@ describe('an adjective', () => {
       && (c.n?.startsWith('1) за ним нет сущ.') || /^[a-z]{3,}$/.test(c.b) && eFormsOf(c.b).some(f => usedWords.has(f))));
     expect(unpaired.map(c => c.b)).toEqual([]);
   });
+
+  it('has its -e pair card once its translation gives an adjective sense', () => {
+    const sides = new Set(cardsOf(deck).map(c => c.b));
+    const paired = new Set(pairsOf().map(p => p.base));
+    const unpaired = cardsOf(deck).filter(c => /^[a-zé]{3,}$/.test(c.b) && !/e$|en$/.test(c.b) && !/форма|степень/.test(c.n ?? '')
+      && sensesOf(c.f).some(sense => /^[а-яё]+(ый|ий|ой)$/.test(sense))
+      && !paired.has(c.b) && !eFormsOf(c.b).some(f => sides.has(f)) && !NOT_ADJECTIVE_HERE.has(c.b) && !NO_E_FORM.has(c.b));
+    expect(unpaired.map(c => c.b)).toEqual([]);
+  });
 });
+
+/** A translation's senses without their hints: `готовый (закончивший)` is `готовый`. */
+const sensesOf = (front: string) => front.replace(/\s*\([^)]*\)/g, '').split(/; |, /).map(s => s.trim());
+// Never inflected (prima, privé), only after a verb (klaar, kwijt, bezig), a determiner (mijn, ieder) or a noun here (schat).
+const NO_E_FORM = new Set(['mijn', 'ieder', 'prima', 'extra', 'plastic', 'tweedehands', 'allerlei', 'privé', 'rechter',
+  'klaar', 'kwijt', 'waard', 'bereid', 'bezig', 'voorbij', 'eens', 'schat']);
 
 describe('an -e card', () => {
   it('has its base card, named by its `!een … noun` example', () => {

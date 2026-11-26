@@ -56,8 +56,8 @@ function partsOf(list: string): string[] {
 
 function resolve(index: CardIndex, dutch: string, gloss: string | undefined, self: string | undefined) {
   const bare = dutch.replace(ARTICLE, '');
-  // The spelling as written wins; another article or none only when no card has it.
-  const candidates = [dutch, bare, `de ${bare}`, `het ${bare}`].map(k => index.bySide.get(key(k))).find(Boolean)?.filter(c => c.id !== self);
+  // The spelling as written wins; another article only when no card has it, and none only for an articleless word.
+  const candidates = [dutch, ...(bare === dutch ? [bare] : []), `de ${bare}`, `het ${bare}`].map(k => index.bySide.get(key(k))).find(Boolean)?.filter(c => c.id !== self);
   if (!candidates?.length) return undefined;
   const g = gloss?.toLowerCase();
   return (g && candidates.find(c => c.f.toLowerCase().includes(g) || g.includes(c.f.toLowerCase())) || candidates[0]!).id;

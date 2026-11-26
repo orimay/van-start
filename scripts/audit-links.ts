@@ -11,6 +11,9 @@ const index = buildIndex(cards);
 
 const bare = (b: string) => b.replace(/^(de|het) /, '').toLowerCase();
 const bySide = new Map(cards.map(c => [bare(c.b), c]));
+const nouns = new Set(cards.filter(c => /^(de|het) /.test(c.b)).map(c => bare(c.b)));
+/** A part with an article names only a noun card, as the linker reads it. */
+const namesCard = (part: string) => (/^(de|het) /.test(part) ? nouns : bySide).has(bare(part));
 const items = (card: DeckCard) => (card.n ?? '').split('\n').flatMap(line => line.replace(/^!/, '').split('; '));
 const linksOf = (card: DeckCard) => new Set(items(card).flatMap(item => linkSegments(item, index, card.id)).flatMap(s => (s.link ? [s.link] : [])));
 /** Links both ways, so a plural reaches its singular's parts through it. */
@@ -79,7 +82,7 @@ export function audit() {
       if (!origin) continue;
       const linked = new Set(linkSegments(item, index, card.id).filter(s => s.link).map(s => s.text.trim()));
       for (const part of origin.replace(/\([^()]*(\([^()]*\)[^()]*)*\)/g, '').split(/ \+ | = |, | \/ /).map(p => p.trim()))
-        if (bySide.has(bare(part)) && !linked.has(part)) unresolved.push(`${card.b}: ${part}`);
+        if (namesCard(part) && !linked.has(part)) unresolved.push(`${card.b}: ${part}`);
     }
     const w = bare(card.b);
     if (!/^[a-z]+$/.test(w) || headOf.has(card.id)) continue;
