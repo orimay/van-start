@@ -13,6 +13,11 @@ const SENSES: Record<string, string[]> = {
   aantrekken: ['надевать', 'привлекать'],
   herstellen: ['восстанавливаться', 'исправлять'],
   blijven: ['оставаться', 'продолжать'],
+  ontvangen: ['получать', 'принимать'],
+  innemen: ['принимать', 'занимать'],
+  opzeggen: ['расторгать', 'читать наизусть'],
+  aansluiten: ['подключать', 'присоединяться'],
+  ophalen: ['забирать', 'собирать'],
   krijgen: ['получать', 'рожать'],
   kunnen: ['мочь', 'быть возможным'],
   liggen: ['лежать', 'находиться'],
@@ -132,6 +137,16 @@ const PHRASES: Record<string, string[]> = {
   zorgen: ['zorg dat', 'zorgen voor'],
   herstellen: ['een fout herstellen', 'herstelde, hersteld'],
   blijven: ['blijven werken', 'bleef, gebleven'],
+  ontvangen: ['gasten ontvangen', 'ontving, ontvangen'],
+  innemen: ['veel ruimte innemen', 'nam in, ingenomen'],
+  opzeggen: ['een gedicht opzeggen', 'zegde op, opgezegd'],
+  aansluiten: ['zich aansluiten bij', 'sloot aan, aangesloten'],
+  ophalen: ['geld ophalen', 'haalde op, opgehaald'],
+  werken: ['het werkt niet', 'werkte, gewerkt'],
+  voelen: ['ik voel me goed', 'voelde, gevoeld'],
+  kijken: ['naar de tv kijken', 'keek, gekeken'],
+  spreken: ['iemand spreken', 'sprak, gesproken'],
+  kennen: ['ik ken hem goed', 'kende, gekend'],
 };
 
 describe("a word's set phrases", () => {
