@@ -6,7 +6,7 @@ import { cardsOf, type DeckNode, isAffixCard } from '@/utils/deck';
 import { applyEdits, type Edits, noEdits } from '@/utils/edits';
 import { type KindSwitches, shownCards } from '@/utils/kinds';
 import { type Confusions, linked, unlinkedWithForms, withBases } from '@/utils/confusions';
-import { basesOf, buildIndex } from '@/utils/links';
+import { basesOf, buildIndex, familyOfWord } from '@/utils/links';
 import type { LexilizeCard } from '@/utils/lexilize';
 import type { GameScores, Score } from '@/utils/score';
 import { markReviewed, type ReviewLog } from '@/utils/today';
@@ -45,6 +45,8 @@ export interface Settings {
   kinds?: KindSwitches;
   /** A group's own switches, by group id, over the global ones. */
   groupKinds?: Record<string, KindSwitches>;
+  /** Learning a word again takes the words built on it along: the last choice made. */
+  relearnDeep?: boolean;
 }
 
 /** FSRS state per card id, as stored (dates as ISO strings). */
@@ -327,6 +329,18 @@ export function useStore() {
     forgetLearning(ids: string[]) {
       forget(ids);
       forgetPassed(ids);
+    },
+
+    /** Every word built on the card or formed from it, at any depth. */
+    familyOf: (id: string) => familyOfWord(index.value, bases.value, id),
+
+    /** The word goes back to new, with every word built on it when `deep`; the choice is remembered. */
+    relearn(id: string, deep: boolean) {
+      const ids = [id, ...(deep ? familyOfWord(index.value, bases.value, id) : [])];
+      forget(ids);
+      forgetPassed(ids);
+      settings.value = { ...settings.value, relearnDeep: deep };
+      void set('settings', settings.value);
     },
 
     /** The words come due now in these games, their gaps starting over; learning and answer counts stay. */

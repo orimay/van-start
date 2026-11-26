@@ -139,3 +139,18 @@ export function basesOf(index: CardIndex): Map<string, string> {
   }
   return bases;
 }
+
+/** Every word built on the card or formed from it, at any depth, without the card itself. */
+export function familyOfWord(index: CardIndex, bases: Map<string, string>, id: string): string[] {
+  const formsOf = new Map<string, string[]>();
+  for (const [form, base] of bases) formsOf.set(base, [...(formsOf.get(base) ?? []), form]);
+  const seen = new Set([id]);
+  const queue = [id];
+  for (let next = queue.shift(); next; next = queue.shift()) {
+    for (const child of [...(index.derived.get(next) ?? []).map(d => d.id), ...(formsOf.get(next) ?? [])]) {
+      if (!seen.has(child)) { seen.add(child); queue.push(child); }
+    }
+  }
+  seen.delete(id);
+  return [...seen];
+}

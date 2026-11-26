@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diffLetters, isCorrect, soundsLike } from './answer';
+import { diffLetters, isCorrect, soundsLike, spelledInKnownWords } from './answer';
 
 const LENIENT = { ignoreCase: true, ignoreMarks: true };
 const STRICT = { ignoreCase: false, ignoreMarks: false };
@@ -108,5 +108,25 @@ describe('sounding the same', () => {
 
   it('takes each variant of the answer', () => {
     expect(soundsLike('het hard', 'het hart, het hartje')).toBe(true);
+  });
+});
+
+describe('a spelling of known words', () => {
+  const known = new Set(['hard', 'mei']);
+
+  it.each([
+    ['het hard', 'het hart'],
+    ['Mei', 'mij'],
+    ['het hart', 'het hart'],
+  ])('holds for %s against %s', (input, answer) => {
+    expect(spelledInKnownWords(input, answer, known)).toBe(true);
+  });
+
+  it.each([
+    ['allebij', 'allebei'],
+    ['het harde', 'het hart'],
+    ['de bauw', 'de bouw'],
+  ])('does not hold for %s against %s', (input, answer) => {
+    expect(spelledInKnownWords(input, answer, known)).toBe(false);
   });
 });

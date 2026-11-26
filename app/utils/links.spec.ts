@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { basesOf, buildIndex, linkBreakdown, linkSegments } from './links';
+import { basesOf, buildIndex, familyOfWord, linkBreakdown, linkSegments } from './links';
 
 const cards = [
   { id: 'kopen', f: 'покупать', b: 'kopen' },
@@ -137,5 +137,30 @@ describe('the base of a form', () => {
 
   it('is the card its form label names', () => {
     expect(Object.fromEntries(bases)).toEqual({ neemt: 'nemen', nam: 'nemen', pak: 'pakken', gekocht: 'kopen' });
+  });
+});
+
+describe('the family of a word', () => {
+  const card = (id: string, b: string, n?: string) => ({ id, f: id, b, ...(n && { n }) });
+  const family = buildIndex([
+    card('kopen', 'kopen'), card('ver', 'ver-'),
+    card('verkopen', 'verkopen', 'от: ver- (пере-) + kopen (покупать)'),
+    card('koper', 'de koper', 'от: kopen (покупать) + -er'),
+    card('kopers', 'de kopers', 'мн. ч. от: de koper (покупатель)'),
+    card('verkoper', 'de verkoper', 'от: verkopen (продавать) + -er'),
+    card('kocht', 'ik kocht', 'прошедшее (делал) от: kopen (покупать)'),
+  ]);
+  const familyOf = (id: string) => familyOfWord(family, basesOf(family), id).sort();
+
+  it('is every word built on it or formed from it, at any depth', () => {
+    expect(familyOf('kopen')).toEqual(['kocht', 'koper', 'kopers', 'verkopen', 'verkoper']);
+  });
+
+  it('leaves out the word itself and its own sources', () => {
+    expect(familyOf('verkopen')).toEqual(['verkoper']);
+  });
+
+  it('is empty for a word nothing is built on', () => {
+    expect(familyOf('kocht')).toEqual([]);
   });
 });

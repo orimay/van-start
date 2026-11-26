@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from 'vue';
-import { diffLetters, isCorrect, soundsLike } from '@/utils/answer';
+import { diffLetters, isCorrect, soundsLike, spelledInKnownWords, wordsOf } from '@/utils/answer';
 import { cardsOf, type StudyCard } from '@/utils/deck';
 import { typedAs } from '@/utils/mix-up';
 import { speak } from '@/utils/speak';
@@ -108,8 +108,13 @@ watch(() => store.confusions.value[props.card.id] ?? [], (now, was) => {
   saveProgress();
 }, { flush: 'sync' });
 
-/** Dictation can only judge what was heard: a spelling that sounds the same counts. */
-const sameSound = computed(() => props.listening && phase.value === 'done' && !matches(input.value) && soundsLike(input.value, props.card.answer));
+/** The words of every learned card: only these may stand in for a word that sounds the same. */
+const learnedWords = computed(() => new Set((store.deck.value ? cardsOf(store.deck.value) : []).filter(card => store.isLearned(card.id)).flatMap(card => wordsOf(card.b))));
+/** Dictation can only judge what was heard: a spelling that sounds the same counts when it is made of learned words. */
+function heardRight(text: string) {
+  return props.listening && soundsLike(text, props.card.answer) && spelledInKnownWords(text, props.card.answer, learnedWords.value);
+}
+const sameSound = computed(() => phase.value === 'done' && !matches(input.value) && heardRight(input.value));
 
 function saveProgress() {
   emit('progress', { input: input.value, verdict: verdict.value, phase: phase.value, retried: retried.value, again: again.value, mixed: mixedHere.value, linked: linkedHere.value, choices: choices.value });
@@ -129,7 +134,7 @@ function submit() {
     return emit('result', verdict.value!, false, typingMs);
   }
   if (phase.value !== 'typing') return;
-  const ok = matches(input.value) || (props.listening && soundsLike(input.value, props.card.answer));
+  const ok = matches(input.value) || heardRight(input.value);
   if (!ok && sawAnswer) emit('miss');
   sawAnswer = false;
   verdict.value ??= ok;

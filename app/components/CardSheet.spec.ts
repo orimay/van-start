@@ -7,12 +7,32 @@ import CardSheet from './CardSheet.vue';
 import Answer from './Answer.vue';
 import Prompt from './Prompt.vue';
 import { cardsOf, toStudyCard, type DeckNode } from '@/utils/deck';
-import { buildIndex } from '@/utils/links';
+import { basesOf, buildIndex, familyOfWord } from '@/utils/links';
 import { type Confusions, linked, unlinked } from '@/utils/confusions';
 
-const { deck, learned } = vi.hoisted(() => ({ deck: { value: undefined as DeckNode | undefined }, learned: new Set<string>() }));
-mockNuxtImport('useStore', () => () => ({ deck, index: { get value() { return buildIndex(deck.value ? cardsOf(deck.value) : []); } }, isLearned: (id: string) => learned.has(id), settings: { value: { language: 'en' } }, confusions: mixUps, confuse: (a: string, b: string) => (mixUps.value = linked(mixUps.value, a, b)), unconfuse: (a: string, b: string) => (mixUps.value = unlinked(mixUps.value, a, b)) }));
+const { deck, learned, settings } = vi.hoisted(() => ({ deck: { value: undefined as DeckNode | undefined }, learned: new Set<string>(), settings: { value: { language: 'en' } as { language: string; relearnDeep?: boolean } } }));
+mockNuxtImport('useStore', () => () => {
+  const index = buildIndex(deck.value ? cardsOf(deck.value) : []);
+  const familyOf = (id: string) => familyOfWord(index, basesOf(index), id);
+  return {
+    deck,
+    index: { value: index },
+    // Reads `relearned` so the sheet re-renders once a word is learned again.
+    isLearned: (id: string) => relearned.value >= 0 && learned.has(id),
+    familyOf,
+    relearn: (id: string, deep: boolean) => {
+      for (const each of [id, ...(deep ? familyOf(id) : [])]) learned.delete(each);
+      settings.value = { ...settings.value, relearnDeep: deep };
+      relearned.value++;
+    },
+    settings,
+    confusions: mixUps,
+    confuse: (a: string, b: string) => (mixUps.value = linked(mixUps.value, a, b)),
+    unconfuse: (a: string, b: string) => (mixUps.value = unlinked(mixUps.value, a, b)),
+  };
+});
 const mixUps = shallowRef<Confusions>({});
+const relearned = shallowRef(0);
 
 const cards = [
   { id: 'ver', f: 'пере-, изменение; прочь, от-', b: 'ver-', xb: 'verkopen, verhuizen' },
@@ -52,6 +72,7 @@ afterEach(async () => {
   await doCloseAll();
   learned.clear();
   mixUps.value = {};
+  settings.value = { language: 'en' };
 });
 
 describe('a word a note derives the card from', () => {
@@ -232,6 +253,45 @@ describe('a word mixed up with this one', () => {
   });
 });
 
+describe('a word learned again', () => {
+  it('goes back to new alone, the words built on it kept', async () => {
+    for (const id of ['kopen', 'koper', 'kopers']) learned.add(id);
+    const w = await doOpenKopen();
+    await doRelearn(w, 'Only this word');
+    expect(readSheet(w).status).toBe('Not learned yet');
+    expect(readSheet(w).derived).toEqual(['verkopen продавать new', 'de koper покупатель']);
+  });
+
+  it('takes every learned word built on it along, at any depth', async () => {
+    for (const id of ['kopen', 'koper', 'kopers']) learned.add(id);
+    const w = await doOpenKopen();
+    await doRelearn(w, 'With 2 learned words from it');
+    expect(readSheet(w).status).toBe('Not learned yet');
+    expect([...learned]).toEqual([]);
+  });
+
+  it('offers the last choice first', async () => {
+    for (const id of ['kopen', 'koper']) learned.add(id);
+    settings.value = { language: 'en', relearnDeep: true };
+    const w = await doOpenKopen();
+    await w.get('[data-testid="card-sheet-relearn"]').trigger('click');
+    expect(readRelearnChoices(w)).toEqual(['With 1 learned word from it', 'Only this word', 'Cancel']);
+  });
+
+  it('goes back to new at once when no learned word is built on it', async () => {
+    learned.add('kopen');
+    const w = await doOpenKopen();
+    await w.get('[data-testid="card-sheet-relearn"]').trigger('click');
+    expect(readSheet(w).status).toBe('Not learned yet');
+    expect(readRelearnChoices(w)).toEqual([]);
+  });
+
+  it('is not offered while neither it nor a word built on it is learned', async () => {
+    const w = await doOpenKopen();
+    expect(w.find('[data-testid="card-sheet-relearn"]').exists()).toBe(false);
+  });
+});
+
 // declarative helpers
 
 async function doMount(id: string, secret = false) {
@@ -295,4 +355,11 @@ async function doPressBack(w: VueWrapper) {
 async function doCloseAll() {
   useCardSheet().close();
   await flushPromises();
+}
+
+const readRelearnChoices = (w: VueWrapper) => w.findAll('[data-testid="card-sheet-relearn-choice"]').map(b => b.text());
+
+async function doRelearn(w: VueWrapper, choice: string) {
+  await w.get('[data-testid="card-sheet-relearn"]').trigger('click');
+  await w.findAll('[data-testid="card-sheet-relearn-choice"]').find(b => b.text() === choice)!.trigger('click');
 }

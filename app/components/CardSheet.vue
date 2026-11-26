@@ -4,7 +4,7 @@ import { cardKey, exampleKey } from '@/utils/play';
 import { speak, speakExample } from '@/utils/speak';
 
 const sheet = useCardSheet();
-const { isLearned, confusions, unconfuse } = useStore();
+const { isLearned, confusions, unconfuse, familyOf, relearn, settings } = useStore();
 const layer = computed(() => sheet.layers.value.at(-1));
 const card = computed(() => layer.value && sheet.index.value.byId.get(layer.value.id));
 const study = computed(() => card.value && toStudyCard(card.value));
@@ -29,6 +29,32 @@ const related = computed(() => {
 const mixedUp = computed(() => (card.value ? (confusions.value[card.value.id] ?? []) : []).filter(id => id !== sheet.secret.value).flatMap(id => sheet.index.value.byId.get(id) ?? []));
 /** The search for a card to link as mixed up with this one is open. */
 const mixing = shallowRef(false);
+
+/** Learned words built on this one, at any depth: learning it again can take them along. */
+const learnedFamily = computed(() => (card.value ? familyOf(card.value.id).filter(isLearned) : []));
+/** The choice of what learning the word again takes along is open. */
+const choosing = shallowRef(false);
+const choices = computed(() => {
+  const n = learnedFamily.value.length;
+  const deep = { deep: true, label: `With ${n} learned ${n === 1 ? 'word' : 'words'} from it` };
+  const one = { deep: false, label: 'Only this word' };
+  return settings.value.relearnDeep ? [deep, one] : [one, deep];
+});
+const choiceButtons = useTemplateRef<HTMLButtonElement[]>('choiceButtons');
+
+async function onRelearn() {
+  if (!learnedFamily.value.length) return relearn(card.value!.id, false);
+  choosing.value = true;
+  await nextTick();
+  choiceButtons.value?.[0]?.focus();
+}
+
+function doRelearn(deep: boolean) {
+  relearn(card.value!.id, deep);
+  choosing.value = false;
+}
+
+watch(() => card.value?.id, () => (choosing.value = false));
 
 const body = useTemplateRef('body');
 const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close());
@@ -71,7 +97,14 @@ const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close())
           </div>
           <PlayButton class="btn-ghost px-2" aria-label="Play example" :sound="exampleKey(study)" @play="speakExample(study)" />
         </div>
-        <p class="text-xs text-stone-500 dark:text-stone-400" data-testid="card-sheet-status">{{ isLearned(card.id) ? 'Learned' : 'Not learned yet' }}</p>
+        <div class="flex items-center gap-2">
+          <p class="flex-1 text-xs text-stone-500 dark:text-stone-400" data-testid="card-sheet-status" aria-live="polite">{{ isLearned(card.id) ? 'Learned' : 'Not learned yet' }}</p>
+          <button v-if="!choosing && (isLearned(card.id) || learnedFamily.length)" type="button" class="btn-ghost px-2 py-1 text-sm" data-testid="card-sheet-relearn" @click="onRelearn"><span aria-hidden="true">↺</span> Learn again</button>
+        </div>
+        <div v-if="choosing" role="group" aria-label="Learn again" class="flex flex-col gap-1 rounded-lg bg-stone-100 p-2 dark:bg-stone-800" data-testid="card-sheet-relearn-choices">
+          <button v-for="(choice, i) in choices" ref="choiceButtons" :key="choice.label" type="button" :class="i ? 'btn-ghost' : 'btn-primary'" class="px-3 py-2 text-left text-sm" data-testid="card-sheet-relearn-choice" @click="doRelearn(choice.deep)">{{ choice.label }}</button>
+          <button type="button" class="btn-ghost px-3 py-2 text-left text-sm" data-testid="card-sheet-relearn-choice" @click="choosing = false">Cancel</button>
+        </div>
         <section v-if="derived.length" class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-derived">
           <p class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Words built on it</p>
           <button v-for="word in derived" :key="word.id" type="button" class="flex flex-wrap items-baseline gap-x-2 gap-y-1 py-1 text-left" data-testid="card-sheet-derived-word" @click="sheet.open(word.id)">

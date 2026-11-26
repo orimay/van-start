@@ -78,6 +78,19 @@ function soundOf(text: string): string {
     .replace(/(?<=\p{L})(dt|d)\b/gu, 't');
 }
 
+const LENIENT = { ignoreCase: true, ignoreMarks: true };
+
+/** Every typed word the answer lacks is one of the `known` words, so the spelling is a real word, not a made-up one. */
+export function spelledInKnownWords(input: string, answer: string, known: ReadonlySet<string>): boolean {
+  const answerWords = new Set(wordsOf(answer));
+  return wordsOf(input).every(word => answerWords.has(word) || known.has(word));
+}
+
+/** The words of a back, in any case and without marks, as `spelledInKnownWords` compares them. */
+export function wordsOf(text: string): string[] {
+  return normalize(text, LENIENT).split(/[ ,]+/).filter(Boolean);
+}
+
 /** Typed differently from the answer, but heard the same, as hart and hard. */
 export function soundsLike(input: string, answer: string): boolean {
   const heard = soundOf(input);

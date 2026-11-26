@@ -171,6 +171,42 @@ describe('forgetting learning', () => {
   });
 });
 
+describe('learning a word again', () => {
+  beforeEach(() => {
+    const store = useStore();
+    store.saveCustom({ id: CUSTOM_ID, name: 'My cards', cards: [
+      { id: 'koop', f: 'покупать', b: 'koop' },
+      { id: 'verkoop', f: 'продавать', b: 'verkoop', n: 'от: koop (покупать)' },
+      { id: 'verkoper', f: 'продавец', b: 'de verkoper', n: 'от: verkoop (продавать)' },
+    ] });
+    for (const id of ['koop', 'verkoop', 'verkoper']) store.rate(id, store.Rating.Good);
+  });
+  afterEach(() => useStore().saveCustom(emptyCustom()));
+  const learned = () => ['koop', 'verkoop', 'verkoper'].filter(id => useStore().isLearned(id));
+
+  it('makes only that word new when the family stays', () => {
+    useStore().relearn('koop', false);
+    expect(learned()).toEqual(['verkoop', 'verkoper']);
+  });
+
+  it('makes every word built on it new too, at any depth', () => {
+    useStore().relearn('koop', true);
+    expect(learned()).toEqual([]);
+  });
+
+  it('names the words built on it', () => {
+    expect(useStore().familyOf('koop').sort()).toEqual(['verkoop', 'verkoper']);
+  });
+
+  it('remembers the last choice', () => {
+    const store = useStore();
+    store.relearn('verkoop', true);
+    expect(store.settings.value.relearnDeep).toBe(true);
+    store.relearn('verkoop', false);
+    expect(store.settings.value.relearnDeep).toBe(false);
+  });
+});
+
 describe('forgetting reviews', () => {
   it('makes the words due now in that game only', () => {
     const store = useStore();

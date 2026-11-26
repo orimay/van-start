@@ -176,3 +176,22 @@ describe("an affix's breakdown", () => {
     expect(wrong).toEqual([]);
   });
 });
+
+/** A front with several meanings teaches each one only through a word that has it: "-емый" over dankbaar (благодарный) misleads. */
+describe('each meaning of an affix', () => {
+  const NAMED = /^-\p{L}+(?:, -\p{L}+)*: /u;
+  const unshown = (glossOf: (c: Card) => string | undefined, noteOf: (c: Card) => string | undefined) => cardsOf(deck)
+    .filter(c => isAffix(c.b) && glossOf(c)?.includes('; '))
+    .flatMap(c => glossOf(c)!.split('; ').map(sense => sense.replace(NAMED, '')).filter(sense => !(noteOf(c) ?? '').split('; ').some(item => item.endsWith(`: ${sense}`) && item.indexOf('(') < item.lastIndexOf(`: ${sense}`))).map(sense => `${c.b}: ${sense}`));
+
+  it('is shown on an example word in its Russian note', () => {
+    expect(unshown(c => c.f, c => (c as Card & { n?: string }).n)).toEqual([]);
+  });
+
+  for (const lang of ['en', 'es', 'pt', 'tr', 'ro']) {
+    it(`is shown on an example word in its ${lang} note`, () => {
+      const overlay = overlayOf(lang);
+      expect(unshown(c => overlay[c.id]?.[0], c => overlay[c.id]?.[3])).toEqual([]);
+    });
+  }
+});

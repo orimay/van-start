@@ -32,3 +32,17 @@ Raw learner reports, kept as cases behind the card rules in `CLAUDE.md` ("Card c
 | 2026-11-23 | de krant lezen | Article makes it a specific paper; can't tell where | Articles |
 | 2026-11-23 | mailen / e-mailen | Distinguishable from the description? | Close pairs |
 | 2026-11-23 | in de tuin eten / koffie drinken met een vriend | Russian gives no clue: specific garden vs any friend | Articles |
+| 2026-11-26 | -baar | «можно сделать» unclear; examples in -ный, not -емый; no -bare spelling | Every meaning, affix senses |
+| 2026-11-26 | middelbaar | Built on het middel (old «середина»), not het midden; het middel lacks «талия» | Root families |
+| 2026-11-26 | het kleed | Only «коврик»; it is ковёр, скатерть, покрывало; kleedje is коврик; kleden vs kleren | Every meaning, diminutives |
+| 2026-11-26 | het pak | «Doe het pak in een tasje»: костюм, пачка or пакет? | Examples |
+| 2026-11-26 | het beeld / de tekening | Difference unclear | Close pairs |
+| 2026-11-26 | compleet | ≈ list overlaps the answer text on a phone | UI |
+| 2026-11-26 | vast / vaste | vaste lacks «наверняка»: is that right? | Forms |
+| 2026-11-26 | pakken / grijpen, aardige / lieve, vooraf / alvast | Difference unclear, both read the same | Close pairs |
+| 2026-11-26 | vroeg | No vroege card | Forms |
+| 2026-11-26 | pas | Front shows «hij is pas verhuisd», the answer | Fronts |
+| 2026-11-26 | het dagelijkse leven | No article hint | Articles |
+| 2026-11-26 | allebei | Dictation took «allebij» | Dictation |
+| 2026-11-26 | allebei | From beide, which has no card | Root families |
+| 2026-11-26 | «to sections» | Leaves the site at the end of a group | UI |

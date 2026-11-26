@@ -90,6 +90,10 @@ function reveal(how: 'self' | 'timeout') {
       <Prompt v-if="!listening || revealed" :card="card" :secret="!revealed && !pronouncing" />
       <ListenButton v-else :card="card" />
       <Answer :card="card" :hidden="!revealed && !pronouncing" :no-transcription="pronouncing && !revealed" :no-details="!revealed" :silent="dutchShown">
+        <!-- Its own row above the word: in the corner it would run over the answer. -->
+        <template v-if="revealed" #above>
+          <MixedBefore class="flex-row! flex-wrap justify-center gap-x-3 px-8 before:content-['≈']" :id="card.id" :except="mixedHere" />
+        </template>
         <template v-if="revealed" #corner>
           <button
             type="button"
@@ -101,7 +105,6 @@ function reveal(how: 'self' | 'timeout') {
           >
             ≈<span v-if="mixedHere.length" class="max-w-32 truncate text-sm font-semibold">{{ mixedWords }}</span>
           </button>
-          <MixedBefore class="mt-1 items-start pl-2" :id="card.id" :except="mixedHere" />
         </template>
       </Answer>
     </div>

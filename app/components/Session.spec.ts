@@ -7,6 +7,7 @@ import { flushPromises } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import Session from './Session.vue';
 import { ladder } from '@/utils/scheduler';
+import { Rating } from 'ts-fsrs';
 import type { StudyCard } from '@/utils/deck';
 import { speak, speakExample } from '@/utils/speak';
 import { noteStep } from '@/utils/check-for-update';
@@ -165,6 +166,18 @@ describe('a card mixed up with another', () => {
       useStore().confuse(idOf(promptOf(w)), idOf(second));
       await doClick(w, 'reveal');
       expect(readMixedBefore(w)).toEqual([answerFor(second), answerFor(first)]);
+    });
+
+    it('take their own row above the answer, clear of the corner buttons', async () => {
+      givenDeck(cards(6));
+      const w = await doMount({ cards: cards(6), stages: ['recall'] });
+      const first = promptOf(w);
+      await doRecall(w, true);
+      useStore().confuse(idOf(promptOf(w)), idOf(first));
+      await doClick(w, 'reveal');
+      const list = w.get('[data-testid="mixed-before"]').element;
+      expect(list.compareDocumentPosition(w.get('[data-testid="answer"]').element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(list.closest('.absolute')).toBeNull();
     });
 
     it('keeps Remembered on', async () => {
@@ -1220,13 +1233,47 @@ describe('dictation', () => {
 
   describe('a word that sounds the same', () => {
     const hart: StudyCard = { id: 'h', prompt: 'сердце', answer: 'het hart', nl: 'het hart' };
+    const hard: StudyCard = { id: 'hd', prompt: 'твёрдый', answer: 'hard', nl: 'hard' };
+    const allebei: StudyCard = { id: 'ab', prompt: 'оба', answer: 'allebei', nl: 'allebei' };
+    /** The deck the typed spelling is looked up in. */
+    function givenDeck(list: StudyCard[]) {
+      const { deck } = useStore();
+      const was = deck.value;
+      deck.value = { id: 'root', name: 'root', cards: list.map(c => ({ id: c.id, f: c.prompt, b: c.answer })) };
+      onTestFinished(() => (deck.value = was));
+    }
+
+    /** The words the learner knows already. */
+    function givenLearned(ids: string[]) {
+      const store = useStore();
+      store.learn(Object.fromEntries(ids.map(id => [id, Rating.Good])));
+      onTestFinished(() => store.forgetLearning(ids));
+    }
 
     it('counts as heard right, with the spelling pointed out', async () => {
+      givenDeck([hart, hard]);
+      givenLearned(['hd']);
       const w = await doMount({ cards: [hart], stages: ['dictation'] });
       await doType(w, 'input', 'het hard');
       expect(w.get('[data-testid="same-sound"]').text()).toBe('Sounds the same, spelled het hart');
       await doClick(w, 'submit');
       expect(w.emitted('answer')).toEqual([['h', 'dictation', true]]);
+    });
+
+    it('is taken for the other word while that word is not learned yet', async () => {
+      givenDeck([hart, hard]);
+      const w = await doMount({ cards: [hart], stages: ['dictation'] });
+      await doType(w, 'input', 'het hard');
+      ensureHas(w, 'mixed-up');
+      ensureHas(w, 'same-sound', false);
+    });
+
+    it('is a miss when the spelling is no word of the deck', async () => {
+      givenDeck([allebei]);
+      const w = await doMount({ cards: [allebei], stages: ['dictation'] });
+      await doType(w, 'input', 'allebij');
+      ensureHas(w, 'try-again');
+      ensureHas(w, 'same-sound', false);
     });
 
     it('is a typing mistake outside dictation', async () => {
