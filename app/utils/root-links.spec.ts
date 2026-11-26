@@ -17,6 +17,7 @@ const LABEL: Record<string, Record<string, string>> = {
   related: { ru: 'родственное', en: 'related', es: 'relacionado', pt: 'relacionado', tr: 'akraba kelime', ro: 'înrudit' },
   form: { ru: 'форма от', en: 'form of', es: 'forma de', pt: 'forma de', tr: 'biçimi', ro: 'forma lui' },
   plural: { ru: 'мн. ч. от', en: 'plural of', es: 'plural de', pt: 'plural de', tr: 'çoğulu', ro: 'pluralul lui' },
+  confuse: { ru: 'не путать с', en: "don't confuse with", es: 'no confundir con', pt: 'não confundir com', tr: 'karıştırma', ro: 'a nu se confunda cu' },
   superlative: { ru: 'превосходная степень от', en: 'superlative of', es: 'superlativo de', pt: 'superlativo de', tr: 'en üstünlük derecesi', ro: 'superlativul lui' },
 };
 /** A note's items, an es/pt/ro gender prefix (`f. `, `pl. m. `) set aside. */
@@ -44,6 +45,7 @@ const RELATED: Array<[string, string]> = [
 const FORMS: Array<[string, string, string]> = [
   ['vele', 'form', 'veel'], ['elke', 'form', 'elk'], ['welke', 'form', 'welk'], ['onze', 'form', 'ons'],
   ['anderen', 'plural', 'ander'], ['honderden', 'plural', 'honderd'], ['de duizenden', 'plural', 'duizend'],
+  ['beiden', 'form', 'beide'], ['sommigen', 'form', 'sommige'],
   ['het meest', 'superlative', 'veel'], ['de meesten', 'superlative', 'veel'],
 ];
 
@@ -56,6 +58,17 @@ describe('a word made from another', () => {
       ...FORMS,
     ];
     const unnamed = pairs.filter(([word, kind, base]) => !names(note(byWord.get(word)!), LABEL[kind]![lang]!, base)).map(([word, , base]) => `${word} -> ${base}`);
+    expect(unnamed).toEqual([]);
+  });
+});
+
+// A word with an -n form used alone, only of people: beide boeken, ze zijn beiden thuis
+const PEOPLE_FORMS: Array<[string, string]> = [['beide', 'beiden'], ['sommige', 'sommigen']];
+
+describe('a word with a form used only of people', () => {
+  it.each(LANGS)('names that form in %s', (lang) => {
+    const note = noteIn(lang);
+    const unnamed = PEOPLE_FORMS.filter(([word, form]) => !names(note(byWord.get(word)!), LABEL.confuse![lang]!, form)).map(pair => pair.join(' -> '));
     expect(unnamed).toEqual([]);
   });
 });
