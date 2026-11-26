@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-interface Card { id: string; b: string; f: string }
+interface Card { id: string; b: string; f: string; n?: string }
 interface Node { cards?: Card[]; children?: Node[] }
 const deck: Node = JSON.parse(readFileSync('public/deck.json', 'utf8'));
 const cardsOf = (n: Node): Card[] => [...(n.cards ?? []), ...(n.children ?? []).flatMap(cardsOf)];
@@ -50,6 +50,14 @@ const SENSES: Record<string, string[]> = {
   daarachter: ['за этим', 'после этого'],
   'de man': ['мужчина', 'муж'],
   'de flat': ['многоэтажка', 'квартира'],
+  gaan: ['идти', 'собираться'],
+  geven: ['давать', 'дарить'],
+  stellen: ['задавать', 'ставить', 'предполагать'],
+  brengen: ['приносить', 'отвозить'],
+  nog: ['ещё', 'до сих пор'],
+  'de tijd': ['время', 'грамматическое время'],
+  slaan: ['бить', 'сворачивать'],
+  staan: ['стоять', 'написанным', 'идти'],
 };
 
 const glossesOf = (f: string) => f.split(/[;,] /).map(s => s.replace(/ \(.*$/, ''));
@@ -72,6 +80,39 @@ describe("a word's senses", () => {
       const short = Object.keys(SENSES).flatMap(b => cardsOf(deck).filter(c => c.b === b))
         .filter(c => (rows[c.id]?.[0] ?? '').split('; ').length < c.f.split('; ').length).map(c => c.b);
       expect(short).toEqual([]);
+    });
+  }
+});
+
+// A word whose senses live in set phrases shows them in its note, with its past forms, in every language.
+const PHRASES: Record<string, string[]> = {
+  gaan: ['hoe gaat het?', 'ging, gegaan'],
+  geven: ['een cadeau geven', 'gaf, gegeven'],
+  stellen: ['stel dat', 'stelde, gesteld'],
+  nemen: ['een besluit nemen', 'nam, genomen'],
+  vallen: ['in slaap vallen', 'viel, gevallen'],
+  brengen: ['iemand naar huis brengen', 'bracht, gebracht'],
+  nog: ['nog een koffie', 'nog niet'],
+  'de tijd': ['op tijd', 'de verleden tijd'],
+  staan: ['die jas staat je goed', 'stond, gestaan'],
+  zitten: ['mijn sleutels zitten', 'zat, gezeten'],
+  slaan: ['linksaf slaan', 'sloeg, geslagen'],
+  spelen: ['een rol spelen', 'speelde, gespeeld'],
+  denken: ['denken aan', 'dacht, gedacht'],
+  zien: ['tot ziens', 'zag, gezien'],
+  zeggen: ['wat zeg je?', 'zei, gezegd'],
+};
+
+describe("a word's set phrases", () => {
+  for (const lang of ['ru', ...LANGS]) {
+    it(`are in its note in ${lang}`, () => {
+      const rows: Record<string, string[]> = lang === 'ru' ? {} : JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
+      const missing = Object.entries(PHRASES).flatMap(([b, phrases]) => {
+        const card = cardsOf(deck).find(c => c.b === b)!;
+        const note = lang === 'ru' ? card.n ?? '' : rows[card.id]?.[3] ?? '';
+        return phrases.filter(p => !note.includes(p)).map(p => `${b}: ${p}`);
+      });
+      expect(missing).toEqual([]);
     });
   }
 });
