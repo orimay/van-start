@@ -1,5 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import { defineNuxtConfig } from 'nuxt/config';
+import { revisionInLetters, stampInSeconds } from './app/utils/build-digits';
 
 const themeColor = '#ea580c';
 const baseURL = process.env.NUXT_APP_BASE_URL ?? '/';
@@ -52,6 +53,7 @@ export default defineNuxtConfig({
       maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
       navigateFallback: baseURL,
       cleanupOutdatedCaches: true,
+      manifestTransforms: [async entries => ({ manifest: entries.map(e => ({ ...e, revision: e.revision && revisionInLetters(e.revision) })), warnings: [] })],
       runtimeCaching: [{
         // The database engine is 21 MB, over the precache limit; its name is hashed, so a cached copy never goes stale.
         urlPattern: /\.wasm$/,
@@ -71,6 +73,13 @@ export default defineNuxtConfig({
         handler: 'CacheFirst',
         options: { cacheName: 'audio', expiration: { maxEntries: 10000 }, rangeRequests: true },
       }],
+    },
+  },
+  nitro: {
+    hooks: {
+      'prerender:generate'(route) {
+        if (typeof route.contents === 'string' && route.fileName?.endsWith('.html')) route.contents = stampInSeconds(route.contents);
+      },
     },
   },
   compatibilityDate: '2026-11-01',
