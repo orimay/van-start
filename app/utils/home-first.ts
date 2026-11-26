@@ -1,3 +1,5 @@
+import { holdBack } from './back';
+
 const FIRST_ENTRY = 'home-first';
 
 /**
@@ -8,19 +10,27 @@ const FIRST_ENTRY = 'home-first';
 export function keepHomeFirst(router: HomeRouter) {
   // The router numbers entries from the tab's history length, so the app's first entry need not be 0.
   const firstEntry = rememberFirstEntry();
-  let rooting = false;
+  if (firstEntry === undefined) return;
+  let release: (() => void) | undefined;
+  const onFirstEntry = () => {
+    const state = history.state as EntryState;
+    return positionOf(state) === firstEntry && !state?.leaveGuard && !state?.backLayer;
+  };
+  // Entries of ours over an entry copy its position: one step more passes each of them.
+  const stepBack = () => router.go(-Math.max(1, positionOf(history.state) - firstEntry));
   router.afterEach((to, from, failure) => {
-    // The step back lands on the first entry; one already showing home is a duplicate, failed navigation.
-    if (rooting) {
-      rooting = false;
-      if (!failure && to.path !== '/') void router.replace('/');
+    if (release) {
+      if (!onFirstEntry() && positionOf(history.state) >= firstEntry) return stepBack();
+      const done = release;
+      release = undefined;
+      // A step landing on home already is a duplicate, failed navigation.
+      if (failure || to.path === '/' || !onFirstEntry()) return done();
+      void router.replace('/').finally(done);
       return;
     }
-    if (failure || firstEntry === undefined) return;
-    const steps = positionOf(history.state) - firstEntry;
-    if (to.path !== '/' || from.path === '/' || !from.matched.length || steps <= 0) return;
-    rooting = true;
-    router.go(-steps);
+    if (failure || to.path !== '/' || from.path === '/' || !from.matched.length || onFirstEntry()) return;
+    release = holdBack();
+    stepBack();
   });
 }
 
@@ -32,7 +42,7 @@ interface HomeRouter {
   go(delta: number): void;
 }
 
-type EntryState = { back?: string | null; position?: number } | null;
+type EntryState = { back?: string | null; position?: number; leaveGuard?: boolean; backLayer?: boolean } | null;
 
 function positionOf(state: EntryState) {
   return Number(state?.position ?? 0);

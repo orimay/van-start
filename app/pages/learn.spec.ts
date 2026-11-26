@@ -239,6 +239,15 @@ describe('a group left halfway', () => {
     ]);
   });
 
+  // One cell per word: each game's runs read back over the words, lined up the same way in every game.
+  it('lines up the words each game passed, so a word one game lacks sits under the others', async () => {
+    useStore().deck.value = { id: 'root', name: 'Root', cards: [{ id: 'af', f: 'acting on someone', b: 'be-', xb: 'bewonen' }, ...structuredClone(cards)] };
+    useStore().updateSettings({ games: ['listen', 'recall', 'dictation'] });
+    await doLeaveAfter(2);
+    const w = await doMount();
+    expect(readRuns(w)).toEqual(['##___', '_#___', '_____', '_#___']);
+  });
+
   it('asks before dropping the games its words passed', async () => {
     await doLeaveAfter(2);
     const w = await doMount();
@@ -550,6 +559,19 @@ async function doLeaveAfter(n: number, path = 'all') {
   const w = await doMount(path);
   for (let i = 0; i < n; i++) await doClick(w, 'next');
   w.unmount();
+}
+
+/** Each game's bar as one character a word, `#` where the game passed it. */
+function readRuns(w: VueWrapper) {
+  return w.findAll('[role="progressbar"]').map(bar => {
+    const size = Number(bar.attributes('aria-valuemax'));
+    const cells = Array.from({ length: size }, () => '_');
+    for (const run of bar.findAll('[data-testid="resume-run"]')) {
+      const [left, width] = ['left', 'width'].map(side => parseFloat(new RegExp(`${side}: ([\\d.]+)%`).exec(run.attributes('style') ?? '')![1]!));
+      cells.fill('#', Math.round((left! / 100) * size), Math.round(((left! + width!) / 100) * size));
+    }
+    return cells.join('');
+  });
 }
 
 /** Each game's bar on the offer to continue. */

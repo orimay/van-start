@@ -52,15 +52,33 @@ function watch(onClose: () => void): Watcher {
 }
 
 function onPopState() {
-  if (leaving) return;
+  if (leaving || held) return;
   if (watching()) return guard();
   if (ownBacks) ownBacks--;
   else if (handlers.length) handlers.pop()!();
   else if (atFirst() && state().forward != null) arrivedFromPage();
   else if (askLeave && atFirst()) askLeave();
-  // Back took the layers' entry; layers still open need it again.
-  if (handlers.length && !state().backLayer) history.pushState({ ...state(), backLayer: true }, '', location.href);
+  restore();
+}
+
+/** Back took the layers' entry; layers still open need it again. */
+function restore() {
+  if (!watching() && handlers.length && !state().backLayer) history.pushState({ ...state(), backLayer: true }, '', location.href);
   guard();
+}
+
+/** Backs taken while another part of the app steps history down to an entry: they close, ask and guard nothing. */
+let held = 0;
+
+/** Holds the back handling while the caller steps history back; the returned function hands it back. */
+export function holdBack(): () => void {
+  held++;
+  let done = false;
+  return () => {
+    if (done) return;
+    done = true;
+    if (!--held) restore();
+  };
 }
 
 /** Back from a page the router opened on the first entry, not past the guard: nothing to ask. The router's note of that page goes, so the next back here asks. */

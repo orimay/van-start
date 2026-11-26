@@ -8,6 +8,7 @@ import { cardsOf, nodeAt, toStudyCard } from '@/utils/deck';
 import { takeUpdateReload } from '@/utils/update-reload';
 import { saveBeforeUpdate } from '@/utils/update-hold';
 import { GAME_TITLES, learnStages } from '@/utils/games';
+import { passRuns } from '@/utils/pass-runs';
 import { sessions } from '@/db/sessions';
 import { isSlow, sessionLog } from '@/db/shows';
 
@@ -150,9 +151,12 @@ const passedGames = computed(() =>
   stages.map(s => ({ title: GAME_TITLES[s], count: startedWords.value.filter(id => store.passed.value[id]?.includes(s)).length })).filter(g => g.count),
 );
 /** Every game on, with how many words of the group to continue passed it. */
-const groupProgress = computed(() =>
-  stages.map(s => ({ title: GAME_TITLES[s], passed: group.value.filter(c => store.passed.value[c.id]?.includes(s) || !store.playedIn(c.id, s)).length, of: group.value.length })),
-);
+/** Each game's passed words, lined up the same way in every game, drawn as a few runs however large the group. */
+const groupProgress = computed(() => {
+  const passes = group.value.map(c => stages.map(s => !!store.passed.value[c.id]?.includes(s) || !store.playedIn(c.id, s)));
+  const runs = passRuns(passes, stages.length);
+  return stages.map((s, g) => ({ title: GAME_TITLES[s], passed: passes.filter(p => p[g]).length, of: group.value.length, runs: runs[g]! }));
+});
 const confirmingStartOver = shallowRef(false);
 
 function askStartOver() {
@@ -267,8 +271,8 @@ function takeDone() {
         <ul class="flex w-full max-w-xs flex-col gap-2 text-sm text-stone-500 dark:text-stone-400">
           <li v-for="g in groupProgress" :key="g.title" class="flex flex-col gap-1" data-testid="resume-progress">
             <span class="flex justify-between"><span data-testid="resume-game">{{ g.title }}</span><span class="tabular-nums">{{ g.passed }}/{{ g.of }}</span></span>
-            <div class="h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800" role="progressbar" :aria-label="g.title" :aria-valuenow="g.passed" aria-valuemin="0" :aria-valuemax="g.of">
-              <div class="h-full bg-orange-600" :style="{ width: `${g.of ? (g.passed / g.of) * 100 : 0}%` }" />
+            <div class="relative h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800" role="progressbar" :aria-label="g.title" :aria-valuenow="g.passed" aria-valuemin="0" :aria-valuemax="g.of">
+              <div v-for="r in g.runs" :key="r.from" class="absolute inset-y-0 rounded-full bg-orange-600" data-testid="resume-run" :style="{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }" />
             </div>
           </li>
         </ul>
