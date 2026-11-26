@@ -398,4 +398,8 @@ Each finding that can occur more than once is fixed across the whole deck, in al
 - [x] Splits the new words surfaced: de combinatie `от: combineren + -tie`, de reparatie `от: repareren + -tie` (both out of `affix-split.spec.ts` NOT_SPLIT), de verkoopster `от: verkopen + -ster`, de toestemming `toe-` as prefix; de makelaar into `FOSSIL` (`от: -aar ...; makelen — посредничать (редкое)`); `audit-links-reviewed.json` `het veelvoud: oud`.
 - [x] `word-order.spec.ts` partsOf reads `женский род от:` too, and a diminutive's `-je`; an affix's xb stays the first card made with it. `unambiguous-fronts.spec.ts`: note glosses use the hint gloss (vastmaken `maken (делать, изготавливать)`, combineren, brengen, vatten, houden, binden in en).
 - [x] Checked on screen, light and dark, 360px: -es, vast-, -achtig answers with the word list; min contrast 4.50.
-- [ ] Deploy, verify live.
+- [x] Deploy, verify live (deploy37, live37: new cards served, 2026-11-26).
+
+## Quiet text on a light tint was 4.4966 on screen (2026-11-26, C15 live check)
+- [x] Live check (scratchpad `live-check.cjs`, exact variant `live-exact.cjs`): stone-500 text on the light affix tint `oklch(0.982 0.024 299)` measured 4.4966, under AA, while `surface.spec.ts` passed. Cause: `tests/contrast.ts` used the exact colour; a browser paints 8 bits a channel. `linearOf` now rounds each sRGB channel to /255 like the screen (the spec then failed with the same 4.4966).
+- [x] Fix: every light tint `bg-[oklch(0.986_0.024_<hue>)]` in `app/utils/surface.ts` (one lightness for all kinds; chroma kept so hues stay apart). Lowest quiet text 4.528. Checked at 360px light and dark: -nis 4.53, hallo 4.53 (dark 5.87+).

@@ -6,19 +6,19 @@ const PLAIN = 'border-stone-300 bg-white dark:border-stone-600 dark:bg-stone-900
 // One lightness and chroma for every kind, only the hue tells them apart, ~21° apart across 70-320 (red reads as a mistake); a dark card shows its hue mostly in the border.
 // Adverb and adjective, the commonest pair on one word (vroeg: рано; ранний), sit at the two ends.
 const TINT: Record<Kind, string> = {
-  interjection: 'border-[oklch(0.78_0.1_70)] bg-[oklch(0.982_0.024_70)] dark:border-[oklch(0.6_0.1_70)] dark:bg-[oklch(0.25_0.035_70)]',
-  verb: 'border-[oklch(0.78_0.1_91)] bg-[oklch(0.982_0.024_91)] dark:border-[oklch(0.6_0.1_91)] dark:bg-[oklch(0.25_0.035_91)]',
-  numeral: 'border-[oklch(0.78_0.1_112)] bg-[oklch(0.982_0.024_112)] dark:border-[oklch(0.6_0.1_112)] dark:bg-[oklch(0.25_0.035_112)]',
-  adjective: 'border-[oklch(0.78_0.1_132)] bg-[oklch(0.982_0.024_132)] dark:border-[oklch(0.6_0.1_132)] dark:bg-[oklch(0.25_0.035_132)]',
-  letter: 'border-[oklch(0.78_0.1_153)] bg-[oklch(0.982_0.024_153)] dark:border-[oklch(0.6_0.1_153)] dark:bg-[oklch(0.25_0.035_153)]',
-  conjunction: 'border-[oklch(0.78_0.1_174)] bg-[oklch(0.982_0.024_174)] dark:border-[oklch(0.6_0.1_174)] dark:bg-[oklch(0.25_0.035_174)]',
-  sentence: 'border-[oklch(0.78_0.1_195)] bg-[oklch(0.982_0.024_195)] dark:border-[oklch(0.6_0.1_195)] dark:bg-[oklch(0.25_0.035_195)]',
-  preposition: 'border-[oklch(0.78_0.1_216)] bg-[oklch(0.982_0.024_216)] dark:border-[oklch(0.6_0.1_216)] dark:bg-[oklch(0.25_0.035_216)]',
-  noun: 'border-[oklch(0.78_0.1_237)] bg-[oklch(0.982_0.024_237)] dark:border-[oklch(0.6_0.1_237)] dark:bg-[oklch(0.25_0.035_237)]',
-  phrase: 'border-[oklch(0.78_0.1_258)] bg-[oklch(0.982_0.024_258)] dark:border-[oklch(0.6_0.1_258)] dark:bg-[oklch(0.25_0.035_258)]',
-  pronoun: 'border-[oklch(0.78_0.1_278)] bg-[oklch(0.982_0.024_278)] dark:border-[oklch(0.6_0.1_278)] dark:bg-[oklch(0.25_0.035_278)]',
-  affix: 'border-[oklch(0.78_0.1_299)] bg-[oklch(0.982_0.024_299)] dark:border-[oklch(0.6_0.1_299)] dark:bg-[oklch(0.25_0.035_299)]',
-  adverb: 'border-[oklch(0.78_0.1_320)] bg-[oklch(0.982_0.024_320)] dark:border-[oklch(0.6_0.1_320)] dark:bg-[oklch(0.25_0.035_320)]',
+  interjection: 'border-[oklch(0.78_0.1_70)] bg-[oklch(0.986_0.024_70)] dark:border-[oklch(0.6_0.1_70)] dark:bg-[oklch(0.25_0.035_70)]',
+  verb: 'border-[oklch(0.78_0.1_91)] bg-[oklch(0.986_0.024_91)] dark:border-[oklch(0.6_0.1_91)] dark:bg-[oklch(0.25_0.035_91)]',
+  numeral: 'border-[oklch(0.78_0.1_112)] bg-[oklch(0.986_0.024_112)] dark:border-[oklch(0.6_0.1_112)] dark:bg-[oklch(0.25_0.035_112)]',
+  adjective: 'border-[oklch(0.78_0.1_132)] bg-[oklch(0.986_0.024_132)] dark:border-[oklch(0.6_0.1_132)] dark:bg-[oklch(0.25_0.035_132)]',
+  letter: 'border-[oklch(0.78_0.1_153)] bg-[oklch(0.986_0.024_153)] dark:border-[oklch(0.6_0.1_153)] dark:bg-[oklch(0.25_0.035_153)]',
+  conjunction: 'border-[oklch(0.78_0.1_174)] bg-[oklch(0.986_0.024_174)] dark:border-[oklch(0.6_0.1_174)] dark:bg-[oklch(0.25_0.035_174)]',
+  sentence: 'border-[oklch(0.78_0.1_195)] bg-[oklch(0.986_0.024_195)] dark:border-[oklch(0.6_0.1_195)] dark:bg-[oklch(0.25_0.035_195)]',
+  preposition: 'border-[oklch(0.78_0.1_216)] bg-[oklch(0.986_0.024_216)] dark:border-[oklch(0.6_0.1_216)] dark:bg-[oklch(0.25_0.035_216)]',
+  noun: 'border-[oklch(0.78_0.1_237)] bg-[oklch(0.986_0.024_237)] dark:border-[oklch(0.6_0.1_237)] dark:bg-[oklch(0.25_0.035_237)]',
+  phrase: 'border-[oklch(0.78_0.1_258)] bg-[oklch(0.986_0.024_258)] dark:border-[oklch(0.6_0.1_258)] dark:bg-[oklch(0.25_0.035_258)]',
+  pronoun: 'border-[oklch(0.78_0.1_278)] bg-[oklch(0.986_0.024_278)] dark:border-[oklch(0.6_0.1_278)] dark:bg-[oklch(0.25_0.035_278)]',
+  affix: 'border-[oklch(0.78_0.1_299)] bg-[oklch(0.986_0.024_299)] dark:border-[oklch(0.6_0.1_299)] dark:bg-[oklch(0.25_0.035_299)]',
+  adverb: 'border-[oklch(0.78_0.1_320)] bg-[oklch(0.986_0.024_320)] dark:border-[oklch(0.6_0.1_320)] dark:bg-[oklch(0.25_0.035_320)]',
 };
 /** Text in a kind's hue, at AA on any kind's tint in either theme. */
 const SENSE: Record<Kind, string> = {
