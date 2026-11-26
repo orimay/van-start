@@ -69,6 +69,19 @@ const SENSES: Record<string, string[]> = {
   slaan: ['бить', 'сворачивать'],
   staan: ['стоять', 'написанным', 'идти'],
   trekken: ['тянуть', 'проводить', 'путешествовать'],
+  voeren: ['вести беседу', 'привозить', 'кормить'],
+  leiden: ['вести', 'руководить', 'приводить'],
+  'het pak': ['пачка', 'костюм', 'стопка'],
+  'het stuk': ['кусок', 'часть', 'статья'],
+  'het punt': ['пункт', 'точка', 'балл'],
+  'de plaats': ['место', 'населённый пункт'],
+  'het deel': ['часть', 'том'],
+  'de bank': ['диван', 'банк'],
+  'het blad': ['лист', 'поднос', 'журнал'],
+  vast: ['постоянный', 'наверняка'],
+  wel: ['всё-таки', 'да'],
+  maar: ['но', 'только', 'же'],
+  even: ['минутку', 'чётный'],
 };
 
 const glossesOf = (f: string) => f.split(/[;,] /).map(s => s.replace(/ \(.*$/, ''));
@@ -147,6 +160,9 @@ const PHRASES: Record<string, string[]> = {
   kijken: ['naar de tv kijken', 'keek, gekeken'],
   spreken: ['iemand spreken', 'sprak, gesproken'],
   kennen: ['ik ken hem goed', 'kende, gekend'],
+  krijgen: ['een cadeau krijgen', 'een kind krijgen', 'griep krijgen', 'kreeg, gekregen'],
+  liggen: ['in bed liggen', 'het ligt aan jou', 'lag, gelegen'],
+  'het deel': ['voor een deel', 'het eerste deel', 'deel uitmaken van'],
 };
 
 describe("a word's set phrases", () => {
