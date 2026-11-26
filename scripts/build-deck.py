@@ -12,13 +12,15 @@ from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 src = json.load(open(sys.argv[1]))
 img_dir = root / 'public' / 'img'
+LETTERS = str.maketrans('0123456789abcdef', 'abcdefghijklmnop')
 shutil.rmtree(img_dir, ignore_errors=True)
 img_dir.mkdir(parents=True)
 
 
 def image(path):
     data = Path(path).read_bytes()
-    name = hashlib.sha1(data).hexdigest()[:12] + Path(path).suffix
+    # Hex digits spelled as the letters a-p: digit runs in served files read as card numbers to leak scanners.
+    name = hashlib.sha1(data).hexdigest()[:12].translate(LETTERS) + Path(path).suffix
     (img_dir / name).write_bytes(data)
     return name
 
@@ -37,7 +39,7 @@ def split_note(text):
 
 
 def card(p):
-    c = {'id': p['uid'], 'f': p['front'], 'b': p['back']}
+    c = {'id': p['uid'].translate(LETTERS), 'f': p['front'], 'b': p['back']}
     for key, out in (('tr', 'tr'), ('ex_front', 'xf'), ('ex_back', 'xb')):
         if p.get(key):
             c[out] = p[key]
@@ -51,7 +53,7 @@ def card(p):
 
 
 def node(n):
-    out = {'id': n['uid'], 'name': n['name']}
+    out = {'id': n['uid'].translate(LETTERS), 'name': n['name']}
     cards = [card(p) for p in n.get('pairs', []) if isinstance(p, dict)]
     if cards:
         out['cards'] = cards

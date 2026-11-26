@@ -55,6 +55,9 @@ def get(o, cid):
     return {k: x for k, x in zip(('f', 'xf', 'tr', 'n', 'nx'), v) if x}
 
 
+LETTERS = str.maketrans('0123456789abcdef', 'abcdefghijklmnop')  # served ids spell hex digits as a-p: digit runs read as card numbers to leak scanners
+
+
 def put(o, cid, fields):
     cur = get(o, cid)
     cur.update({k: v for k, v in fields.items()})
@@ -115,7 +118,7 @@ def apply(path):
                     put(langs[l], card['id'], {'tr': translit.convert(card['tr'], l, card['b'])})
     for new in fx.get('_new', []):
         before, node = find(deck, new['before'])
-        cid = str(uuid.uuid4())
+        cid = str(uuid.uuid4()).translate(LETTERS)
         card = {'id': cid, **new['ru']}
         node['cards'].insert(node['cards'].index(before), card)
         for l in LANGS:

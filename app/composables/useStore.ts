@@ -1,6 +1,7 @@
 import { load as get, save as set } from '@/db/kv';
 import { type CardInput, createEmptyCard, fsrs, type Grade, Rating, State } from 'ts-fsrs';
 import { computed, shallowRef, triggerRef } from 'vue';
+import { withUuids } from '@/utils/course-ids';
 import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
 import { cardsOf, type DeckNode, isAffixCard } from '@/utils/deck';
 import { applyEdits, type Edits, noEdits } from '@/utils/edits';
@@ -134,7 +135,7 @@ async function loadDeck() {
   ]);
   // Without its overlay the deck falls back to the Russian side.
   if (overlay?.names && overlay.cards) localize(tree, overlay);
-  course.value = tree;
+  course.value = withUuids(tree);
   compose();
 }
 

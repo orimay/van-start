@@ -22,10 +22,10 @@ function clean(input: CardInput): CardInput {
   ) as CardInput;
 }
 
-/** Clips were once named in hex; they now carry the same digits as the letters a-p. */
+/** Clips and pictures were once named in hex; they now carry the same digits as the letters a-p. */
 function renamed(card: CardInput): CardInput {
-  const letters = (clip: string) => (/^[0-9a-f]{16}$/.test(clip) && /\d/.test(clip) ? clip.replace(/./g, d => 'abcdefghijklmnop'[parseInt(d, 16)]!) : clip);
-  return { ...card, ...(card.au ? { au: letters(card.au) } : {}), ...(card.axb ? { axb: letters(card.axb) } : {}) };
+  const letters = (name: string) => (/^[0-9a-f]+(\.\w+)?$/.test(name) && /\d/.test(name) ? name.replace(/^[0-9a-f]+/, hex => hex.replace(/./g, d => 'abcdefghijklmnop'[parseInt(d, 16)]!)) : name);
+  return { ...card, ...(card.au ? { au: letters(card.au) } : {}), ...(card.axb ? { axb: letters(card.axb) } : {}), ...(card.img ? { img: letters(card.img) } : {}) };
 }
 
 export function applyEdits(node: DeckNode, edits: Edits): DeckNode {

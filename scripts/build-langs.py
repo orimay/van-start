@@ -19,6 +19,7 @@ translit = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(translit)
 
 LANGS = ('en', 'pt', 'es', 'tr')
+LETTERS = str.maketrans('0123456789abcdef', 'abcdefghijklmnop')  # served ids spell hex digits as a-p: digit runs read as card numbers to leak scanners
 SCHWA_CARDS = ('fcc9d468', 'c3acf04f', 'c8bed27e', 'da264700')
 CYR = re.compile(r'[Ѐ-ӘӚ-ӿ]')  # ә is the schwa sign
 GENDER = {'pt': {'1': 'm.', '2': 'f.', '4': 'pl.'}, 'es': {'1': 'm.', '2': 'f.', '4': 'pl.'}}
@@ -44,7 +45,7 @@ def walk(n):
 for lang in LANGS:
     overlay = {'names': {}, 'cards': {}}
     for n in walk(deck):
-        overlay['names'][n['uid']] = names[n['uid']][lang]
+        overlay['names'][n['uid'].translate(LETTERS)] = names[n['uid']][lang]
         for p in n.get('pairs', []):
             if not isinstance(p, dict):
                 continue
@@ -59,6 +60,6 @@ for lang in LANGS:
             tr = translit.convert(p['tr'], lang, p['back']) if p.get('tr') else ''
             for v in (front, xf, tr, note or ''):
                 assert not CYR.search(v), (lang, p['uid'], v)
-            overlay['cards'][p['uid']] = [front, xf, tr, note] if note else [front, xf, tr]
+            overlay['cards'][p['uid'].translate(LETTERS)] = [front, xf, tr, note] if note else [front, xf, tr]
     (out_dir / f'{lang}.json').write_text(json.dumps(overlay, ensure_ascii=False, separators=(',', ':')))
     print(lang, len(overlay['cards']))

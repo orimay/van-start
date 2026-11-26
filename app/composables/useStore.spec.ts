@@ -367,3 +367,13 @@ describe('a learned group', () => {
     expect([store.isLearned('a'), store.isLearned('b'), store.scheduleOf('b', 'recall')?.scheduled_days]).toEqual([true, true, 2]);
   });
 });
+
+describe('the course', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('keys its cards by the UUIDs saved progress was kept under', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ id: 'root', name: 'Course', cards: [{ id: 'dfnijojf-lcbj-eeii-ilfa-oabkafdmmcpg', f: 'дом', b: 'het huis' }] })));
+    useStore().updateSettings({ language: 'ru' });
+    await vi.waitFor(() => expect(cardsOf(useStore().course.value!).map(c => c.id)).toEqual(['35d89e95-b219-4488-8b50-e01a053cc2f6']));
+  });
+});

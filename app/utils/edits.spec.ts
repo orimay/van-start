@@ -14,11 +14,29 @@ describe('an edited course card', () => {
     const edits = { ...noEdits(), cards: { huis: { ...HUIS, f: 'дом, здание', au: '7295841b0939cdef', axb: '0123456789abcdef' } } };
     expect(playedBy(edits)).toEqual({ au: 'hcjfieblajdjmnop', axb: 'abcdefghijklmnop' });
   });
+
+  it('shows a picture saved under its old hex name by the letter name the picture has now', () => {
+    const edits = { ...noEdits(), cards: { huis: { ...HUIS, f: 'дом, здание', img: '989197070454.jpg' } } };
+    expect(shownBy(edits)).toBe('jijbjhahaefe.jpg');
+  });
+
+  it('keeps the name of a picture already spelled in letters', () => {
+    const edits = { ...noEdits(), cards: { huis: { ...HUIS, f: 'дом, здание', img: 'jijbjhahaefe.jpg' } } };
+    expect(shownBy(edits)).toBe('jijbjhahaefe.jpg');
+  });
 });
 
 // declarative helpers
 
+function editedCard(edits: ReturnType<typeof noEdits>) {
+  return cardsOf(applyEdits({ id: 'root', name: 'Course', cards: [HUIS] }, edits))[0]!;
+}
+
 function playedBy(edits: ReturnType<typeof noEdits>) {
-  const [card] = cardsOf(applyEdits({ id: 'root', name: 'Course', cards: [HUIS] }, edits));
-  return { au: card!.au, axb: card!.axb };
+  const { au, axb } = editedCard(edits);
+  return { au, axb };
+}
+
+function shownBy(edits: ReturnType<typeof noEdits>) {
+  return editedCard(edits).img;
 }
