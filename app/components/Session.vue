@@ -81,7 +81,7 @@ export interface ShowEvent {
 export interface Position {
   stage: number;
   /** Queue items as card ids; a match item has several. */
-  queue: { match: boolean; ids: string[]; round?: number; missedAt?: number; spacing?: number; rung?: number; matched?: string[]; mistakes?: string[]; state?: CardState; skip?: boolean; filler?: boolean }[];
+  queue: { match: boolean; ids: string[]; round?: number; missedAt?: number; spacing?: number; rung?: number; matched?: string[]; mistakes?: string[]; state?: CardState; skip?: boolean }[];
   size: number;
   reported: string[];
   /** Earlier steps, so Back still works after a reload. */
@@ -623,7 +623,7 @@ function optionsFor(card: StudyCard): StudyCard[] {
         <div class="actions"><BackButton /></div>
       </template>
       <div v-else class="relative flex flex-1 flex-col">
-        <span v-if="cardColour && rungShown === undefined" class="absolute right-2 top-2 z-10 text-(--known)" :style="{ '--known': cardColour }" role="img" data-testid="known" aria-label="How well it is known" title="How well you know it in this game"><FillerIcon /></span>
+        <span v-if="cardColour && rungShown === undefined" class="absolute right-2 top-2 z-10 text-(--known)" :style="{ '--known': cardColour }" role="img" data-testid="known" aria-label="How well it is known" title="How well you know it in this game"><KnownIcon /></span>
         <span v-else-if="rungShown !== undefined" class="absolute right-2 top-2 z-10 text-(--known)" :style="{ '--known': cardColour }" role="img" data-testid="shows-left" :aria-label="`${steps.length - rungShown} left`" :title="`${steps.length - rungShown} more right answers to go`"><ProgressPie :done="rungShown" :total="steps.length" /></span>
         <IntroGame v-if="game === 'intro'" :key="view" :card="current.card" @result="ok => current?.kind === 'card' && onCard(current.card, ok)" />
         <ChoiceGame v-else-if="game === 'choice'" :key="view" :card="current.card" :options="options" :state="current.state" @progress="onCardProgress" @result="(ok, guessed) => current?.kind === 'card' && onCard(current.card, ok, guessed)" />

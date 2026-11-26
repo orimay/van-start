@@ -815,7 +815,7 @@ describe('the buttons of pronouncing', () => {
 });
 
 describe('the count of cards left', () => {
-  it('drops by one with each right answer, fillers included', async () => {
+  it('drops by one with each right answer', async () => {
     const w = await doMount({ cards: cards(3), stages: ['recall'], retryGap: 5 });
     await doRecall(w, false);
     const counts = [leftOf(w)];
@@ -898,14 +898,14 @@ describe('back over passed cards', () => {
 });
 
 describe('a continued session', () => {
-  it('picks up at a filler from the rest of the deck', async () => {
+  it('picks up at a card from the rest of the deck, saved by an older version', async () => {
     const filler = { id: 'x9', prompt: 'p9', answer: 'a9', nl: 'a9' };
     const resumeAt = { stage: 0, queue: [{ match: false, ids: ['x9'], filler: true }, { match: false, ids: ['c0'] }], size: 1, reported: [] };
     const w = await doMount({ cards: cards(1), pool: [...cards(1), filler], stages: ['recall'], resumeAt });
     expect(promptOf(w)).toBe('p9');
   });
 
-  it('does not pass a filler from the rest of the deck in its game', async () => {
+  it('does not pass a card from the rest of the deck in its game', async () => {
     const filler = { id: 'x9', prompt: 'p9', answer: 'a9', nl: 'a9' };
     const resumeAt = { stage: 0, queue: [{ match: false, ids: ['x9'], filler: true }, { match: false, ids: ['c0'] }], size: 1, reported: [] };
     const w = await doMount({ cards: cards(1), pool: [...cards(1), filler], stages: ['recall'], resumeAt });
