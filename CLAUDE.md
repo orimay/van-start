@@ -191,6 +191,7 @@ When two rules conflict, the one written further down wins.
 - **Icons.** Outline SVG on a 24 grid, `stroke="currentColor"`, `stroke-width="1.5"`, round caps and joins, one component each (`ContextIcon`, `LaterIcon`). No emoji as icons.
 - **Games.** Five games: reading, speaking, writing, listening/dictation, pronunciation. Each can be turned off in settings.
 - **Dictation hears, it does not see.** A spelling that sounds the same as the answer (`soundsLike`: ij/ei, ou/au, final d/dt/t) counts as right, with "Sounds the same, spelled X", only when every typed word the answer lacks is a word of a learned card (`spelledInKnownWords`, `TypeGame`'s `learnedWords`): het hard for het hart once hard is learned. A made-up spelling (allebij) is a miss; an unlearned deck word goes to the mix-up flow.
+- **An inflected adjective keeps its base's senses.** The -e card (vaste) carries every sense of its base (vast) on its front, except senses only the base has (adverb, language noun, predicative); those are named on the -e card as one note item `только <base>: …` (`only`, `solo`, `só`, `doar`, `sadece`) in all 6 languages. Checked by `app/utils/adjective-forms.spec.ts`.
   - All are on by default. At least one always stays on.
   - Recognizing (choice): Next shows and works only after a wrong pick; hidden it is disabled.
   - Review runs in the chosen game; if that game is off, the first enabled one is used.
