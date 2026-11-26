@@ -10,7 +10,7 @@ const cardsOf = (n: Node): Card[] => [...(n.cards ?? []), ...(n.children ?? []).
 /** As scripts/build-audio.py names a clip: the voice and the spoken text, hashed. */
 const RESPELLED: Record<string, string> = { garages: 'garaazjes', maandelijks: 'maandeluks' };
 const spoken = (text: string) => text.replace(/\(.*?\)/g, '').replace(/\s+/g, ' ').trim().replace(/\b(garages|maandelijks)\b/gi, w => RESPELLED[w.toLowerCase()]!);
-const clipOf = (text: string) => createHash('sha1').update(`nl-NL-FennaNeural|${spoken(text)}`).digest('hex').slice(0, 16);
+const clipOf = (text: string) => createHash('sha1').update(`nl-NL-FennaNeural|${spoken(text)}`).digest('hex').slice(0, 16).replace(/./g, d => 'abcdefghijklmnop'[parseInt(d, 16)]!);
 
 describe('every card', () => {
   it('plays the clip of its own word', () => {
@@ -21,5 +21,10 @@ describe('every card', () => {
   it('plays the clip of its own example', () => {
     const wrong = cardsOf(deck).filter(c => c.xb && c.axb !== clipOf(c.xb)).map(c => `${c.b}: ${c.xb}`);
     expect(wrong).toEqual([]);
+  });
+
+  it('names its clips with no digits, so no name reads as a card number to a leak scanner', () => {
+    const digits = cardsOf(deck).flatMap(c => [c.au, c.axb]).filter(clip => clip && !/^[a-p]{16}$/.test(clip));
+    expect(digits).toEqual([]);
   });
 });

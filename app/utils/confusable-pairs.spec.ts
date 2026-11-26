@@ -24,6 +24,9 @@ const DIFFERENT = new Set([
   'hij|is', 'is|ze', 'is|zij', 'ha|over', 'de verzorger|die',
 ]);
 
+// Pairs learners mix up though their fronts differ: one Russian word covers both
+const MIXED = [['het spel', 'de game']];
+
 const bases = deck.filter(isBase);
 const keyOf = (a: Card, b: Card) => [a.b, b.b].sort().join('|');
 const pairs = bases.flatMap((a, i) => bases.slice(i + 1).flatMap((b) => {
@@ -42,6 +45,13 @@ describe('two cards whose fronts share a sense', () => {
     const plain = (card: Card) => (card.n ?? '').split('\n')[0]!.split('; ').some(item => !LABEL.test(item));
     const bare = bases.filter(card => confusables(card).size && !plain(card)).map(card => card.b);
     expect(bare).toEqual([]);
+  });
+
+  it('are told apart, like pairs one Russian word covers', () => {
+    const byWord = new Map(deck.map(card => [card.b, card]));
+    const unnamed = MIXED.filter(([a, b]) => !(confusables(byWord.get(a!)!).has(b!) && confusables(byWord.get(b!)!).has(a!)))
+      .map(pair => pair.join(' | '));
+    expect(unnamed).toEqual([]);
   });
 
   it('are listed as different only while they share a sense', () => {

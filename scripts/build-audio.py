@@ -33,8 +33,12 @@ def spoken(text: str) -> str:
     return RESPELLED.sub(lambda m: RESPELL[m.group(1).lower()], plain)
 
 
+# Hex digits as the letters a-p: a name of 16 digits reads as a card number to leak scanners.
+LETTERS = str.maketrans('0123456789abcdef', 'abcdefghijklmnop')
+
+
 def key_of(text: str) -> str:
-    return hashlib.sha1(f'{VOICE}|{text}'.encode()).hexdigest()[:16]
+    return hashlib.sha1(f'{VOICE}|{text}'.encode()).hexdigest()[:16].translate(LETTERS)
 
 
 def cards(node):
