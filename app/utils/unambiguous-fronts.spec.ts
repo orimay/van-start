@@ -341,6 +341,12 @@ const AMBIGUOUS: Record<string, Record<string, string>> = {
     'leg': 'a body part or of an animal', 'size': 'of clothes or dimensions', 'crack': 'a gap or a split', 'to drive': 'a car or a herd',
   },
   es: {
+    'conocido': 'persona o sabido', 'declaración': 'afirmación o de impuestos', 'fuerza': 'potencia o violencia',
+    'medio': 'centro, mitad, recurso, promedio', 'media': 'mitad o promedio', 'tarjeta': 'postal o bancaria', 'raíz': 'de planta o de palabra',
+    'llamar': 'dar nombre o a la puerta', 'par': 'dos cosas o número', 'número': 'de teléfono o cantidad', 'grupo': 'de personas o de música',
+    'servicio': 'al cliente, en la mesa, público', 'función': 'papel o de teatro', 'interés': 'beneficio o curiosidad', 'trabajador': 'diligente o empleado',
+    'físico': 'apariencia o del cuerpo', 'corte': 'de pelo o herida', 'línea': 'de texto, trazo, raya', 'pantalla': 'de ordenador o de lámpara',
+    'tocar': 'rozar o dar golpecitos', 'pasar': 'por un sitio o suceder',
     'alcanzar': 'el tren o un objeto',
     'aprobar': 'un examen o una ley',
     'caro': 'de precio o querido',
@@ -707,6 +713,7 @@ const CLEAR = new Set([
   'en:het busje', 'en:het plaatje', 'en:het kopje', 'en:het feestje', 'en:het bootje', 'en:het schoteltje', 'en:het stukje', 'en:het pakje', 'en:het potje', // minibus, picture, little cup...
   'en:wissel van rol', // switch roles
   'en:het maatje', 'en:hij rijdt', 'en:ik reed', 'en:wij reden', // buddy; drove, rode: a vehicle
+  'es:hij noemt', 'es:tik', 'es:hij speelt', 'es:ik speelde', 'es:wij speelden', // él nombra, ¡pulsa!, él juega, jugaba
   'es:het busje', 'es:het tijdje', 'es:het doosje', 'es:het bosje', 'es:het lijstje', // microbús, un rato, cajita, manojito, listita
   'es:het groepje', 'es:hij draagt', 'es:zij draagt', 'es:ik neem', 'es:vaste', 'es:ik heb genomen', 'es:hij hangt', 'es:zij hangen', // grupito, él lleva, me llevo, fijo, está colgado
   'en:ik loop', 'en:hij loopt', 'en:wij lopen', 'en:maak', 'en:zij maakt', 'en:ik maakte', 'en:hij noemt', 'en:zet', 'en:volg', 'en:hij volgt', // walk, make, name, put, follow
