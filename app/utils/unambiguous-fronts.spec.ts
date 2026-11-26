@@ -21,6 +21,35 @@ const sensesOf = (lang: string, card: Card) => (isPhrase(card) ? [frontIn(lang, 
 /** Words with several common senses in that language: alone on a front they do not say which one the card asks for. */
 const AMBIGUOUS: Record<string, Record<string, string>> = {
   ru: {
+    'уход': 'забота или уходить',
+    'мука': 'для выпечки или страдание',
+    'колонка': 'звуковая, газетная, столбец',
+    'печать': 'штамп или вывод на бумагу',
+    'плита': 'кухонная или каменная',
+    'краны': 'водопроводные или подъёмные',
+    'почка': 'орган или на ветке',
+    'лёгкое': 'орган или нетрудное',
+    'передача': 'в машине, по ТВ, вручение',
+    'парить': 'в воздухе или паром',
+    'пари': 'в воздухе или спор',
+    'залог': 'денежный или грамматический',
+    'сдаётся': 'в аренду или уступает',
+    'набирать': 'на клавиатуре, вес, людей',
+    'загружать': 'груз, деньги, файл',
+    'напоминать': 'о чём-то или быть похожим',
+    'откладывать': 'на потом или копить',
+    'краситься': 'косметикой или о волосах',
+    'перемена': 'изменение или на уроках',
+    'дух': 'разум или привидение',
+    'число': 'в математике или дата',
+    'правый': 'о стороне или правота',
+    'предложение': 'фраза или оффер',
+    'предмет': 'вещь или школьный',
+    'бросать': 'кидать или прекращать',
+    'опыт': 'жизненный или эксперимент',
+    'класс': 'школьный или отлично',
+    'край': 'кромка или область',
+    'карты': 'местности, игральные, банковские',
     'брак': 'супружество или дефект',
     'бросил': 'кинул или перестал',
     'бросить': 'кинуть или перестать',
@@ -35,6 +64,7 @@ const AMBIGUOUS: Record<string, Record<string, string>> = {
     'задавать': 'вопрос или урок',
     'задай': 'вопрос или урок',
     'задаёт': 'вопрос или урок',
+    'заходить': 'внутрь или в гости',
     'замок': 'дверной или дворец',
     'звать': 'голосом или по имени',
     'карта': 'местности, банковская, игральная',
@@ -48,6 +78,9 @@ const AMBIGUOUS: Record<string, Record<string, string>> = {
     'носить': 'одежду или в руках',
     'остановка': 'транспорта или прекращение',
     'отдел': 'магазина или учреждения',
+    'палец': 'на руке или на ноге',
+    'пальцы': 'на руке или на ноге',
+    'переходить': 'улицу или к другому',
     'печка': 'для отопления или для еды',
     'печь': 'выпекать или печка',
     'подходить': 'по размеру или приближаться',
@@ -56,6 +89,7 @@ const AMBIGUOUS: Record<string, Record<string, string>> = {
     'представлять': 'знакомить или воображать',
     'принимать': 'предложение, лекарство, гостей',
     'приставка': 'в слове или игровая',
+    'проходить': 'мимо, о боли, о времени',
     'пробка': 'на дороге или от бутылки',
     'проводить': 'линию, время, гостей',
     'раз': 'случай или единица счёта',
@@ -104,6 +138,7 @@ const AMBIGUOUS: Record<string, Record<string, string>> = {
     'forma': 'figura o manera',
     'hacer': 'una actividad o producir',
     'llave': 'de cerradura, grifo, herramienta',
+    'pasarse': 'el dolor, el tiempo, de la raya',
     'ordenar': 'poner en su sitio o mandar',
     'parada': 'de autobús o detención',
     'sección': 'de una tienda o de un texto',
@@ -129,8 +164,11 @@ const AMBIGUOUS: Record<string, Record<string, string>> = {
     'a face': 'o activitate sau a produce',
     'a prinde': 'trenul sau o minge',
     'a promova': 'examenul sau un produs',
+    'a trece': 'pe lângă, despre durere, timpul',
     'a purta': 'haine sau în mâini',
     'cheie': 'de la ușă sau unealtă',
+    'deget': 'de la mână sau de la picior',
+    'degete': 'de la mână sau de la picior',
     'curs': 'de formare, valutar, al râului',
     'formă': 'contur sau formular',
     'scump': 'ca preț sau drag',
@@ -159,6 +197,9 @@ const CLEAR = new Set([
   'ru:ik heb gebakken', // «я испёк»: только выпекать
   'hij is gehaald', // pulled out, picked up
   'ru:het keertje', // «разок»
+  'ru:het groepje', // «группка»
+  'ru:het zegeltje', // «наклейка»
+  'ru:ik leg', // «я кладу»
   'ru:jij spaart', // «ты копишь»
   'tr:jij spaart', // biriktiriyorsun
   'voer telefoongesprekken', // the object says it: phone calls
