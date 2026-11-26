@@ -334,6 +334,11 @@ const AMBIGUOUS: Record<string, Record<string, string>> = {
     'to get on': 'board or get along',
     'to get off': 'leave a vehicle or escape',
     'to take out': 'remove or date',
+    'number': 'a label or an amount', 'way': 'a road or a method', 'stroke': 'a blow or a line',
+    'performance': 'a show or an achievement', 'report': 'to the police or a document', 'desk': 'a counter or a writing table',
+    'connection': 'a link or a hookup', 'demand': 'in a market or a claim', 'benefit': 'a payment or an advantage',
+    'use': 'using or usefulness', 'stream': 'a brook or a flow', 'lane': 'an avenue or on a road',
+    'leg': 'a body part or of an animal', 'size': 'of clothes or dimensions', 'crack': 'a gap or a split', 'to drive': 'a car or a herd',
   },
   es: {
     'alcanzar': 'el tren o un objeto',
@@ -701,6 +706,7 @@ const CLEAR = new Set([
   'pt:zet', 'ro:zet', 'ro:ik zet', 'pt:jij hebt gezet', 'ro:jij hebt gezet', // pôr, a pune
   'en:het busje', 'en:het plaatje', 'en:het kopje', 'en:het feestje', 'en:het bootje', 'en:het schoteltje', 'en:het stukje', 'en:het pakje', 'en:het potje', // minibus, picture, little cup...
   'en:wissel van rol', // switch roles
+  'en:het maatje', 'en:hij rijdt', 'en:ik reed', 'en:wij reden', // buddy; drove, rode: a vehicle
   'es:het busje', 'es:het tijdje', 'es:het doosje', 'es:het bosje', 'es:het lijstje', // microbús, un rato, cajita, manojito, listita
   'es:het groepje', 'es:hij draagt', 'es:zij draagt', 'es:ik neem', 'es:vaste', 'es:ik heb genomen', 'es:hij hangt', 'es:zij hangen', // grupito, él lleva, me llevo, fijo, está colgado
   'en:ik loop', 'en:hij loopt', 'en:wij lopen', 'en:maak', 'en:zij maakt', 'en:ik maakte', 'en:hij noemt', 'en:zet', 'en:volg', 'en:hij volgt', // walk, make, name, put, follow
