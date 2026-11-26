@@ -27,9 +27,9 @@ const names = (note: string, lang: string, verb: string) => {
     return named !== undefined && overlaps(named, verb);
   });
 };
-// Spelled like a verb form, but another word: het (heten), het hout (houden), laat (laten), vier (vieren), gewond (wonden, not wonen), bestaan (its own verb), vraag aan (vragen aan, not aanvragen), ruim (the adjective ruimen comes from), dicht / trouw (adjectives, not dichten / trouwen), weg (away, not wegen).
+// Spelled like a verb form, but another word: het (heten), het hout (houden), laat (laten), vier (vieren), gewond (wonden, not wonen), bestaan (its own verb), vraag aan (vragen aan, not aanvragen), ruim (the adjective ruimen comes from), dicht / trouw (adjectives, not dichten / trouwen), weg (away, not wegen), wijs (wise, not wijzen), mis (wrong, not missen).
 const NOT_A_FORM = [
-  'het', 'met', 'hoor', 'pas', 'laat', 'vier', 'los', 'open', 'duur', 'droog', 'heet', 'lijk', 'gezond', 'gewond', 'bestaan', 'ruim', 'dicht', 'trouw', 'weg',
+  'het', 'met', 'hoor', 'pas', 'laat', 'vier', 'los', 'open', 'duur', 'droog', 'heet', 'lijk', 'gezond', 'gewond', 'bestaan', 'ruim', 'dicht', 'trouw', 'weg', 'wijs', 'mis',
   'het ontbijt', 'het hout', 'met je', 'vraag aan',
 ];
 

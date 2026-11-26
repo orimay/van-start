@@ -20,15 +20,15 @@ const NOT_SPLIT = [
   'lekker', 'de lente', 'het tennis', 'het leger', 'de haring', 'de boter',
   'de paling', 'de meter', 'de veter', 'de latte', 'de halte', 'het gevaar', 'de beker', 'beide', 
   'de wekker', 'de navel', 'de penis', 'het been', 'de lever', 'misselijk', 'mager', 'de nagel', 'de schaar',
-  'de meester', 'de inversie', 'de optie', 'het weekend',
+  'de meester', 'de inversie', 'de optie', 'het weekend', 'de donder', 'de gel', 'de legitimatie', 'de productie', 'de animatie',
   // A marked affix only by look (geen, de koning), or a fossil one (bellen, plotseling, geloven)
   'het beeld', 'geven', 'gelden', 'de koning', 'best', 'bellen', 'weinig', 'de bezem', 'het bed', 'de herfst', 'de bek', 'geel', 'gek',
   'de beurt', 'het ding', 'lelijk', 'vers', 'beige', 'de ring', 'de beschuit', 'de honing', 'ver', 'de verf', 'de ketting', 'de bes',
   'zalig', 'de camping', 'veilig', 'de benzine', 'de geit', 'de hersenen', 'de catering', 'de geest', 'de bende', 'stevig', 'de versie',
   'bezig', 'plotseling', 'ig', 'lijk', 'twaalfhonderdvijftig', 'geloven', 'gebruiken', 'gebeuren', 'genieten', 'genezen', 'genoeg',
   'gezond', 'gewoon', 'beneden', 'het geslacht', 'de genoot', 'de beek', 'het beest', 'nauwelijks',
-  // Made from a word the deck lacks or holds in another sense: slaan, not slagen; rechten (prepare); old voor + raad
-  'de bijslag', 'de toeslag', 'de uitslag', 'de slager', 'het aanrecht', 'de voorraad',
+  // Made from a word the deck lacks or holds in another sense: rechten (prepare); old voor + raad; schenken (give)
+  'het aanrecht', 'de voorraad', 'het geschenk',
   // A frozen form, named as related instead: rechter (right-hand) beside recht, eerste beside eerst
   'rechter', 'eerste',
   // Loanwords taken whole: -tie, -ie, -ief, in-, inter- came with the word, no Dutch base inside
@@ -40,7 +40,7 @@ const NOT_SPLIT = [
   'het ingrediënt', 'het insect', 'intensief', 'individueel', 'informatief', 'de instantie', 'de motivatie', 'de prestatie',
   'de administratie', 'online', 'de toerist', 'de passagier', 'het formulier',
   // Loanwords whose ending only looks Dutch: -er, -es, -te, -je
-  'de partner', 'de computer', 'super', 'de dokter', 'de letter', 'de centimeter', 'het adres', 'het nummer', 'de burger', 'de website',
+  'de partner', 'de computer', 'super', 'de dokter', 'de letter', 'de centimeter', 'het adres', 'het nummer', 'de burger',
   'de manager', 'de tante', 'de kastanje', 'de gitaar', 'het theater', 'het succes', 'het karakter', 'de visite', 'de courgette',
   'de frites', 'het papier', 'de slipper', 'de sneaker', 'de bloes', 'het servies', 'de jenever', 'de folder', 'de manier', 'het advies',
   'precies', 'het diner', 'de sfeer', 'de route', 'de minister', 'de scooter', 'de sigaar', 'de container', 'de glitter', 'de update',
