@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-type Card = { id: string; b: string; f: string; n?: string };
+type Card = { id: string; b: string; f: string; n?: string; xb?: string; xf?: string };
 type Node = { cards?: Card[]; children?: Node[] };
 const cardsOf = (node: Node): Card[] => [...(node.cards ?? []), ...(node.children ?? []).flatMap(cardsOf)];
 const deck = cardsOf(JSON.parse(readFileSync('public/deck.json', 'utf8')));
@@ -736,5 +736,30 @@ describe.each(LANGS)('a front in %s', (lang) => {
       return base && hintedWord(lang, base) && !frontIn(lang, card).includes('(') && !CLEAR.has(`${lang}:${card.b}`) && !CLEAR.has(card.b);
     }).map(card => `${card.b}: ${frontIn(lang, card)}`);
     expect(bare).toEqual([]);
+  });
+});
+
+/** A sound card's example line names its words in order: `Примеры: автобус, курс` for `de bus, de cursus`. */
+const EXAMPLES: Record<string, RegExp> = { ru: /^Примеры?: /, en: /^Examples?: /, es: /^Ejemplos?: /, pt: /^Exemplos?: /, ro: /^Exemp(le|lu): /, tr: /^Örnek(ler)?: / };
+const exampleIn = (lang: string, card: Card) => (lang === 'ru' ? card.xf : overlays[lang]![card.id]![1]) ?? '';
+const listing = deck.filter(card => EXAMPLES.ru!.test(card.xf ?? ''));
+/** The gloss is a sense of the word's own card, its hint dropped only when the bare word is not ambiguous. */
+const glossesCard = (lang: string, gloss: string, card: Card) => sensesOf(lang, card).some(piece => piece === gloss
+  || (piece.replace(/ \(.*$/, '') === gloss && !(wordOf(gloss) in AMBIGUOUS[lang]!)));
+
+describe.each(LANGS)('an example list in %s', (lang) => {
+  it('glosses each word as its own card', () => {
+    expect(listing.length).toBeGreaterThan(50);
+    const wrong = listing.flatMap((card) => {
+      const line = exampleIn(lang, card);
+      const words = card.xb!.split(', ');
+      const glosses = line.replace(EXAMPLES[lang]!, '').replace(/\.$/, '').split(/, (?![^(]*\))/);
+      if (!EXAMPLES[lang]!.test(line) || glosses.length !== words.length) return [`${card.b}: ${line}`];
+      return words.flatMap((word, i) => {
+        const named = byDutch.get(word);
+        return named && !glossesCard(lang, glosses[i]!, named) ? [`${card.b}: ${word} (${glosses[i]})`] : [];
+      });
+    });
+    expect(wrong).toEqual([]);
   });
 });
