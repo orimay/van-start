@@ -79,9 +79,9 @@ describe('an adjective', () => {
 
 /** A translation's senses without their hints: `готовый (закончивший)` is `готовый`. */
 const sensesOf = (front: string) => front.replace(/\s*\([^)]*\)/g, '').split(/; |, /).map(s => s.trim());
-// Never inflected (prima, privé), only after a verb (klaar, kwijt, bezig), a determiner (mijn, ieder) or a noun here (schat).
+// Never inflected (prima, privé), only after a verb (klaar, gereed, kwijt, bezig), a determiner (mijn, ieder) or a noun here (schat).
 const NO_E_FORM = new Set(['mijn', 'ieder', 'prima', 'extra', 'plastic', 'tweedehands', 'allerlei', 'privé', 'rechter',
-  'klaar', 'kwijt', 'waard', 'bereid', 'bezig', 'voorbij', 'eens', 'schat']);
+  'klaar', 'gereed', 'kwijt', 'waard', 'bereid', 'bezig', 'voorbij', 'eens', 'schat']);
 
 describe('an -e card', () => {
   it('has its base card, named by its `!een … noun` example', () => {

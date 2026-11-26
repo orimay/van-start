@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { buildIndex, linkSegments } from './links';
 
 type Card = { id: string; b: string; n?: string };
 type Node = { cards?: Card[]; children?: Node[] };
@@ -25,7 +26,7 @@ const NOT_SPLIT = [
   'de beurt', 'het ding', 'lelijk', 'vers', 'beige', 'de ring', 'de beschuit', 'de honing', 'ver', 'de verf', 'de ketting', 'de bes',
   'zalig', 'de camping', 'veilig', 'de benzine', 'de geit', 'de hersenen', 'de catering', 'de geest', 'de bende', 'stevig', 'de versie',
   'bezig', 'plotseling', 'ig', 'lijk', 'twaalfhonderdvijftig', 'geloven', 'gebruiken', 'gebeuren', 'genieten', 'genezen', 'genoeg',
-  'gezond', 'gewoon', 'beneden', 'het geslacht', 'de genoot', 'de beek', 'het beest', 'de gemeente', 'nauwelijks',
+  'gezond', 'gewoon', 'beneden', 'het geslacht', 'de genoot', 'de beek', 'het beest', 'nauwelijks',
   // Made from a word the deck lacks or holds in another sense: slaan, not slagen; rechten (prepare); old voor + raad
   'de bijslag', 'de toeslag', 'de uitslag', 'de slager', 'het aanrecht', 'de voorraad',
   // A frozen form, named as related instead: rechter (right-hand) beside recht, eerste beside eerst
@@ -52,7 +53,7 @@ const NOT_SPLIT = [
   'zeker', 'zonder', 'de nacht', 'stoer', 'de suiker', 'het vlees', 'duizend', 'bruin', 'donker', 'zilver', 'oranje', 'de vijver',
   'de spijker', 'jammer', 'de komkommer', 'ongeveer', 'bitter', 'het plein', 'de koffer', 'het wonder', 'de rivier', 'de vlinder',
   'de zolder', 'de kelder', 'ieder', 'de vloer', 'de schouder', 'de vinger', 'de spier', 'de pleister', 'wakker', 'het cijfer',
-  'het terrein', 'het ijzer', 'naaien',
+  'het terrein', 'het ijzer', 'naaien', 'de ijver',
   // A frozen form: naast was the superlative of na; het sprookje has no sprook left
   'naast', 'het sprookje',
   // The base of a word in the deck: schilderen is made from de schilder
@@ -89,6 +90,80 @@ describe('an affixed word', () => {
 
   it('is reviewed as not split only while it looks affixed and names no parts', () => {
     const stale = NOT_SPLIT.filter(b => !candidates.some(c => c.b === b && !names(c.n ?? '', ORIGIN.ru!)));
+    expect(stale).toEqual([]);
+  });
+});
+
+// The base is archaic, bookish, or lost its meaning, so the deck holds no card for it: the word links its affix only.
+const FOSSIL: Record<string, string> = {
+  ontmoeten: 'moeten here is old "meet", not "must"',
+  beginnen: 'ginnen is gone',
+  vergeten: 'geten is gone',
+  verliezen: 'liezen is gone',
+  'het belang': 'belangen is archaic',
+  bederven: 'derven is bookish',
+  bewaren: 'waren is archaic',
+  bewegen: 'old wegen "move", not today\'s wegen "weigh"',
+  verdwijnen: 'dwijnen is gone',
+  'de geschiedenis': 'geschieden is bookish',
+  herinneren: 'inner is gone as a verb',
+  vrolijk: 'vro is gone',
+  besteden: 'stede is archaic',
+  aanwezig: 'wezen is bookish',
+  beslissen: 'slissen is gone',
+  gezellig: 'de gezel is archaic',
+  verrukkelijk: 'verrukken is bookish',
+  'het geduld': 'dulden is bookish',
+  beloven: 'loven is bookish',
+  'het gemak': 'mak is too rare',
+  gelijk: 'lijk "body" is gone',
+  gereed: 'reed is gone',
+  'het geweld': 'walden is gone',
+  gemeen: 'meen is gone',
+  vaardig: 'de vaart kept another sense',
+  zuinig: 'no base left',
+  'de afschuw': 'schuw is too rare',
+  bereiden: 'reiden is gone',
+  vergaderen: 'gaderen is gone',
+};
+// Past participles and forms: their verb is named with `причастие от:`, not split into parts.
+const FORM = /^(форма «сделанный»|причастие) от: /;
+const isForm = (card: Card) => (card.n ?? '').split('\n').some(line => line.replace(/^!/, '').split('; ').some(item => FORM.test(item.replace(HEAD, ''))));
+const LANGS = Object.keys(ORIGIN);
+const inLanguage = (lang: string): Card[] => {
+  if (lang === 'ru') return deck;
+  const rows: Record<string, string[]> = JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
+  return deck.map(card => ({ ...card, f: rows[card.id]?.[0] ?? '', n: rows[card.id]?.[3] ?? '' }));
+};
+/** Top-level parts of a reference list: `ont- (навстречу) + moeten (быть должным)` has two. */
+const partsIn = (list: string) => list.replace(/\((?:[^()]|\([^()]*\))*\)/g, '').split(/ [+=] /).map(p => p.trim()).filter(Boolean);
+const isAffix = (b: string) => /^-|-$/.test(b);
+
+const originItems = (card: Card, lang: string) =>
+  (card.n ?? '').split('\n').flatMap(line => line.replace(/^!/, '').split('; ')).filter(item => ORIGIN[lang]!.test(item.replace(HEAD, '')));
+const linksIn = (item: string, index: ReturnType<typeof buildIndex>, id: string) =>
+  linkSegments(item, index as never, id).flatMap(s => (s.link ? [index.byId.get(s.link)!.b] : []));
+
+describe('an affixed word', () => {
+  it.each(LANGS)('links its base and affix to their cards in %s', (lang) => {
+    const cards = inLanguage(lang);
+    const index = buildIndex(cards as never);
+    const unlinked = cards.filter(c => candidates.some(d => d.id === c.id && !isForm(d)) && !NOT_SPLIT.includes(c.b)).flatMap(card =>
+      originItems(card, lang).flatMap(item => {
+        const links = linksIn(item, index, card.id);
+        const based = links.some(b => !isAffix(b)) || card.b in FOSSIL;
+        return links.length < partsIn(item.replace(/^.*?: /, '')).length || !based ? [`${card.b}: ${item}`] : [];
+      }),
+    );
+    expect(unlinked).toEqual([]);
+  });
+
+  it('keeps a fossil base only for a word that links no base', () => {
+    const index = buildIndex(deck as never);
+    const stale = Object.keys(FOSSIL).filter(b => {
+      const card = deck.find(c => c.b === b);
+      return !card || !candidates.includes(card) || originItems(card, 'ru').some(item => linksIn(item, index, card.id).some(l => !isAffix(l)));
+    });
     expect(stale).toEqual([]);
   });
 });

@@ -88,10 +88,10 @@ const NOT_PEERS = new Set([
   // a compound, linked to its parts
   'het vliegtuig', 'de glucosemeting',
   // a variant or a feminine, linked as such
-  'de keus', 'de keuze', 'de verkoopster', 'beterschap', 'de beterschap',
+  'de keus', 'de keuze', 'de verkoopster', 'beterschap', 'de beterschap', 'makkelijk',
 ]);
-// Bases whose words drifted apart: uiterlijk and de uitkering share only uit
-const DRIFTED = new Set(['uit', 'over', 'eigen', 'het land', 'de dag', 'één', 'twee', 'vier', 'vijf']);
+// Bases whose words drifted apart: uiterlijk and de uitkering share only uit, het stel and tentoonstellen only stellen
+const DRIFTED = new Set(['uit', 'over', 'eigen', 'het land', 'de dag', 'één', 'twee', 'vier', 'vijf', 'stellen']);
 const peersOf = () => {
   const families = new Map<string, string[]>();
   for (const card of deck) {
@@ -130,7 +130,7 @@ const infinitivesOf = (stem: string) => {
 };
 // Same letters, unrelated or long drifted apart: de kop is a cup, kopen to buy
 const NOT_KIN = new Set([
-  'de kop|kopen', 'het spel|spellen', 'de rok|roken', 'de lever|leveren', 'de wet|weten', 'de pas|passen', 'het afval|afvallen', 'de hal|halen', 'de zak|zakken', 'het stel|stelen',
+  'de kop|kopen', 'het spel|spellen', 'de rok|roken', 'de lever|leveren', 'de wet|weten', 'de pas|passen', 'het afval|afvallen', 'de hal|halen', 'de zak|zakken', 'het stel|stelen', 'de weg|wegen',
 ]);
 const nounVerbPairs = deck.filter(card => card.p === 'noun' && /^(de|het) [a-zë]+$/.test(card.b)).flatMap(noun =>
   infinitivesOf(noun.b.split(' ')[1]!).filter(verb => byWord.get(verb)?.p === 'verb').map(verb => [noun.b, verb] as const))
