@@ -23,7 +23,7 @@ const LABEL: Record<string, Record<string, string>> = {
 const itemsOf = (note: string) => note.split('\n').flatMap(line => line.replace(/^!/, '').split('; ')).map(item => item.replace(/^(pl\. )?[mfn]\.(\/[mfn]\.)? /, ''));
 /** One link names several words as `label: a (…), b (…)`. */
 const names = (note: string, label: string, word: string) =>
-  itemsOf(note).some(item => item.startsWith(`${label}: `) && [`: ${word} (`, `: ${word} +`, `), ${word} (`].some(part => item.includes(part)));
+  itemsOf(note).some(item => item.startsWith(`${label}: `) && [`: ${word} (`, `: ${word} +`, `), ${word} (`, ` + ${word} (`].some(part => item.includes(part)));
 
 // A word made from another in the deck, by no affix the eye can split off: a verb from its noun, a noun from its verb or adjective
 const DERIVED: Array<[string, string]> = [
@@ -34,7 +34,7 @@ const DERIVED: Array<[string, string]> = [
   ['de uitgaven', 'uitgeven'], ['het drinken', 'drinken'], ['het eten', 'eten'], ['het leven', 'leven'], ['het geld', 'gelden'],
   ['vluchten', 'de vlucht'], ['de ander', 'ander'], ['fout', 'de fout'], ['het vet', 'vet'], ['de mobiel', 'mobiel'],
   ['de jongen', 'jong'], ['de jarige', 'jarig'], ['succes', 'het succes'], ['Engelse', 'Engels'], ['dag', 'de dag'],
-  ['weg', 'de weg'], ['de keuken', 'koken'], ['de vlucht', 'vliegen'],
+  ['weg', 'de weg'], ['de keuken', 'koken'], ['de vlucht', 'vliegen'], ['allebei', 'alle'], ['allebei', 'beide'],
 ];
 // Peers of one root, neither made from the other
 const RELATED: Array<[string, string]> = [

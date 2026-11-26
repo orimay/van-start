@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-interface Card { id: string; b: string; n?: string; nb?: string }
+interface Card { id: string; f: string; b: string; n?: string; nb?: string }
 interface Node { cards?: Card[]; children?: Node[] }
 type Row = [string, string?, string?, string?, string?];
 const deck: Node = JSON.parse(readFileSync('public/deck.json', 'utf8'));

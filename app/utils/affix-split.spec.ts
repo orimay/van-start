@@ -31,7 +31,7 @@ const NOT_SPLIT = [
   'de beurt', 'het ding', 'lelijk', 'vers', 'beige', 'de ring', 'de beschuit', 'de honing', 'ver', 'de verf', 'de ketting', 'de bes',
   'zalig', 'de camping', 'veilig', 'de benzine', 'de geit', 'de hersenen', 'de catering', 'de geest', 'de bende', 'stevig', 'de versie',
   'bezig', 'plotseling', 'ig', 'lijk', 'twaalfhonderdvijftig', 'geloven', 'gebruiken', 'gebeuren', 'genieten', 'genezen', 'genoeg',
-  'gezond', 'gewoon', 'beneden', 'het geslacht', 'de genoot',
+  'gezond', 'gewoon', 'beneden', 'het geslacht', 'de genoot', 'de beek', 'het beest', 'de gemeente', 'nauwelijks',
   // Made from a word the deck lacks or holds in another sense: slaan, not slagen; rechten (prepare); old voor + raad
   'de bijslag', 'de toeslag', 'de uitslag', 'de slager', 'het aanrecht', 'de voorraad',
   // A frozen form, named as related instead: rechter (right-hand) beside recht, eerste beside eerst

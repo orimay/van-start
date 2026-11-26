@@ -1240,7 +1240,7 @@ describe('dictation', () => {
       const { deck } = useStore();
       const was = deck.value;
       deck.value = { id: 'root', name: 'root', cards: list.map(c => ({ id: c.id, f: c.prompt, b: c.answer })) };
-      onTestFinished(() => (deck.value = was));
+      onTestFinished(() => { deck.value = was; });
     }
 
     /** The words the learner knows already. */

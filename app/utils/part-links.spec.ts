@@ -16,6 +16,8 @@ function deckIn(lang: string): DeckCard[] {
   });
 }
 const withoutGlosses = (text: string): string => (/\([^()]*\)/.test(text) ? withoutGlosses(text.replace(/\([^()]*\)/g, '')) : text);
+/** An unlinked first part merges into the label's text run, so only the label is cut off. */
+const withoutLabel = (item: string, [first, ...rest]: Array<{ text: string; link?: string }>) => [{ ...first!, text: first!.text.slice(item.match(ORIGIN)![0].length) }, ...rest];
 /** Words of a part list left as plain text: what a learner cannot open. */
 const unlinked = (segments: Array<{ text: string; link?: string }>) =>
   segments.filter(s => !s.link).flatMap(s => [...withoutGlosses(s.text).split(': ')[0]!.matchAll(/[\p{L}-][\p{L}' -]*[\p{L}-]|\p{L}/gu)].map(m => m[0].trim()));
@@ -26,7 +28,7 @@ describe.each(['ru', 'en', 'es', 'pt', 'tr', 'ro'])('in %s, every part a card is
 
   it('links to its card from the note', () => {
     const missing = cards.flatMap(c =>
-      (c.n ?? '').split('\n').flatMap(l => l.replace(/^!/, '').split('; ')).filter(item => ORIGIN.test(item)).flatMap(item => unlinked(linkSegments(item, index, c.id).slice(1)).map(w => `${c.b}: ${w}`)),
+      (c.n ?? '').split('\n').flatMap(l => l.replace(/^!/, '').split('; ')).filter(item => ORIGIN.test(item)).flatMap(item => unlinked(withoutLabel(item, linkSegments(item, index, c.id))).map(w => `${c.b}: ${w}`)),
     );
     expect(missing).toEqual([]);
   });
