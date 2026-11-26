@@ -432,6 +432,15 @@ const AMBIGUOUS: Record<string, Record<string, string>> = {
     'paga': 'dinero de bolsillo o él paga',
   },
   pt: {
+    'atirar': 'arremessar ou com arma', 'balcão': 'de atendimento ou de bebidas', 'bola': 'de jogar ou esfera', 'boletim': 'informativo ou escolar',
+    'brincar': 'de criança ou fazer graça', 'combinado': 'acordo ou junto', 'companheiro': 'de vida ou amigo', 'tamanho': 'de roupa ou dimensões',
+    'conjunto': 'kit ou um todo', 'corredor': 'de loja ou de casa', 'declaração': 'afirmação ou de impostos', 'depósito': 'de jardim ou no prédio',
+    'dirigir': 'um carro, o volante, para um alvo', 'faixa': 'de um álbum ou da estrada', 'força': 'potência ou bruta', 'ideia': 'noção ou imagem mental',
+    'impressão': 'visual ou vivida', 'interesse': 'benefício ou curiosidade', 'número': 'de telefone, quantos, algarismo', 'passe': 'de entrada ou de transporte',
+    'placa': 'de metal ou sinal', 'proprietário': 'dono ou de imóvel alugado', 'regra': 'norma ou acordada', 'relação': 'entre pessoas ou ligação lógica',
+    'renovar': 'reformar ou prolongar', 'serviço': 'ao cliente ou trabalho avulso', 'atendimento': 'ao cliente ou à mesa', 'navegar': 'de barco ou na internet',
+    'perder': 'o trem ou extraviar', 'pedir': 'por algo, formalmente, comida', 'artigo': 'de jornal, de loja, texto', 'conhecido': 'pessoa ou sabido',
+    'cartão': 'postal ou bancário',
     'passo': 'pisada ou etapa',
     'alcançar': 'o trem ou um objeto',
     'caro': 'de preço ou querido',
@@ -713,6 +722,9 @@ const CLEAR = new Set([
   'en:het busje', 'en:het plaatje', 'en:het kopje', 'en:het feestje', 'en:het bootje', 'en:het schoteltje', 'en:het stukje', 'en:het pakje', 'en:het potje', // minibus, picture, little cup...
   'en:wissel van rol', // switch roles
   'en:het maatje', 'en:hij rijdt', 'en:ik reed', 'en:wij reden', // buddy; drove, rode: a vehicle
+  'pt:het plaatje', 'pt:jij vraagt', 'pt:u vraagt', 'pt:hij vraagt', 'pt:zij vraagt', 'pt:vraag aan', 'pt:ik mis', 'pt:zij mist', 'pt:het beeldje', 'pt:het maatje', // figura, você pergunta, sinto falta, estatueta, amigo
+  'pt:hij stuurt', 'pt:ik heb gestuurd', 'pt:vaar', 'pt:hij is gevaren', 'pt:zij rijden', 'pt:wij reden', 'pt:het stukje', // manda, enviei, navegue, foi de barco, vão de carro, pedacinho
+  'pt:jij verliest', 'pt:ik heb verloren', 'pt:verlies niet', // perder: both senses of verliezen
   'es:hij noemt', 'es:tik', 'es:hij speelt', 'es:ik speelde', 'es:wij speelden', // él nombra, ¡pulsa!, él juega, jugaba
   'es:het busje', 'es:het tijdje', 'es:het doosje', 'es:het bosje', 'es:het lijstje', // microbús, un rato, cajita, manojito, listita
   'es:het groepje', 'es:hij draagt', 'es:zij draagt', 'es:ik neem', 'es:vaste', 'es:ik heb genomen', 'es:hij hangt', 'es:zij hangen', // grupito, él lleva, me llevo, fijo, está colgado
