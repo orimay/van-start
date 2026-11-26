@@ -14,7 +14,7 @@ import { markReviewed, type ReviewLog } from '@/utils/today';
 
 const DAY = 86_400_000;
 
-import { DEFAULT_GAMES, GAMES, type Game, learnStages, playsIn, REVIEW_GAMES, type ReviewGame, savedGames } from '@/utils/games';
+import { DEFAULT_GAMES, GAMES, type Game, hasPassed, learnStages, playsIn, REVIEW_GAMES, type ReviewGame, savedGames } from '@/utils/games';
 
 
 export const LANGUAGES = { en: 'English', es: 'Español', pt: 'Português', tr: 'Türkçe', ro: 'Română', ru: 'Русский' } as const;
@@ -98,7 +98,7 @@ const playedIn = (id: string, game: string) => playsIn(earless.value.has(id), ga
 /** Through every learning game on now, `stages` by default; a card learned before games were tracked counts as through. */
 function isThrough(id: string, stages: readonly string[] = learnStages(settings.value.games, settings.value.pronounceFirst)) {
   const games = passed.value[id];
-  return games ? stages.every(s => games.includes(s) || !playedIn(id, s)) : id in progress.value;
+  return games ? stages.every(s => hasPassed(games, s, scores.value[id]) || !playedIn(id, s)) : id in progress.value;
 }
 
 /** The cards start their learning games afresh. */

@@ -7,7 +7,7 @@ import { sessionScore } from '@/utils/score';
 import { cardsOf, nodeAt, toStudyCard } from '@/utils/deck';
 import { takeUpdateReload } from '@/utils/update-reload';
 import { saveBeforeUpdate } from '@/utils/update-hold';
-import { GAME_TITLES, learnStages } from '@/utils/games';
+import { GAME_TITLES, hasPassed, learnStages } from '@/utils/games';
 import { passRuns } from '@/utils/pass-runs';
 import { sessions } from '@/db/sessions';
 import { isSlow, sessionLog } from '@/db/shows';
@@ -47,10 +47,10 @@ let passedAtStart = { ...store.passed.value };
 /** Through every game on; a card learned before games were tracked counts as through. */
 const isDone = (id: string) => {
   const games = passedAtStart[id];
-  return games ? stages.every(s => games.includes(s) || !store.playedIn(id, s)) : store.isLearned(id);
+  return games ? stages.every(s => hasPassed(games, s, store.scores.value[id]) || !store.playedIn(id, s)) : store.isLearned(id);
 };
 /** Started under the games on now, but not through them. */
-const isStarted = (id: string) => !isDone(id) && stages.some(s => passedAtStart[id]?.includes(s));
+const isStarted = (id: string) => !isDone(id) && stages.some(s => hasPassed(passedAtStart[id], s, store.scores.value[id]));
 const NO_RECORD = { lapses: 0, difficulty: 0 };
 /** Cards with nothing left to learn: the rest join groups. */
 const done = () => Object.fromEntries(pool.filter(c => isDone(c.id)).map(c => [c.id, store.progress.value[c.id] ?? NO_RECORD]));
@@ -148,12 +148,12 @@ function restore() {
 const startedWords = computed(() => [...new Set([...startedBefore.map(c => c.id), ...(saved?.ids ?? [])])].filter(id => !isDone(id)));
 /** Words per game they passed, in game order, shown before they are dropped. */
 const passedGames = computed(() =>
-  stages.map(s => ({ title: GAME_TITLES[s], count: startedWords.value.filter(id => store.passed.value[id]?.includes(s)).length })).filter(g => g.count),
+  stages.map(s => ({ title: GAME_TITLES[s], count: startedWords.value.filter(id => hasPassed(store.passed.value[id], s, store.scores.value[id])).length })).filter(g => g.count),
 );
 /** Every game on, with how many words of the group to continue passed it. */
 /** Each game's passed words, lined up the same way in every game, drawn as a few runs however large the group. */
 const groupProgress = computed(() => {
-  const passes = group.value.map(c => stages.map(s => !!store.passed.value[c.id]?.includes(s) || !store.playedIn(c.id, s)));
+  const passes = group.value.map(c => stages.map(s => hasPassed(store.passed.value[c.id], s, store.scores.value[c.id]) || !store.playedIn(c.id, s)));
   const runs = passRuns(passes, stages.length);
   return stages.map((s, g) => ({ title: GAME_TITLES[s], passed: passes.filter(p => p[g]).length, of: group.value.length, runs: runs[g]! }));
 });

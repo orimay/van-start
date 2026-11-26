@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_GAMES, GAME_TITLES, GAMES, learnStages, reviewGameOf, savedGames, toggled } from './games';
+import { DEFAULT_GAMES, GAME_TITLES, GAMES, hasPassed, learnStages, reviewGameOf, savedGames, toggled } from './games';
 
 describe('learnStages', () => {
   it('runs every game after the intro, from matching to typing', () => {
@@ -24,6 +24,20 @@ describe('learnStages', () => {
 
   it('leaves out a game turned off', () => {
     expect(learnStages(['match', 'type'])).toEqual(['intro', 'match', 'type']);
+  });
+});
+
+describe('hasPassed', () => {
+  it('counts the intro as passed for a card with answers on record, the intro always going first', () => {
+    expect(hasPassed([], 'intro', { recall: { right: 0, wrong: 1 } })).toBe(true);
+  });
+
+  it('leaves the intro unpassed for a card with games passed but no answers on record, topped up from the deck', () => {
+    expect([hasPassed(['match'], 'intro', {}), hasPassed(['match'], 'intro', undefined)]).toEqual([false, false]);
+  });
+
+  it('counts a game as passed only when the card passed it', () => {
+    expect([hasPassed(['match'], 'match'), hasPassed(['match'], 'choice', { choice: { right: 1, wrong: 0 } })]).toEqual([true, false]);
   });
 });
 

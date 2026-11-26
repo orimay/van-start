@@ -7,7 +7,7 @@ import { preloadClips } from '@/utils/preload';
 import { seeded } from '@/utils/random';
 import { showsLeft } from '@/utils/shows-left';
 import { diff, patch, type Runs } from '@/utils/runs';
-import { GAME_TITLES, GAME_HINTS, playsIn } from '@/utils/games';
+import { GAME_TITLES, GAME_HINTS, hasPassed, playsIn } from '@/utils/games';
 import { knownColour } from '@/utils/known-colour';
 import { isMissed, oddsOf, type GameScores, type Score } from '@/utils/score';
 import { lookalikes } from '@/utils/similar';
@@ -115,7 +115,7 @@ const odds = new Map(Object.entries(props.scores ?? {}).map(([id, s]) => [id, od
 /** Asked in the game: not passed in it yet, and played by the card. */
 /** An affix or a sound has no clip of its own to hear. */
 const earless = (card: StudyCard) => !!card.affix || !!card.sound;
-const isDue = (card: StudyCard, game: string, passed?: Record<string, string[]>) => !passed?.[card.id]?.includes(game) && playsIn(earless(card), game);
+const isDue = (card: StudyCard, game: string, passed?: Record<string, string[]>) => !hasPassed(passed?.[card.id], game, props.gameScores?.[card.id]) && playsIn(earless(card), game);
 /** Games passed when the session began, so a stage's ladder keeps its length while its cards pass. */
 const passedAtStart: Record<string, string[]> = JSON.parse(JSON.stringify(props.passed ?? {}));
 /** A stage's ladder is as long as the words it asks, not the whole group. */

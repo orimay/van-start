@@ -161,3 +161,12 @@ describe('allebei and beiden', () => {
     expect(note(byWord.get('allebei')!)).toContain('allebei de');
   });
 });
+
+// A word that only looks built on another card: popmuziek takes pop from English popular, not from de pop (doll)
+const FALSE_ORIGINS: Array<[string, string]> = [['de popmuziek', 'pop']];
+describe('a false origin', () => {
+  it.each(LANGS)('is never linked in %s', (lang) => {
+    const note = noteIn(lang);
+    expect(FALSE_ORIGINS.filter(([word, origin]) => names(note(byWord.get(word)!), LABEL.from![lang]!, origin))).toEqual([]);
+  });
+});

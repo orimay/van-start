@@ -19,6 +19,7 @@ beforeEach(async () => {
   await store.ready;
   store.progress.value = {};
   store.passed.value = {};
+  store.scores.value = {};
   store.deck.value = { id: 'root', name: 'Root', cards: structuredClone(cards) };
   store.updateSettings({ groupSize: 5, games: ['match', 'choice', 'recallNative', 'recall', 'type'], topUp: undefined });
 });
@@ -223,6 +224,18 @@ describe('a group left halfway', () => {
       { game: 'Reading', passed: '0', of: '4' },
       { game: 'Speaking', passed: '0', of: '4' },
       { game: 'Writing', passed: '0', of: '4' },
+    ]);
+  });
+
+  // Pronouncing first skips the intro, and a group topped up from the deck brings words with games passed but no answers.
+  it('counts the intro passed for a word with answers on record, and only then', async () => {
+    await doLeaveAfter(2);
+    useStore().saveScore('k2', 'recall', { right: 0, wrong: 1 });
+    useStore().pass('k3', 'match');
+    const w = await doMount();
+    expect(readProgress(w).slice(0, 2)).toEqual([
+      { game: 'Intro', passed: '3', of: '4' },
+      { game: 'Associating', passed: '1', of: '4' },
     ]);
   });
 

@@ -1,3 +1,5 @@
+import type { GameScores } from './score';
+
 /** Games in the order a new group plays them: recognition first, then reading, listening, speaking and writing. */
 export const GAMES = ['match', 'choice', 'pronounce', 'recallNative', 'listen', 'recall', 'type', 'dictation'] as const;
 export type Game = (typeof GAMES)[number];
@@ -34,6 +36,10 @@ const EAR_GAMES: readonly string[] = ['listen', 'dictation'];
 /** A prefix or a suffix, like `be-` or `-heid`. */
 export const isAffix = (dutch: string) => dutch.startsWith('-') || dutch.endsWith('-');
 export const playsIn = (earless: boolean | undefined, game: string) => !earless || !EAR_GAMES.includes(game);
+
+/** The card passed the stage; answers on record mean its intro was passed too, the intro always going first. */
+export const hasPassed = (games: readonly string[] | undefined, stage: string, scores?: GameScores) =>
+  !!games?.includes(stage) || (stage === 'intro' && Object.values(scores ?? {}).some(s => s && s.right + s.wrong > 0));
 
 export const isReviewGame = (g: string): g is ReviewGame => (REVIEW_GAMES as readonly string[]).includes(g);
 
