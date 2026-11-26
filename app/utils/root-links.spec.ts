@@ -130,7 +130,7 @@ const infinitivesOf = (stem: string) => {
 };
 // Same letters, unrelated or long drifted apart: de kop is a cup, kopen to buy
 const NOT_KIN = new Set([
-  'de kop|kopen', 'het spel|spellen', 'de rok|roken', 'de lever|leveren', 'de wet|weten', 'de pas|passen', 'het afval|afvallen', 'de hal|halen', 'de zak|zakken',
+  'de kop|kopen', 'het spel|spellen', 'de rok|roken', 'de lever|leveren', 'de wet|weten', 'de pas|passen', 'het afval|afvallen', 'de hal|halen', 'de zak|zakken', 'het stel|stelen',
 ]);
 const nounVerbPairs = deck.filter(card => card.p === 'noun' && /^(de|het) [a-zë]+$/.test(card.b)).flatMap(noun =>
   infinitivesOf(noun.b.split(' ')[1]!).filter(verb => byWord.get(verb)?.p === 'verb').map(verb => [noun.b, verb] as const))

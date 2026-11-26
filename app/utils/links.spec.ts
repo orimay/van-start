@@ -14,6 +14,8 @@ const cards = [
   { id: 'weer-n', f: 'погода', b: 'het weer' },
   { id: 'pas-1', f: 'лишь', b: 'pas' },
   { id: 'pas-2', f: 'примерь!', b: 'pas' },
+  { id: 'Leiden', f: 'Лейден (город)', b: 'Leiden' },
+  { id: 'leiden', f: 'вести (за собой, куда-то)', b: 'leiden' },
   { id: 'pasje', f: 'карточка', b: 'het pasje', n: 'n. diminutivo de: pas (примерь!)' },
   { id: 'snel', f: 'быстро', b: 'snel', n: 'синоним: vlug (быстро)' },
   { id: 'vlug', f: 'быстро', b: 'vlug', n: 'синоним: snel (быстро)' },
@@ -81,6 +83,10 @@ describe('a reference in a note', () => {
 
   it('picks the card the gloss names among cards of one spelling', () => {
     expect(links('n. diminutivo de: pas (примерь!)')).toEqual([['pas', 'pas-2']]);
+  });
+
+  it('picks the card whose front shares the most words with a gloss that rewords it', () => {
+    expect(links('от: leiden (вести за собой)')).toEqual([['leiden', 'leiden']]);
   });
 
   it('leaves a note item without a reference label alone', () => {

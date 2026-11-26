@@ -60,8 +60,14 @@ function resolve(index: CardIndex, dutch: string, gloss: string | undefined, sel
   const candidates = [dutch, ...(bare === dutch ? [bare] : []), `de ${bare}`, `het ${bare}`].map(k => index.bySide.get(key(k))).find(Boolean)?.filter(c => c.id !== self);
   if (!candidates?.length) return undefined;
   const g = gloss?.toLowerCase();
-  return (g && candidates.find(c => c.f.toLowerCase().includes(g) || g.includes(c.f.toLowerCase())) || candidates[0]!).id;
+  if (!g) return candidates[0]!.id;
+  const named = candidates.find(c => c.f.toLowerCase().includes(g) || g.includes(c.f.toLowerCase()));
+  // A gloss may reword the front: «вести за собой» for «вести (за собой, куда-то)».
+  const shared = (c: { f: string }) => wordsOf(c.f.toLowerCase()).filter(word => wordsOf(g).includes(word)).length;
+  return (named ?? candidates.reduce((best, c) => (shared(c) > shared(best) ? c : best))).id;
 }
+
+const wordsOf = (text: string) => text.match(/\p{L}+/gu) ?? [];
 
 /** The words of a reference list linked to their cards, glosses and separators as text. */
 function linkList(list: string, index: CardIndex, self: string | undefined): Segment[] {
