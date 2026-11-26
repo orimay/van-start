@@ -10,16 +10,18 @@ const overlays = Object.fromEntries(['en', 'es', 'pt', 'ro', 'tr'].map(lang => [
 
 /** How each language says a sense belongs to the base word alone. */
 const ONLY: Record<string, string> = { ru: 'только', en: 'only', es: 'solo', pt: 'só', ro: 'doar', tr: 'sadece' };
+/** How each language says a sense belongs to the inflected form before a plural: `перед мн. ч.: несколько`. */
+const PLURAL: Record<string, string> = { ru: 'перед мн. ч.', en: 'before a plural', es: 'ante plural', pt: 'antes de plural', ro: 'înainte de plural', tr: 'çoğuldan önce' };
 
 const sensesOf = (front: string) => front.split(/; |, (?![^(]*\))/).map(s => s.trim());
 const frontIn = (lang: string, card: Card) => lang === 'ru' ? card.f : overlays[lang]![card.id]![0]!;
 const noteIn = (lang: string, card: Card) => (lang === 'ru' ? card.n : overlays[lang]![card.id]![3]) ?? '';
 
 /** The senses the note gives to the base alone: `только vast: наверняка`. */
-function baseOnly(lang: string, note: string, base: string) {
-  const label = `${ONLY[lang]} ${base}: `;
-  return note.split(/; |\n/).filter(item => item.startsWith(label)).flatMap(item => sensesOf(item.slice(label.length)));
-}
+const sensesAfter = (label: string, note: string) => note.split(/; |\n/).filter(item => item.startsWith(label)).flatMap(item => sensesOf(item.slice(label.length)));
+const baseOnly = (lang: string, note: string, base: string) => sensesAfter(`${ONLY[lang]} ${base}: `, note);
+/** The senses the note gives to the form alone: `перед мн. ч.: несколько`. */
+const pluralOnly = (lang: string, note: string) => sensesAfter(`${PLURAL[lang]}: `, note);
 
 const byWord = Map.groupBy(deck, card => card.b);
 /** Each inflected adjective (vaste) with its base (vast). */
@@ -41,5 +43,14 @@ describe('an inflected adjective', () => {
       return missing.length ? [`${base.b} | ${form.b}: ${missing.join(', ')}`] : [];
     });
     expect(unexplained).toEqual([]);
+  });
+
+  it.each(Object.keys(ONLY))('means nothing its base does not, bar the senses it takes before a plural, in %s', (lang) => {
+    const extra = pairs.flatMap(({ base, form }) => {
+      const baseSenses = new Set([...sensesOf(frontIn(lang, base)), ...pluralOnly(lang, noteIn(lang, form))]);
+      const added = sensesOf(frontIn(lang, form)).filter(sense => !baseSenses.has(sense));
+      return added.length ? [`${base.b} | ${form.b}: ${added.join(', ')}`] : [];
+    });
+    expect(extra).toEqual([]);
   });
 });
