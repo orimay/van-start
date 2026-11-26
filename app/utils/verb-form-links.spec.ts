@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { formsOf } from '@/utils/verb-forms';
 
-type Card = { id: string; b: string; n?: string; p?: string };
+type Card = { id: string; b: string; f: string; n?: string; p?: string };
 type Node = { cards?: Card[]; children?: Node[] };
 const cardsOf = (node: Node): Card[] => [...(node.cards ?? []), ...(node.children ?? []).flatMap(cardsOf)];
 const deck = cardsOf(JSON.parse(readFileSync('public/deck.json', 'utf8')));
@@ -33,7 +33,9 @@ const NOT_A_FORM = [
   'het ontbijt', 'het hout', 'met je', 'vraag aan',
 ];
 
-const verbs = deck.filter(c => c.p === 'verb');
+/** A dictionary verb: its front opens on a Russian infinitive (сдаться), not a form (я сдался) or a request (сдайся!). */
+const INFINITIVE = /^[а-яё-]+(ть|ти|чь)(ся|сь)?(?=[\s,;:(]|$)/;
+const verbs = deck.filter(c => c.p === 'verb' && INFINITIVE.test(c.f) && !c.f.includes('!'));
 const formsByVerb = new Map(verbs.map(v => [v.b, formsOf(v.b.toLowerCase())]));
 /** The verbs a card is a form of. */
 const verbsOf = (card: Card) => verbs.filter(v => v.id !== card.id && formsByVerb.get(v.b)!.has(spelling(card.b))).map(v => v.b);

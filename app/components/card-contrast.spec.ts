@@ -14,6 +14,9 @@ const CARDS: Record<string, DeckCard> = {
   'a verb': { id: 'kennen', f: 'знать', b: 'kennen', p: 'verb', tr: 'кЕнэ(н)', n: 'быть знакомым', xf: 'Я знаю его.', xb: 'Ik ken hem.' },
   'a letter': { id: 'n', f: 'эн (буква)', b: 'n', n: 'буква', tr: 'эн' },
   'a sentence': { id: 'zin', f: 'Как дела?', b: 'Hoe gaat het?', k: 'sentence', tr: 'ху хаат эт' },
+  'a two-part': { id: 'vroeg', f: 'рано; ранний', b: 'vroeg', p: 'adverb', ps: ['adverb', 'adjective'], tr: 'врух', xf: 'Я встаю рано.', xb: 'Ik sta vroeg op.' },
+  'an adjective': { id: 'mooi', f: 'красивый', b: 'mooi', p: 'adjective', tr: 'мой', n: 'о виде' },
+  'a phrase': { id: 'kwart', f: 'четверть десятого', b: 'kwart over negen', p: 'phrase', tr: 'кварт овэр нЕхэ' },
   'an affix': { id: 'nis', f: 'результат, состояние', b: '-nis', tr: 'нис', xb: 'de kennis', xt: 'дэ кЕнис', xf: 'знакомый' },
 } as Record<string, DeckCard>;
 

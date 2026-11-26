@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-type Card = { id: string; b: string; f: string; n?: string };
+type Card = { id: string; b: string; f: string; n?: string; p?: string; ps?: string[] };
 type Node = { cards?: Card[]; children?: Node[] };
 const cardsOf = (node: Node): Card[] => [...(node.cards ?? []), ...(node.children ?? []).flatMap(cardsOf)];
 const deck = cardsOf(JSON.parse(readFileSync('public/deck.json', 'utf8')));
@@ -34,6 +34,12 @@ const pairs = deck.flatMap((form) => {
 describe('an inflected adjective', () => {
   it('is found for the known pairs', () => {
     expect(pairs.map(({ form }) => form.b)).toEqual(expect.arrayContaining(['vaste', 'goede', 'snelle']));
+  });
+
+  // An inflected form stands before a noun, so an adverb, a noun or an interjection sense belongs to the base alone (goed: хорошо).
+  it('has only the senses an adjective takes before a noun', () => {
+    const offending = pairs.flatMap(({ form }) => (form.ps ?? [form.p]).filter(part => !['adjective', 'pronoun', 'numeral'].includes(part!)).map(part => `${form.b}: ${part}`));
+    expect(offending).toEqual([]);
   });
 
   it.each(Object.keys(ONLY))('has every sense of its base or names the base-only ones, in %s', (lang) => {

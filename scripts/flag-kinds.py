@@ -1,7 +1,8 @@
 """Flag the cards a learner can switch off: `k: 'sentence'` and `k: 'combination'` in public/deck.json.
 
-Also tags a noun or a verb with `p: 'noun'` / `p: 'verb'`, so one spelling as a noun, a verb or an affix
-looks apart (de boeken, boeken, op-). A noun has its article; a verb is glossed by a Russian infinitive.
+Also tags each word with its part of speech, `p` (noun, verb, adjective, adverb, pronoun, ...), so the card
+takes that part's colour; a word whose `; ` front groups are different parts (vroeg «рано; ранний») gets
+`ps`, one part per group, from SENSES.
 
 Sentence: a phrase or sentence that only shows words in use (`op zaterdagavond`, `de appel is groot`).
 Combination: one of a rule-built series (`dinsdagochtend`, `vierentwintig`, `om half tien`); the first
@@ -201,11 +202,9 @@ SUBJECT = re.compile(r'^(een|ik|je|jij|u|hij|zij|ze|we|wij|jullie|het|dat|er|daa
 CLAUSE = re.compile(r'\b(is|was|ging|gaat|deed|heeft|heerst|wordt|spijt)\b|\bover$')
 
 
-def part_of(c):
+def noun_or_verb(c):
     """A noun or a verb, by its article or its Russian infinitive; anything else stays untagged."""
     b, f = c['b'], c['f']
-    if c.get('k') == 'sentence' or b.startswith('-') or b.endswith('-'):
-        return None
     head = re.sub(r'\([^)]*\)', '', re.split(r'[;,:]', f)[0]).split()
     # het before a noun or an adjective is an article, not a subject: het licht uitdoen, het koud hebben.
     subject = SUBJECT.match(b) and not (b.startswith('het ') and not CLAUSE.search(b))
@@ -217,6 +216,112 @@ def part_of(c):
     if re.fullmatch(r'(de|het) \S+ .+', b) and not CLAUSE.search(b) and not (head and INFINITIVE.match(head[0])):
         return 'noun'
     return None
+
+
+WORD_PRON = set("ik jij je u hij zij ze het wij we jullie men mij me jou hem haar ons onze hun hen mijn m'n jouw uw zijn z'n dit dat deze die wie wat welk welke iets niets niks iemand niemand alles allemaal elkaar zich zelf mezelf jezelf zichzelf iedereen ieder elk elke alle sommige sommigen beide beiden allebei geen zulke zo'n de een dezelfde hetzelfde wiens waarmee waarover waarvan anderen vele".split())
+WORD_PREP = PREP | set('rond rondom binnen buiten tijdens volgens behalve via vanuit tegenover voorbij beneden inclusief exclusief'.split())
+WORD_CONJ = set('en of maar want omdat dat als toen terwijl hoewel zodat nadat voordat totdat sinds dus wanneer zoals tenzij noch zowel ofwel alsof'.split())
+INTERJ = set('hallo hoi dag ja nee oh o ach hè hé nou jee bah tja oké ok sorry pardon bedankt dank alsjeblieft alstublieft gefeliciteerd proost doei welterusten eh ha hi doeg liefs welkom ah gecondoleerd afgesproken jazeker goedemorgen goedemiddag goedenavond goeiemorgen goeiemiddag goedenacht hoera au oeps super jammer'.split())
+_U = '(één|een|twee|drie|vier|vijf|zes|zeven|acht|negen)'
+_T = '(tien|elf|twaalf|dertien|veertien|vijftien|zestien|zeventien|achttien|negentien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig)'
+NUM = re.compile(rf'^(?=.{{3}})(nul|miljoen|miljard|anderhalf|half|halve|honderden|({_U}|{_T})?(honderd|duizend)?({_U}(ën|en))?({_U}|{_T})?)(ste|de)?$')
+ORD = re.compile(r'^(eerste|tweede|derde|vierde|vijfde|zesde|zevende|achtste|negende|tiende|elfde|twaalfde|\w+(tigste|tiende|honderdste|duizendste))$')
+MONTH = re.compile(rf'^({MONTHS})$')
+ADJ_RU = re.compile(r'(ийся|ыйся|аяся|ееся|иеся|ый|ий|ой|ая|яя|ое|ее|ые|ие|ин|ов|ья|ье|ьи)$')
+SHORT_ADJ_RU = re.compile(r'^(рад|готов|болен|должен|согласен|занят|свободен|нужен|прав|похож|жив|сыт|уверен|виноват|знаком|доволен|голоден|женат|замужем)$')
+IMPERATIVE = re.compile(r'^(не )?[а-яё]+(й|и|ь|йте|ите|ьте|йся|ись|ься|йтесь|итесь|ьтесь)$')
+PAST = re.compile(r'^[а-яё]+(ал|ял|ел|ил|ыл|ул|ла|ли|лся|лась|лись|лось|шёл|шла|шли)$')
+# The particle a separable verb leaves at the end: zij halen op.
+PARTICLES = set('op aan af uit mee in weg terug toe om door over na bij voor samen thuis'.split())
+AUXILIARY = set('heb hebt heeft hebben ben bent is zijn wordt worden'.split())
+PARTICIPLE = re.compile(r'^(\w*ge\w+|be\w+|ver\w+|ont\w+|her\w+)[dtn]$')
+VERB_FORM_SUBJECT = set('ik jij je u hij zij ze wij we jullie het er daar men'.split())
+# Words a rule types wrongly: a short gloss that looks like another part, or a word with no tell.
+PART = {
+    'u': 'pronoun', 'een': 'pronoun', 'de': 'pronoun', 'het': 'pronoun', 'is': 'verb', 'zullen': 'verb', 'klaarligt': 'verb', 'aangeboden': 'verb',
+    'zuid': 'noun', 'noord': 'noun', 'mam': 'noun', 'mama': 'noun', 'papa': 'noun', 'schat': 'noun', 'goud': 'noun', 'zilver': 'noun', 'audio': 'noun', 'mevrouw': 'noun', 'meneer': 'noun', 'leuks': 'noun',
+    'burgerzaken': 'noun', 'personeelszaken': 'noun', 'funda': 'noun', 'heleboel': 'noun', 'Berlijn': 'noun', 'waterpolo': 'noun',
+    'kletsnat': 'adjective', 'kletsnatte': 'adjective', 'ongetrouwd': 'adjective', 'autovrij': 'adjective', 'bang': 'adjective', 'overleden': 'adjective', 'gepast': 'adjective', 'geopend': 'adjective', 'benieuwd': 'adjective', 'fit': 'adjective',
+    'vrijstaand': 'adjective', 'vrijstaande': 'adjective', 'stampvol': 'adjective', 'stampvolle': 'adjective', 'levensgevaarlijk': 'adjective', 'levensgevaarlijke': 'adjective', 'doodmoe': 'adjective',
+    'verkrijgbaar': 'adjective', 'wakker': 'adjective', 'verkeerd': 'adjective', 'verkeerde': 'adjective', 'hele': 'adjective', 'grotere': 'adjective', 'inbegrepen': 'adjective', 'smakelijk': 'adjective',
+    'eerst': 'adverb', 'alweer': 'adverb', 'bijna': 'adverb', 'haast': 'adverb', 'trouwens': 'adverb', 'weg': 'adverb', 'alvast': 'adverb', 'liever': 'adverb', 'vannacht': 'adverb', 'vooraf': 'adverb',
+    'het heeft gesmaakt': 'phrase', 'goede keuze': 'interjection', 'veel plezier ermee': 'interjection', 'sterkte': 'interjection', 'succes': 'interjection', 'beterschap': 'interjection', 'oei': 'interjection', 'groetjes': 'interjection',
+}
+# Glossed like an infinitive, but an adverb.
+NOT_VERB_SENSE = {'прочь'}
+# Senses a gloss cannot tell apart: a Russian noun or a short past tense; None where every sense is one part.
+SENSES = {
+    'er': None, 'lichter': None, 'dunner': None, 'eerder': None, 'uiterlijk': None, 'uitgesproken': None, 'waard': None,
+    'plastic': ['adjective', 'noun'], 'vuil': ['adjective', 'noun'], 'enkele': ['adjective', 'pronoun'],
+    'gestorven': ['adjective', 'verb'], 'verdwenen': ['adjective', 'verb'], 'stukgegaan': ['adjective', 'verb'],
+    'langer': ['adverb', 'adjective', 'adjective'], 'harder': ['adverb', 'adverb', 'adjective'], 'prima': ['adverb', 'adjective', 'interjection'],
+}
+
+
+def head_of(gloss):
+    words = re.findall(r'[а-яёА-ЯЁ-]+', re.sub(r'\([^)]*\)', '', gloss))
+    return words[0].lower() if words else ''
+
+
+def sense_part(gloss, fallback):
+    """A Russian gloss's part, from its head word."""
+    h = head_of(gloss)
+    if INFINITIVE.match(h) and h not in NOT_VERB_SENSE:
+        return 'verb'
+    if ADJ_RU.search(h) or SHORT_ADJ_RU.match(h):
+        return 'adjective'
+    if gloss.endswith('!') and not IMPERATIVE.match(h):
+        return 'interjection'
+    return fallback
+
+
+def part_of(c, adjectives=frozenset()):
+    """A card's part of speech: by a word list, its article, its Russian gloss, or how many words it has; affixes and sentences stay untagged."""
+    b, f = c['b'], c['f']
+    if c.get('k') == 'sentence' or b.startswith('-') or b.endswith('-'):
+        return None
+    if re.search(r'\((буква|как в «)', f):
+        return 'letter'
+    if b in PART:
+        return PART[b]
+    # A comparative of an adjective card: groter, mooier.
+    if re.fullmatch(r'[a-z]+er', b) and {b[:-2], b[:-3], b[:-2] + 'r'} & adjectives and b not in ('later', 'eerder', 'verder', 'langer', 'harder'):
+        return 'adjective'
+    if part := noun_or_verb(c):
+        return part
+    g0 = f.split('; ')[0]
+    words = b.lower().strip('?!.').split()
+    if all(NUM.match(w) or ORD.match(w) for w in words):
+        return 'numeral'
+    if len(words) > 1:
+        if b[0].isupper() and not b.endswith('?'):
+            return 'noun'
+        if words[0] in VERB_FORM_SUBJECT or ('!' in g0 and IMPERATIVE.match(head_of(g0))):
+            return 'verb' if len(words) == 2 or (len(words) == 3 and (words[2] in PARTICLES or (words[1] in AUXILIARY and PARTICIPLE.match(words[2])) or any(PAST.match(w) for w in re.findall(r'[а-яё]+', f)))) else 'phrase'
+        return 'phrase'
+    if MONTH.match(words[0]):
+        return 'noun'
+    if b[0].isupper():
+        return 'adjective' if ADJ_RU.search(head_of(g0)) and len(re.sub(r'\([^)]*\)', '', g0).split()) == 1 else 'noun'
+    if '!' in g0 and IMPERATIVE.match(head_of(g0)):
+        return 'verb'
+    for part, listed in (('interjection', INTERJ), ('pronoun', WORD_PRON), ('conjunction', WORD_CONJ), ('preposition', WORD_PREP)):
+        if words[0] in listed:
+            return part
+    if PAST.match(head_of(g0)):
+        return 'verb'
+    return sense_part(g0, 'adverb')
+
+
+def senses_of(c, adjectives=frozenset()):
+    """The part of each sense on the front, in its order, when they differ (goed: хороший; хорошо); else None."""
+    if c['b'] in SENSES:
+        return SENSES[c['b']]
+    groups = c['f'].split('; ')
+    if len(groups) < 2 or part_of(c, adjectives) not in ('adjective', 'adverb'):
+        return None
+    parts = [sense_part(g, 'adverb') for g in groups]
+    return parts if len(set(parts)) > 1 else None
 
 
 def main():
@@ -236,11 +341,16 @@ def main():
             c['k'] = 'sentence'
     add_rules(firsts)
     for c in all_cards:
-        if part := part_of(c):
+        c.pop('ps', None)
+    adjectives = {c['b'] for c in all_cards if ' ' not in c['b'] and part_of(c) == 'adjective'}
+    for c in all_cards:
+        if part := part_of(c, adjectives):
             c['p'] = part
+        if senses := senses_of(c, adjectives):
+            c['ps'] = senses
     json.dump(deck, open(deck_path, 'w'), ensure_ascii=False, separators=(',', ':'))
     counts = {k: sum(c.get('k') == k for c in all_cards) for k in ('sentence', 'combination')}
-    counts |= {p: sum(c.get('p') == p for c in all_cards) for p in ('noun', 'verb')}
+    counts |= {p: sum(c.get('p') == p for c in all_cards) for p in sorted({c['p'] for c in all_cards if 'p' in c})} | {'ps': sum('ps' in c for c in all_cards)}
     print(counts, {i: c['b'] for i, c in firsts.items()})
 
 

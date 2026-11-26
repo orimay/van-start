@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { type StudyCard, toStudyCard } from '@/utils/deck';
-import { surfaceOf } from '@/utils/surface';
+import { senseColourOf, surfaceOf } from '@/utils/surface';
 import { contrastOf } from '../../tests/contrast';
 
-const PARTS: Array<NonNullable<StudyCard['part']>> = ['affix', 'noun', 'verb', 'letter', 'sentence'];
+const PARTS: Array<NonNullable<StudyCard['part']>> = ['affix', 'noun', 'verb', 'letter', 'sentence', 'adjective', 'adverb', 'pronoun', 'numeral', 'preposition', 'conjunction', 'interjection', 'phrase'];
 const SLOTS = ['border', 'bg', 'dark:border', 'dark:bg'];
 const colourOf = (part: StudyCard['part'], slot: string) => {
   const found = surfaceOf({ part } as StudyCard).split(' ').find(c => c.startsWith(`${slot}-[oklch(`));
@@ -21,7 +21,7 @@ describe('a kind tint', () => {
 
   it.each(SLOTS)('keeps its hue well apart from every other kind for %s', (slot) => {
     const hues = PARTS.map(part => colourOf(part, slot).h).sort((a, b) => a - b);
-    expect(Math.min(...hues.slice(1).map((h, i) => h - hues[i]!))).toBeGreaterThanOrEqual(40);
+    expect(Math.min(...hues.slice(1).map((h, i) => h - hues[i]!))).toBeGreaterThanOrEqual(20);
   });
 
   // Red reads as a mistake.
@@ -63,5 +63,25 @@ describe('a kind tint', () => {
   // On a dark card the background barely shows a hue; the border carries it.
   it.each(PARTS)('draws its dark border clearly against its card for %s', (part) => {
     expect(contrastOf(oklchOf(part, 'dark:border'), oklchOf(part, 'dark:bg'))).toBeGreaterThanOrEqual(3);
+  });
+});
+
+const senseOklchOf = (part: StudyCard['part'], dark: boolean) => {
+  const found = senseColourOf(part!).split(' ').find(c => c.startsWith(dark ? 'dark:text-[oklch(' : 'text-[oklch('));
+  return found!.slice(found!.indexOf('[') + 1, -1).replaceAll('_', ' ');
+};
+
+describe('a sense colour', () => {
+  // A card of one part shows a sense of another part on its own tint: goed (хороший; хорошо).
+  it.each(PARTS)('reads at AA on every kind tint in both themes for %s', (part) => {
+    const low = PARTS.flatMap(card => [
+      ...(contrastOf(senseOklchOf(part, false), oklchOf(card, 'bg')) < 4.5 ? [`${card} light`] : []),
+      ...(contrastOf(senseOklchOf(part, true), oklchOf(card, 'dark:bg')) < 4.5 ? [`${card} dark`] : []),
+    ]);
+    expect(low).toEqual([]);
+  });
+
+  it('differs for every part', () => {
+    expect(new Set(PARTS.map(part => senseColourOf(part))).size).toBe(PARTS.length);
   });
 });

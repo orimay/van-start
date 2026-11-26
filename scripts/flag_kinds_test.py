@@ -17,14 +17,23 @@ fails += [f'not a sentence: {b}' for b in SENTENCE if not m.is_sentence(b)]
 fails += [f'a sentence: {b}' for b in NOT_SENTENCE if m.is_sentence(b)]
 fails += [f'not in series {i}: {b}' for b, i in COMBINATION.items() if not m.SERIES[i].fullmatch(b)]
 
-# A part of speech: a noun by its article, a verb by its Russian infinitive; a look-alike stays untagged.
+# A part of speech: a noun by its article, a verb by its Russian infinitive, the rest by its word or its gloss.
 PARTS = [('de boeken', 'книги (мн.)', 'noun'), ('boeken', 'бронировать (поездку)', 'verb'), ('pijn doen', 'болеть', 'verb'),
-         ('het kan', 'это возможно, можно', None), ('kwart over negen', 'четверть десятого', None), ('zesentwintig', 'двадцать шесть', None),
-         ('vraag', 'спроси!; попроси!', None), ('op-', 'вверх', None), ('weg', 'прочь', None),
+         ('het kan', 'это возможно, можно', 'verb'), ('kwart over negen', 'четверть десятого', 'phrase'), ('zesentwintig', 'двадцать шесть', 'numeral'),
+         ('vraag', 'спроси!; попроси!', 'verb'), ('op-', 'вверх', None), ('weg', 'прочь', 'adverb'),
          # A phrase led by its article is typed with it, like a noun card: het dagelijkse leven.
          ('het dagelijkse leven', 'повседневная жизнь', 'noun'), ('de soep van de dag', 'суп дня', 'noun'),
-         ('het spijt me', 'мне жаль', None), ('de trein ging', 'поезд поехал', None), ('de brug over', 'через мост', None), ('het gaat goed', 'всё хорошо', None), ('het heeft gesmaakt', 'было вкусно', None), ('het heerst nu', 'это сейчас ходит', None),
-         ('het licht uitdoen', 'выключать свет (в комнате)', 'verb'), ('het saldo opladen', 'пополнить баланс (свой)', 'verb'), ('het koud hebben', 'мёрзнуть', 'verb'), ('het is begonnen', 'оно началось', None), ('een kopje koffie', 'чашечка кофе', None)]
+         # A longer clause is a set phrase; a pronoun and its verb are a verb form, with its participle or its particle too.
+         ('het spijt me', 'мне жаль', 'phrase'), ('de trein ging', 'поезд поехал', 'phrase'), ('de brug over', 'через мост', 'phrase'), ('het gaat goed', 'всё хорошо', 'phrase'), ('het heeft gesmaakt', 'было вкусно', 'phrase'), ('het heerst nu', 'это сейчас ходит', 'phrase'),
+         ('het licht uitdoen', 'выключать свет (в комнате)', 'verb'), ('het saldo opladen', 'пополнить баланс (свой)', 'verb'), ('het koud hebben', 'мёрзнуть', 'verb'), ('het is begonnen', 'оно началось', 'verb'), ('een kopje koffie', 'чашечка кофе', 'phrase'), ('ik ben', 'я есть', 'verb'),
+         ('ik heb gefietst', 'я катался на велосипеде', 'verb'), ('zij halen op', 'они забирают', 'verb'), ('het is groot', 'оно большое', 'phrase'), ('ik heb gebracht', 'я отвёз', 'verb'), ('het wordt bezorgd', 'это доставляют', 'verb'), ('ik heb geen plannen', 'у меня нет планов', 'phrase'),
+         ('mooi', 'красивый', 'adjective'), ('gisteren', 'вчера', 'adverb'), ('hij', 'он', 'pronoun'), ('omdat', 'потому что', 'conjunction'), ('naast', 'рядом с', 'preposition'),
+         ('hallo', 'привет', 'interjection'), ('twintigste', 'двадцатый', 'numeral'), ('januari', 'январь', 'noun'), ('ij', 'эй (как в «hij»)', 'letter'), ('n', 'эн (буква)', 'letter')]
+# A card whose senses are different parts of speech names each, in the order of its front.
+SENSES = [('goed', 'хороший, правильный; хорошо', ['adjective', 'adverb']), ('mooi', 'красивый', None), ('weg', 'прочь; нет на месте (пропал, ушёл)', None),
+          ('plastic', 'пластиковый; пластик', ['adjective', 'noun']), ('smakelijk', 'вкусный; приятного!', ['adjective', 'interjection']), ('verdwenen', 'исчезнувший; исчез', ['adjective', 'verb']),
+          ('er', 'там; есть, имеется', None), ('lichter', 'светлее; легче (по весу)', None), ('enkele', 'одиночный; несколько', ['adjective', 'pronoun'])]
+fails += [f'{b}: {m.senses_of({"b": b, "f": f})} not {ps}' for b, f, ps in SENSES if m.senses_of({'b': b, 'f': f}) != ps]
 fails += [f'{b}: {m.part_of({"b": b, "f": f})} not {part}' for b, f, part in PARTS if m.part_of({'b': b, 'f': f}) != part]
 
 # The applied deck: the first of a series stays and carries the rule.
@@ -34,7 +43,7 @@ for first, series in [('de zaterdagmiddag', 0), ('eenentwintig', 1)]:
     card = by_b[first]
     if card.get('k') or not all(item in card.get('n', '') for item in m.RULES[series][0]):
         fails.append(f'first of the series lost its rule: {first}')
-if by_b['dinsdagochtend'].get('k') != 'combination' or by_b['de boeken'].get('p') != 'noun':
+if by_b['dinsdagochtend'].get('k') != 'combination' or by_b['de boeken'].get('p') != 'noun' or by_b['goed'].get('ps') != ['adjective', 'adverb']:
     fails.append('deck not flagged: run python3 -I scripts/flag-kinds.py')
 
 print('\n'.join(fails) or 'ok')

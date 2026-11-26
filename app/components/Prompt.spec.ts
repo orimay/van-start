@@ -505,3 +505,26 @@ describe('a card surface', () => {
     expect(new Set(tints.map(([prompt]) => prompt!.split(' ').filter(c => c.startsWith('dark:')).join(' '))).size).toBe(4);
   });
 });
+
+describe('a word of several parts', () => {
+  const vroeg: DeckCard = { id: 'v0', f: 'рано; ранний', b: 'vroeg', p: 'adverb', ps: ['adverb', 'adjective'] };
+  const readSenses = (w: VueWrapper) => w.findAll('[data-testid="sense"]').map(s => ({ text: s.text(), colour: s.classes().filter(c => /^(dark:)?text-/.test(c)).join(' ') }));
+
+  it('shows each sense in the colour of its part', async () => {
+    const w = await mountSuspended(Prompt, { props: { card: toStudyCard(vroeg) } });
+    const senses = readSenses(w);
+    expect(w.get('[data-testid="prompt"]').text()).toBe('рано; ранний');
+    expect(senses.map(s => s.text)).toEqual(['рано', 'ранний']);
+    expect(new Set(senses.map(s => s.colour)).size).toBe(2);
+  });
+
+  it('shows the Dutch side in one colour', async () => {
+    const w = await mountSuspended(Prompt, { props: { card: flip(toStudyCard(vroeg)) } });
+    expect(readSenses(w)).toEqual([]);
+  });
+
+  it('is one colour with a single part', async () => {
+    const w = await mountSuspended(Prompt, { props: { card: toStudyCard({ id: 'v1', f: 'красивый', b: 'mooi', p: 'adjective' }) } });
+    expect(readSenses(w)).toEqual([]);
+  });
+});
