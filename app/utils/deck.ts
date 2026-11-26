@@ -240,6 +240,6 @@ function kindsOf(card: DeckCard, note: string): NoteKind[] {
 /** A note item's opening words, set apart in show: a label before its colon, an example's Dutch before its gloss. */
 export function noteHead(text: string, kind: NoteKind): string | undefined {
   if (kind === 'rule') return undefined;
-  const end = kind === 'example' ? text.search(/ \(|: | — /) : text.indexOf(': ');
+  const end = kind === 'example' ? text.search(/ \(|: | [—-] /) : text.indexOf(': ');
   return end < 0 ? kind === 'example' ? text : undefined : text.slice(0, end);
 }

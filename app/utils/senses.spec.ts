@@ -58,6 +58,7 @@ const SENSES: Record<string, string[]> = {
   'de tijd': ['время', 'грамматическое время'],
   slaan: ['бить', 'сворачивать'],
   staan: ['стоять', 'написанным', 'идти'],
+  trekken: ['тянуть', 'проводить', 'путешествовать'],
 };
 
 const glossesOf = (f: string) => f.split(/[;,] /).map(s => s.replace(/ \(.*$/, ''));
@@ -101,6 +102,24 @@ const PHRASES: Record<string, string[]> = {
   denken: ['denken aan', 'dacht, gedacht'],
   zien: ['tot ziens', 'zag, gezien'],
   zeggen: ['wat zeg je?', 'zei, gezegd'],
+  houden: ['houden van', 'hield, gehouden'],
+  rijden: ['de trein rijdt niet', 'reed, gereden'],
+  komen: ['ik kom eraan', 'kwam, gekomen'],
+  halen: ['de trein halen', 'haalde, gehaald'],
+  trekken: ['een conclusie trekken', 'trok, getrokken'],
+  doen: ['boodschappen doen', 'deed, gedaan'],
+  maken: ['het maakt niet uit', 'maakte, gemaakt'],
+  zetten: ['de wekker zetten', 'zette, gezet'],
+  leggen: ['de tas op tafel leggen', 'legde, gelegd'],
+  lopen: ['mijn horloge loopt niet', 'liep, gelopen'],
+  'de zin': ['het heeft geen zin', 'zin hebben in'], 'het punt': ['op het punt staan', 'het punt is dat'],
+  'de kant': ['aan de andere kant', 'een jurk van kant'], 'de plaats': ['in plaats van', 'op de eerste plaats'],
+  'de zaak': ['dat is jouw zaak', 'een eigen zaak'], 'de keer': ['voor de eerste keer', 'twee keer'],
+  'het werk': ['naar het werk gaan', 'een werk van Rembrandt'], vast: ['een vaste baan', 'hij komt vast'],
+  toch: ['je komt toch?', 'ik ga toch'], wel: ['ik heb het wel gedaan'], maar: ['kom maar binnen', 'ik heb maar twee euro'],
+  al: ['ik ben al klaar', 'al het geld', 'al is het koud'], even: ['wacht even', 'een even getal'],
+  ook: ['ik ook', 'ook al regent het'], 'het stuk': ['een stuk taart', 'een stuk in de krant'],
+  net: ['ik ben net thuis', 'net op tijd'], 'de bank': ['op de bank zitten', 'geld op de bank'], raar: ['wat raar!'],
 };
 
 describe("a word's set phrases", () => {

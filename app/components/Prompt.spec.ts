@@ -355,6 +355,19 @@ describe('a note of several kinds', () => {
     expect(texts(w, 'note-dutch')).toEqual(['zich melden']);
   });
 
+  it('sets apart only the Dutch of a translated example glossed after a hyphen', async () => {
+    const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard({ id: 'c12', f: 'to report', b: 'melden', n: 'zich melden - to report', nr: 'zich melden — явиться, отметиться' })), silent: true } });
+    expect(texts(w, 'note-dutch')).toEqual(['zich melden']);
+  });
+
+  it('keeps the gender mark of a translation apart from the Dutch of its first example', async () => {
+    const es = { id: 'c13', f: 'tiempo', b: 'de tijd', n: 'm. op tijd - a tiempo; het is tijd - es hora', nr: 'op tijd — вовремя; het is tijd — пора' };
+    const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(es)), silent: true } });
+    expect(texts(w, 'answer-note-line')).toEqual(['m.', 'op tijd - a tiempo', 'het is tijd - es hora']);
+    expect(kinds(w)).toEqual(['label', 'example', 'example']);
+    expect(texts(w, 'note-dutch')).toEqual(['op tijd', 'het is tijd']);
+  });
+
   it('keeps the kinds of the Russian note in a translation', async () => {
     const en = { ...card, n: 'it splits off to the end; ik maak het af (I finish it); afmaken (to finish): to the end; don\'t confuse with: of (or); from: af (done)', nr: ru };
     const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(en)), silent: true } });

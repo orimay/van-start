@@ -12,6 +12,12 @@ const LOOK: Record<NoteKind, string> = {
 const EXCEPTION = 'text-[oklch(55.3%_0.2_25)]! dark:text-[oklch(70.4%_0.191_22.2)]!';
 /** What the card is and where it comes from go before the examples of it; each rank is a group of its own. */
 const RANK: Record<NoteKind, number> = { rule: 0, label: 0, origin: 1, example: 2 };
+/** A translation's gender mark (`m. op tijd - a tiempo`) stands on a line of its own, out of the example's Dutch. */
+const GENDER = /^([mfn]\.(?:\/[mfn]\.)?) (.+)$/;
+function splitGender<T extends { text: string; kind: NoteKind }>(line: T): T[] {
+  const [, mark, rest] = line.kind === 'example' ? GENDER.exec(line.text) ?? [] : [];
+  return mark && rest ? [{ ...line, text: mark, kind: 'label' }, { ...line, text: rest }] : [line];
+}
 /** Lines of one group sit closer to each other than to the next group. */
 function gapBefore(previous: NoteKind | undefined, kind: NoteKind) {
   if (!previous) return undefined;
@@ -28,10 +34,9 @@ const HEAD: Record<NoteKind, string> = {
 <script setup lang="ts">
 /** A card's note, a line per item; `hidden`: per line, taken out of the layout until the answer is out. */
 const props = defineProps<{ note: string; kinds?: NoteKind[]; self: string; secret?: boolean; hidden?: boolean[]; testid: string }>();
-const lines = computed(() => noteLines(props.note).map((line, i) => {
-  const kind = props.kinds?.[i] ?? 'rule';
-  return { ...line, kind, head: noteHead(line.text, kind), headClass: line.exception ? `${HEAD[kind]} ${EXCEPTION}` : HEAD[kind], hidden: props.hidden?.[i] };
-}).sort((a, b) => RANK[a.kind] - RANK[b.kind]).map((line, i, all) => ({ ...line, gap: gapBefore(all.slice(0, i).findLast(l => !l.hidden)?.kind, line.kind) })));
+const lines = computed(() => noteLines(props.note).flatMap((line, i) => splitGender({ ...line, kind: props.kinds?.[i] ?? 'rule', hidden: props.hidden?.[i] })).map(line => ({
+  ...line, head: noteHead(line.text, line.kind), headClass: line.exception ? `${HEAD[line.kind]} ${EXCEPTION}` : HEAD[line.kind],
+})).sort((a, b) => RANK[a.kind] - RANK[b.kind]).map((line, i, all) => ({ ...line, gap: gapBefore(all.slice(0, i).findLast(l => !l.hidden)?.kind, line.kind) })));
 </script>
 
 <template>
