@@ -160,3 +160,18 @@ export function familyOfWord(index: CardIndex, bases: Map<string, string>, id: s
   seen.delete(id);
   return [...seen];
 }
+
+/** Words a note builds on the affix whose spelling shows it, in deck order, without a form of a word already listed: verkocht repeats verkopen. */
+export function wordsWithAffix(index: CardIndex, affixId: string): DeckCard[] {
+  const affix = index.byId.get(affixId);
+  if (!affix?.b.match(/^-|-$/)) return [];
+  const stem = affix.b.replace(/^-|-$/g, '');
+  const shows = (card: DeckCard) => {
+    const word = card.b.replace(ARTICLE, '');
+    return affix.b.endsWith('-') ? word.startsWith(stem) : word.endsWith(stem);
+  };
+  // A formation label (`сравнительная степень от: groot + -er`) files the word under related.
+  const ids = new Set([...(index.derived.get(affixId) ?? []), ...(index.related.get(affixId) ?? [])].map(w => w.id));
+  const isFormOfListed = (id: string) => [...ids].some(other => other !== id && index.related.get(other)?.some(r => r.id === id));
+  return [...index.byId.values()].filter(card => ids.has(card.id) && !isFormOfListed(card.id) && shows(card));
+}

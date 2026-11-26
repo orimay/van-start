@@ -32,9 +32,9 @@ const NOT_SPLIT = [
   // A frozen form, named as related instead: rechter (right-hand) beside recht, eerste beside eerst
   'rechter', 'eerste',
   // Loanwords taken whole: -tie, -ie, -ief, in-, inter- came with the word, no Dutch base inside
-  'de politie', 'informeren', 'de infinitief', 'de nationaliteit', 'de combinatie', 'het interview', 'de vakantie', 'de receptie',
+  'de politie', 'informeren', 'de infinitief', 'de nationaliteit', 'het interview', 'de vakantie', 'de receptie',
   'de positie', 'de relatie', 'het instituut', 'interessant', 'de functie', 'de suggestie', 'de attractie', 'de negatie', 'de situatie',
-  'de interesse', 'de traktatie', 'het internet', 'de instructie', 'de prepositie', 'de garantie', 'de reparatie', 'internationaal',
+  'de interesse', 'de traktatie', 'het internet', 'de instructie', 'de prepositie', 'de garantie', 'internationaal',
   'de conjunctie', 'de locatie', 'de specificatie', 'de conditie', 'de notitie', 'de portie', 'de intercity', 'inclusief', 'installeren',
   'de presentatie', 'de promotie', 'de expositie', 'de communicatie', 'introduceren', 'de advertentie', 'de medicatie', 'de vaccinatie',
   'het ingrediënt', 'het insect', 'intensief', 'individueel', 'informatief', 'de instantie', 'de motivatie', 'de prestatie',
@@ -44,7 +44,7 @@ const NOT_SPLIT = [
   'de manager', 'de tante', 'de kastanje', 'de gitaar', 'het theater', 'het succes', 'het karakter', 'de visite', 'de courgette',
   'de frites', 'het papier', 'de slipper', 'de sneaker', 'de bloes', 'het servies', 'de jenever', 'de folder', 'de manier', 'het advies',
   'precies', 'het diner', 'de sfeer', 'de route', 'de minister', 'de scooter', 'de sigaar', 'de container', 'de glitter', 'de update',
-  'de anekdote', 'de rente', 'het plezier', 'de makelaar',
+  'de anekdote', 'de rente', 'het plezier',
   // Months and countries
   'oktober', 'september', 'december', 'november', 'Spanje', 'Turkije', 'Egypte',
   // Native words with no affix: -er, -end, -te, in-, on-, na- are part of the root (de moeder, de ochtend, de nacht)
@@ -124,6 +124,7 @@ const FOSSIL: Record<string, string> = {
   zuinig: 'no base left',
   'de afschuw': 'schuw is too rare',
   bereiden: 'reiden is gone',
+  'de makelaar': 'makelen is rare',
   vergaderen: 'gaderen is gone',
 };
 // Past participles and forms: their verb is named with `причастие от:`, not split into parts.

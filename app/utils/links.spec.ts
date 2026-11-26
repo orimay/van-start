@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { basesOf, buildIndex, familyOfWord, linkBreakdown, linkSegments } from './links';
+import { basesOf, buildIndex, familyOfWord, linkBreakdown, linkSegments, wordsWithAffix } from './links';
 
 const cards = [
   { id: 'kopen', f: 'покупать', b: 'kopen' },
@@ -115,6 +115,36 @@ describe('derived words', () => {
     expect(index.derived.get('kopen')).toEqual([{ id: 'verkopen', gloss: 'покупать' }]);
     expect(index.derived.get('ver')).toEqual([{ id: 'verkopen', gloss: 'пере-, изменение' }]);
     expect(index.derived.get('boek')).toEqual([{ id: 'boekje', gloss: 'книга' }]);
+  });
+});
+
+describe('words with an affix', () => {
+  const affixed = buildIndex([
+    { id: 'er', f: 'сравнительная степень', b: '-er' },
+    { id: 'groot', f: 'большой', b: 'groot' },
+    { id: 'groter', f: 'больше', b: 'groter', n: 'сравнительная степень от: groot (большой) + -er (-ее)' },
+    { id: 'leraar', f: 'учитель', b: 'de leraar', n: 'от: leren (учить) + -er (тот, кто)' },
+    { id: 'koper', f: 'покупатель', b: 'de koper', n: 'от: kopen (покупать) + -er (тот, кто)' },
+    { id: 'ver', f: 'пере-', b: 'ver-' },
+    { id: 'verkopen', f: 'продавать', b: 'verkopen', n: 'от: ver- (пере-) + kopen (покупать)' },
+    { id: 'verkocht', f: 'продал', b: 'verkocht', n: 'прошедшее (продал) от: verkopen (продавать); от: ver- (пере-) + kopen' },
+  ]);
+  const words = (affix: string) => wordsWithAffix(affixed, affix).map(c => c.id);
+
+  it('are the words any note builds on it, a comparative too', () => {
+    expect(words('er')).toEqual(['groter', 'koper']);
+  });
+
+  it('leave out a word whose spelling hides the affix', () => {
+    expect(words('er')).not.toContain('leraar');
+  });
+
+  it('find a prefix at the start of the word, leaving out a form of a listed word', () => {
+    expect(words('ver')).toEqual(['verkopen']);
+  });
+
+  it('are none for a card that is no affix', () => {
+    expect(words('nope')).toEqual([]);
   });
 });
 

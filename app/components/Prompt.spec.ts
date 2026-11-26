@@ -1,6 +1,6 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime';
 import { enableAutoUnmount, flushPromises, type VueWrapper } from '@vue/test-utils';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import Prompt from './Prompt.vue';
 import Toast from './Toast.vue';
 import Answer from './Answer.vue';
@@ -430,6 +430,55 @@ describe('an affix meaning', () => {
     const w = await mountSuspended(Prompt, { attachTo: document.body, props: { card: toStudyCard(suffix) } });
     await w.get('[data-testid="prompt"]').trigger('click');
     expect(writeText.mock.calls).toEqual([['о женщине: после -er, -aar']]);
+  });
+});
+
+/** One or two words leave an affix abstract: its answer shows the words the deck builds on it. */
+describe('the words with an affix', () => {
+  const affix = { id: 'es', f: 'о женщине: после -er, -aar', b: '-es', xf: 'певица', xb: 'de zangeres' };
+  const woman = (id: string, man: string, f: string) => ({ id, f, b: `de ${id}`, n: `от: de ${man} + -es (о женщине)` });
+  const cards = [
+    affix,
+    woman('zangeres', 'zanger', 'певица'),
+    woman('lerares', 'leraar', 'учительница; преподавательница'),
+    woman('danseres', 'danser', 'танцовщица'),
+    woman('kappers', 'kapper', 'парикмахерши'),
+    woman('prinses', 'prins', 'принцесса'),
+  ];
+  const withDeck = (learned: string[] = []) => {
+    const store = useStore();
+    const was = store.deck.value;
+    store.deck.value = { id: 'root', name: 'root', cards };
+    store.learn(Object.fromEntries(learned.map(id => [id, 3])));
+    onTestFinished(() => { store.forgetLearning(learned); store.deck.value = was; });
+  };
+  const words = (w: VueWrapper) => w.findAll('[data-testid="affix-word"]').map(e => e.text());
+
+  it('are four at most, the learned ones first, each with its first meaning', async () => {
+    withDeck(['prinses']);
+    const w = await mountSuspended(Answer, { props: { card: flip(toStudyCard(affix)), silent: true } });
+    expect(words(w)).toEqual(['de prinses принцесса', 'de zangeres певица', 'de lerares учительница', 'de danseres танцовщица']);
+  });
+
+  it('mark the affix in each word', async () => {
+    withDeck();
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard(affix), silent: true } });
+    expect(w.findAll('[data-testid="affix-word"] [data-testid="affix-part"]').map(e => e.text())).toEqual(['es', 'es', 'es', 'es']);
+  });
+
+  it("open the word's card on a tap", async () => {
+    withDeck();
+    const sheet = useCardSheet();
+    onTestFinished(sheet.close);
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard(affix), silent: true } });
+    await w.get('[data-testid="affix-word"]').trigger('click');
+    expect(sheet.layers.value.map(l => l.id)).toEqual(['zangeres']);
+  });
+
+  it('are left off a card that is no affix', async () => {
+    withDeck();
+    const w = await mountSuspended(Answer, { props: { card: toStudyCard(cards[1]!), silent: true } });
+    expect(words(w)).toEqual([]);
   });
 });
 

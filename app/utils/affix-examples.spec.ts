@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { buildIndex, wordsWithAffix } from './links';
 
 interface Card { id: string; b: string; f: string; tr?: string; xb?: string; xf?: string; xl?: string; xt?: string }
 interface Node { cards?: Card[]; children?: Node[] }
@@ -196,3 +197,20 @@ describe('each meaning of an affix', () => {
   }
 });
 
+
+/** One or two examples teach a pattern poorly: an affix is shown in at least four words the deck builds on it. */
+describe('an affix in the deck', () => {
+  const MIN_WORDS = 4;
+  const inLanguage = (lang: string) => {
+    if (lang === 'ru') return cardsOf(deck);
+    const overlay = overlayOf(lang);
+    return cardsOf(deck).map(card => ({ ...card, f: overlay[card.id]?.[0] ?? '', n: overlay[card.id]?.[3] ?? '' }));
+  };
+
+  it.each(['ru', 'en', 'es', 'pt', 'tr', 'ro'])(`builds at least ${MIN_WORDS} words in %s notes`, (lang) => {
+    const index = buildIndex(inLanguage(lang) as never);
+    const few = everyAffix.map(affix => [affix.b, wordsWithAffix(index, affix.id).length] as const)
+      .filter(([, words]) => words < MIN_WORDS).map(([affix, words]) => `${affix}: ${words}`);
+    expect(few).toEqual([]);
+  });
+});

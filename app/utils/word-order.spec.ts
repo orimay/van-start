@@ -33,10 +33,10 @@ describe('an article', () => {
 });
 
 const deckCards = cards(JSON.parse(readFileSync('public/deck.json', 'utf8'))) as Array<Card & { n?: string }>;
-/** The cards a card's note says it is made of: `от: be- (...) + groeten (...)`; a diminutive is made with -je too. */
+/** The cards a card's note says it is made of: `от: be- (...) + groeten (...)`, `женский род от: de kapper (...) + -ster (...)`; a diminutive is made with -je too. */
 const partsOf = (card: Card & { n?: string }) => {
-  const from = /(?:^|; )(уменьш\. )?от: (.*?)(?:;|$)/.exec(card.n ?? '');
-  return from ? [...from[2]!.matchAll(/([^()+]+?) \(/g)].map(m => m[1]!.trim()).concat(from[1] ? ['-je'] : []) : [];
+  const from = /(?:^|; )(уменьш\. |женский род )?от: (.*?)(?:;|$)/.exec(card.n ?? '');
+  return from ? [...from[2]!.matchAll(/([^()+]+?) \(/g)].map(m => m[1]!.trim()).concat(from[1] === 'уменьш. ' ? ['-je'] : []) : [];
 };
 
 describe('a part a note names', () => {
