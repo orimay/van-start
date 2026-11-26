@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { articlesOf, explainsArticle, noteHead, noteKind, noteLines, toStudyCard, type DeckCard } from './deck';
+import { articlesOf, explainsArticle, shownArticlesOf, noteHead, noteKind, noteLines, toStudyCard, type DeckCard } from './deck';
 
 interface Card { id: string; b: string; n?: string }
 interface Node { cards?: Card[]; children?: Node[] }
@@ -10,7 +10,7 @@ const cardsOf = (n: Node): Card[] => [...(n.cards ?? []), ...(n.children ?? []).
 const items = (note?: string) => (note ? noteLines(note).map(l => l.text) : []);
 /** Trailing Russian items explaining the phrase's articles, which a language with its own articles leaves out. */
 const articleTail = (c: Card) => {
-  const tail = items(c.n).reverse().findIndex(i => !articlesOf(c.b).some(a => explainsArticle(i, a)));
+  const tail = items(c.n).reverse().findIndex(i => !shownArticlesOf(c.b).some(a => explainsArticle(i, a)));
   return tail < 0 ? items(c.n).length : tail;
 };
 

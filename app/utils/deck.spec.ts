@@ -56,3 +56,16 @@ describe('a translated phrase note without the article items', () => {
     expect(card.promptSecret).toEqual([false, true]);
   });
 });
+
+/** A phrase's own leading article shows in the translation too, so its Russian item is left out with the rest. */
+describe('a translated phrase note without the leading article item', () => {
+  const card = toStudyCard({
+    id: 'verkopers', f: 'the salespeople in the store', b: 'de verkopers in de winkel',
+    n: 'from: verkopen (to sell)',
+    nr: 'от: verkopen (продавать); de winkel: то самое, известное обоим; de verkopers: уточнено, чьё или какое — всегда определённый артикль',
+  });
+
+  it('reads its items by their Russian twins', () => {
+    expect(card.promptKinds).toEqual(['origin']);
+  });
+});

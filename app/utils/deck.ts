@@ -176,9 +176,16 @@ export function explainsArticle(item: string, article: string) {
   return item.includes(': ') && ` ${head.toLowerCase()} `.includes(` ${article} `);
 }
 
+/** Every article a translation shows: a phrase's own leading one too, unlike a noun's. */
+export function shownArticlesOf(phrase: string): string[] {
+  const words = phrase.match(/[\p{L}'-]+/gu) ?? [];
+  const leading = words.length > 2 && /^(de|het)$/i.test(words[0]!) ? [`${words[0]!.toLowerCase()} ${words[1]!.toLowerCase()}`] : [];
+  return [...leading, ...articlesOf(phrase)];
+}
+
 /** Russian items a translation leaves out: the trailing ones explaining the articles, which en, es, pt and ro show in the translation. */
 function articleTail(russian: Array<{ text: string }>, answer: string) {
-  const articles = articlesOf(answer);
+  const articles = shownArticlesOf(answer);
   let tail = 0;
   while (tail < russian.length && articles.some(a => explainsArticle(russian[russian.length - 1 - tail]!.text, a))) tail++;
   return tail;
