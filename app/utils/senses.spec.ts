@@ -8,6 +8,11 @@ const cardsOf = (n: Node): Card[] => [...(n.cards ?? []), ...(n.children ?? []).
 
 // A word whose common senses differ in Russian lists each one, so the learner meets dat kan next to ik kan.
 const SENSES: Record<string, string[]> = {
+  lijken: ['казаться', 'быть похожим'],
+  verdienen: ['зарабатывать', 'заслуживать'],
+  aantrekken: ['надевать', 'привлекать'],
+  herstellen: ['восстанавливаться', 'исправлять'],
+  blijven: ['оставаться', 'продолжать'],
   krijgen: ['получать', 'рожать'],
   kunnen: ['мочь', 'быть возможным'],
   liggen: ['лежать', 'находиться'],
@@ -120,6 +125,13 @@ const PHRASES: Record<string, string[]> = {
   al: ['ik ben al klaar', 'al het geld', 'al is het koud'], even: ['wacht even', 'een even getal'],
   ook: ['ik ook', 'ook al regent het'], 'het stuk': ['een stuk taart', 'een stuk in de krant'],
   net: ['ik ben net thuis', 'net op tijd'], 'de bank': ['op de bank zitten', 'geld op de bank'], raar: ['wat raar!'],
+  lijken: ['lijkt op', 'leek, geleken'],
+  verdienen: ['geld verdienen', 'verdiende, verdiend'],
+  herinneren: ['herinner me eraan', 'zich herinneren'],
+  aantrekken: ['een jas aantrekken', 'trekt veel toeristen aan'],
+  zorgen: ['zorg dat', 'zorgen voor'],
+  herstellen: ['een fout herstellen', 'herstelde, hersteld'],
+  blijven: ['blijven werken', 'bleef, gebleven'],
 };
 
 describe("a word's set phrases", () => {
