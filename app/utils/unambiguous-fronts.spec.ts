@@ -735,6 +735,7 @@ const CLEAR = new Set([
   'pt:jij verliest', 'pt:ik heb verloren', 'pt:verlies niet', // perder: both senses of verliezen
   'ro:het beeldje', // statuetă
   'ru:ik ga uit', 'ru:hij uitgaat', // развлекаться says which uitgaan
+  'pt:hij wordt', 'pt:ik word', 'pt:hij werd', 'pt:zij werden', // se tornar says which worden
   'tr:het groepje', 'tr:het beeldje', // küçük grup, biblo
   'es:hij noemt', 'es:tik', 'es:hij speelt', 'es:ik speelde', 'es:wij speelden', // él nombra, ¡pulsa!, él juega, jugaba
   'es:het busje', 'es:het tijdje', 'es:het doosje', 'es:het bosje', 'es:het lijstje', // microbús, un rato, cajita, manojito, listita

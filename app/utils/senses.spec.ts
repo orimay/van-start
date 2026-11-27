@@ -69,6 +69,7 @@ const SENSES: Record<string, string[]> = {
   slaan: ['бить', 'сворачивать'],
   staan: ['стоять', 'написанным', 'идти'],
   steken: ['вставлять', 'жалить'],
+  worden: ['становиться', 'исполняться'],
   uitgaan: ['выходить', 'ходить развлекаться', 'гаснуть'],
   'de rekening': ['счёт', 'счёт в банке'],
   trekken: ['тянуть', 'проводить', 'путешествовать'],
@@ -167,6 +168,7 @@ const PHRASES: Record<string, string[]> = {
   liggen: ['in bed liggen', 'het ligt aan jou', 'lag, gelegen'],
   'het deel': ['voor een deel', 'het eerste deel', 'deel uitmaken van'],
   steken: ['de bij steekt', 'stak, gestoken'],
+  worden: ['ik word dertig', 'het huis wordt gebouwd', 'werd, geworden'],
   uitgaan: ['het licht gaat uit', 'ging uit, uitgegaan'],
   'de rekening': ['geld op je rekening', 'rekening houden met'],
 };
