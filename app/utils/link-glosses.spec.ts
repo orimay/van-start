@@ -13,6 +13,7 @@ const stemsOf = (text: string) => new Set((text.toLowerCase().replace(/ё/g, 'е
 /** Glosses that rightly say what no sense on the linked card says, each with the reason. */
 const REVIEWED: Record<string, string> = {
   'welkom → wel': 'etymology: wel is "well" in the old sense',
+  'makkelijk → gemakkelijk': 'the gloss says how the word was clipped, not what it means',
   'de echtgenoot → echt': 'etymology: echt meant "marriage"',
   'geleden → lijden': 'etymology: lijden meant "to pass"',
   'de schoonheid → schoon': 'the old sense "beautiful" lives on only in the compound',

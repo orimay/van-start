@@ -41,7 +41,9 @@ const partsOf = (card: Card & { n?: string }) => {
 
 describe('a part a note names', () => {
   it('comes before the card made of it', () => {
-    const late = deckCards.flatMap((card, i) => partsOf(card).filter(part => firstOf(part) > i).map(part => `${part} after ${card.b}`));
+    // A clipped variant (makkelijk) is taught before the full form it comes from
+    const variantsOf = (card: Card & { n?: string }) => /(?:^|; )вариант: ([^;]+)/.exec(card.n ?? '')?.[1]!.split(', ').map(word => word.replace(/ \(.*$/, '')) ?? [];
+    const late = deckCards.flatMap((card, i) => partsOf(card).filter(part => firstOf(part) > i && !variantsOf(card).includes(part)).map(part => `${part} after ${card.b}`));
     expect(late).toEqual([]);
   });
 });

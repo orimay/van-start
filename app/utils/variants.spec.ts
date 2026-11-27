@@ -60,3 +60,22 @@ describe('a verb and its phrase', () => {
     expect([...new Set(plain)]).toEqual([]);
   });
 });
+
+const ORIGIN: Record<string, string> = { ru: 'от', en: 'from', es: 'deriva de', pt: 'deriva de', tr: 'kökü', ro: 'de la' };
+/** Variant pairs where one is the other with its head clipped off in speech: makkelijk, gemakkelijk. Not a hyphenated head (mailen, e-mailen), not a form. */
+const clipped = deck.filter(card => !(card.n ?? '').includes('форма от:')).flatMap(card => named(card.n ?? '', 'вариант')
+  .filter(full => full !== card.b && full.endsWith(card.b) && !full.slice(0, -card.b.length).endsWith('-') && byWord.has(full))
+  .map(full => [card, full] as const));
+
+describe('a clipped variant', () => {
+  it('exists in the deck', () => {
+    expect(clipped.map(([card]) => card.b)).toContain('makkelijk');
+  });
+
+  it.each(Object.keys(ORIGIN))('derives from its full form in %s', (lang) => {
+    const note = noteIn(lang);
+    const wrong = clipped.filter(([card, full]) => !named(note(card), ORIGIN[lang]!).some(word => word.split(' ')[0] === full))
+      .map(([card, full]) => `${card.b} -> ${full}: ${note(card)}`);
+    expect(wrong).toEqual([]);
+  });
+});

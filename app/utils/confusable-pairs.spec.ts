@@ -25,7 +25,7 @@ const DIFFERENT = new Set([
 ]);
 
 // Pairs learners mix up though their fronts differ: one Russian word covers both
-const MIXED = [['het spel', 'de game'], ['hoog', 'lang'], ['hoge', 'lange'], ['zich', 'zichzelf'], ['praten', 'spreken'], ['allebei', 'beiden'], ['allebei', 'beide'], ['leiden', 'lijden'], ['het pak', 'pak'], ['de bladen', 'de bladeren']];
+const MIXED = [['het spel', 'de game'], ['hoog', 'lang'], ['hoge', 'lange'], ['zich', 'zichzelf'], ['praten', 'spreken'], ['allebei', 'beiden'], ['allebei', 'beide'], ['leiden', 'lijden'], ['het pak', 'pak'], ['de bladen', 'de bladeren'], ['letten', 'opletten']];
 
 const bases = deck.filter(isBase);
 const keyOf = (a: Card, b: Card) => [a.b, b.b].sort().join('|');
@@ -79,5 +79,15 @@ describe('a card one note warns about', () => {
       return from === to || warnedBack || ONE_WAY.has(`${from}|${to}`) ? [] : [`${from} -> ${to}`];
     }));
     expect([...new Set(oneWay)].sort()).toEqual([]);
+  });
+});
+
+describe('a look-alike a note warns about', () => {
+  it('is not also shown as an example of the card', () => {
+    const doubled = deck.flatMap(card => (card.n ?? '').split('; ')
+      // One `word — gloss` pair; `A — x, B — y` contrasts the two and stays
+      .filter(item => item.split(' — ').length === 2 && [...confusables(card)].includes(item.split(' — ')[0]!))
+      .map(item => `${card.b}: ${item}`));
+    expect(doubled).toEqual([]);
   });
 });
