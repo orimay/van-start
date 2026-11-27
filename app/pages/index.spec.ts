@@ -1,7 +1,7 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime';
 import type { VueWrapper } from '@vue/test-utils';
 import { Rating } from 'ts-fsrs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import Index from './index.vue';
 import { LONG_PRESS_MS } from '@/composables/useLongPress';
@@ -21,6 +21,11 @@ beforeEach(async () => {
   store.updateSettings({ games: ['recall', 'type'] });
 });
 
+afterEach(() => {
+  store.updateSettings({ kinds: {} });
+  store.saveCustom(emptyCustom());
+});
+
 describe('learned count', () => {
   it('leaves out words not through every game on', async () => {
     store.rate('k0', Rating.Good);
@@ -31,13 +36,11 @@ describe('learned count', () => {
   });
 
   it('leaves out words switched off', async () => {
-    store.saveCustom({ id: CUSTOM_ID, name: 'My cards', cards: [{ id: 's', f: 'Я дома.', b: 'Ik ben thuis.', k: 'sentence' }] });
+    givenSentence();
     store.rate('s', Rating.Good);
     store.updateSettings({ kinds: { sentence: false } });
     const w = await mountSuspended(Index);
     expect(w.text()).toContain('Learned 0');
-    store.updateSettings({ kinds: {} });
-    store.saveCustom(emptyCustom());
   });
 });
 
@@ -68,6 +71,21 @@ describe('review button', () => {
     expect(w.findAll('[data-testid="review-menu"] a').map(a => a.findAll('span').filter(s => !s.find('span').exists()).map(s => s.text()).filter(Boolean).join(' '))).toEqual(['Writing 1/2', 'Speaking 0/1']);
     expect(w.findAll('[data-testid="review-menu"] [role="progressbar"]').map(b => b.attributes('aria-valuenow'))).toEqual(['50', '0']);
     expect(w.get('[data-testid="review-recall"]').attributes('href')).toContain('game=recall');
+  });
+
+  it('leaves words switched off out of what is reviewed today', async () => {
+    givenSentence();
+    store.reviewLog.value = undefined;
+    store.rate('k0', Rating.Good);
+    store.rate('s', Rating.Good);
+    givenDue('k0', 'type');
+    givenDue('s', 'type');
+    store.rate('s', Rating.Good, 'type');
+    store.updateSettings({ kinds: { sentence: false } });
+    const w = await mountSuspended(Index);
+    await doOpenReview(w);
+    expect(w.get('[data-testid="review-type"]').text()).toBe('Writing0/1');
+    expect(w.get('[data-testid="review-type"] [role="progressbar"]').attributes('aria-valuenow')).toBe('0');
   });
 
   it('offers a game turned off', async () => {
@@ -115,6 +133,11 @@ function givenDue(id: string, game: ReviewGame) {
   store.reviews.value = { ...store.reviews.value, [game]: { ...store.reviews.value[game], [id]: { ...store.reviews.value[game]![id]!, due: new Date(Date.now() - 1000) } } };
 }
 
+/** A sentence card in the learner's own group, to switch off. */
+function givenSentence() {
+  store.saveCustom({ id: CUSTOM_ID, name: 'My cards', cards: [{ id: 's', f: 'Я дома.', b: 'Ik ben thuis.', k: 'sentence' }] });
+}
+
 async function doOpenReview(w: VueWrapper) {
   await w.get('[data-testid="review"]').trigger('click');
   await vi.waitFor(() => w.get('[data-testid="review-menu"]'), { timeout: 5000 });
@@ -144,6 +167,18 @@ describe('a long press', () => {
     await doConfirm(w);
     expect(store.dueIn('type')).toEqual(['k0', 'k1']);
     expect(store.dueIn('recall')).toEqual([]);
+  });
+
+  it('leaves words switched off out of its count', async () => {
+    givenSentence();
+    store.rate('k0', Rating.Good);
+    store.rate('k1', Rating.Good);
+    store.rate('s', Rating.Good);
+    givenDue('k0', 'type');
+    store.updateSettings({ kinds: { sentence: false } });
+    const w = await mountSuspended(Index);
+    await doLongPress(w, 'review');
+    expect(w.get('[data-testid="reset-what"]').text()).toBe('Reset reviews in every game for 2 words?');
   });
 
   it('changes nothing until the second yes', async () => {

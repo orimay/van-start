@@ -26,7 +26,7 @@ const menu = useMenu('review-menu');
 const reviewLink = (game: string) => ({ path: '/review', query: { game } });
 /** Today's reviews per review game, each against its own due cards. */
 const today = computed(() => {
-  const reviewed = reviewedOn(store.reviewLog.value, now.value);
+  const reviewed = reviewedOn(store.reviewLog.value, now.value).filter(key => !store.isHidden(key.slice(key.indexOf(':') + 1)));
   return REVIEW_GAMES
     .map(game => ({ game, ...dayProgress(reviewed.filter(key => key.startsWith(`${game}:`)), dueIds.value.filter(key => key.startsWith(`${game}:`))) }))
     .filter(g => g.total);
@@ -35,7 +35,7 @@ const today = computed(() => {
 /** A long press on review, or on one of its games, offers to bring every learned word back to now. */
 const resetting = shallowRef<ResetRequest>();
 function askReset(games: readonly ReviewGame[], title: string) {
-  const ids = Object.keys(progress.value).filter(id => store.isLearned(id));
+  const ids = Object.keys(progress.value).filter(id => store.isLearned(id) && !store.isHidden(id));
   resetting.value = { title, what: games.length > 1 ? 'reviews in every game' : `${GAME_TITLES[games[0]!]} reviews`, count: ids.length, reset: () => store.forgetReviews(ids, games) };
 }
 
