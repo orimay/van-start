@@ -22,10 +22,12 @@ const sidesIn = (lang: string): ((card: Card) => [string, string]) => {
 };
 /** Meanings are `; `-separated, past any bracketed aside. */
 const meanings = (f: string) => f.replace(/ \((?:мн|pl)\.\)$/, '').replace(/\([^()]*\)/g, '').split('; ').length;
+/** A don't-confuse pointer to another plural, glossed with the meanings it takes: `не путать с: de bladen (листы, подносы)`. */
+const CONFUSED = /^(?:не путать с|don't confuse with|no confundir con|não confundir com|karıştırma|a nu se confunda cu): (?:de|het) \S+ \(([^()]+)\)$/;
 /** Note items past the first (its singular) account for meanings with no plural, or another plural: `кости: de beenderen`. */
 const accounted = (note: string, lang: string) => note.split('; ').slice(1).reduce((sum, item) => {
-  const pointer = /^(.+): (?:de|het) \S+$/.exec(item);
-  return sum + (pointer ? pointer[1]!.split(', ').length : NO_PLURAL[lang]!.test(item) ? 1 : 0);
+  const pointer = /^(.+): (?:de|het) \S+$/.exec(item)?.[1] ?? CONFUSED.exec(item)?.[1];
+  return sum + (pointer ? pointer.split(', ').length : NO_PLURAL[lang]!.test(item) ? 1 : 0);
 }, 0);
 
 describe('a plural card', () => {

@@ -25,7 +25,7 @@ const DIFFERENT = new Set([
 ]);
 
 // Pairs learners mix up though their fronts differ: one Russian word covers both
-const MIXED = [['het spel', 'de game'], ['hoog', 'lang'], ['hoge', 'lange'], ['zich', 'zichzelf'], ['praten', 'spreken'], ['allebei', 'beiden'], ['allebei', 'beide'], ['leiden', 'lijden'], ['het pak', 'pak']];
+const MIXED = [['het spel', 'de game'], ['hoog', 'lang'], ['hoge', 'lange'], ['zich', 'zichzelf'], ['praten', 'spreken'], ['allebei', 'beiden'], ['allebei', 'beide'], ['leiden', 'lijden'], ['het pak', 'pak'], ['de bladen', 'de bladeren']];
 
 const bases = deck.filter(isBase);
 const keyOf = (a: Card, b: Card) => [a.b, b.b].sort().join('|');
@@ -57,5 +57,27 @@ describe('two cards whose fronts share a sense', () => {
   it('are listed as different only while they share a sense', () => {
     const stale = [...DIFFERENT].filter(key => !pairs.some(({ a, b }) => keyOf(a, b) === key));
     expect(stale).toEqual([]);
+  });
+});
+
+const byWord = new Map(deck.map(card => [card.b, card]));
+const BASE_OF = /^(форма от|мн\. ч\. от|просьба\/приказ, от): (.+)$/;
+/** The card a form stands for: the base its note names, followed down to a word of its own. */
+const baseOf = (word: string): string => {
+  const item = (byWord.get(word)!.n ?? '').split('\n')[0]!.split('; ').map(it => BASE_OF.exec(it)?.[2]).find(Boolean);
+  const base = item?.replace(/ \(.*$/, '').trim();
+  return base && byWord.has(base) ? baseOf(base) : word;
+};
+// A word hiding an old look-alike inside: the plain word needn't warn back
+const ONE_WAY = new Set(['tegenwoordig|het woord']);
+
+describe('a card one note warns about', () => {
+  it('warns back about that note\'s card', () => {
+    const oneWay = deck.flatMap(card => [...confusables(card)].filter(word => byWord.has(word)).flatMap((word) => {
+      const [from, to] = [baseOf(card.b), baseOf(word)];
+      const warnedBack = [word, to].some(it => [...confusables(byWord.get(it)!)].some(back => baseOf(back) === from || back === card.b));
+      return from === to || warnedBack || ONE_WAY.has(`${from}|${to}`) ? [] : [`${from} -> ${to}`];
+    }));
+    expect([...new Set(oneWay)].sort()).toEqual([]);
   });
 });
