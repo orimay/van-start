@@ -68,6 +68,9 @@ const SENSES: Record<string, string[]> = {
   'de tijd': ['время', 'грамматическое время'],
   slaan: ['бить', 'сворачивать'],
   staan: ['стоять', 'написанным', 'идти'],
+  steken: ['вставлять', 'жалить'],
+  uitgaan: ['выходить', 'ходить развлекаться', 'гаснуть'],
+  'de rekening': ['счёт', 'счёт в банке'],
   trekken: ['тянуть', 'проводить', 'путешествовать'],
   voeren: ['вести беседу', 'привозить', 'кормить'],
   leiden: ['вести', 'руководить', 'приводить'],
@@ -163,6 +166,9 @@ const PHRASES: Record<string, string[]> = {
   krijgen: ['een cadeau krijgen', 'een kind krijgen', 'griep krijgen', 'kreeg, gekregen'],
   liggen: ['in bed liggen', 'het ligt aan jou', 'lag, gelegen'],
   'het deel': ['voor een deel', 'het eerste deel', 'deel uitmaken van'],
+  steken: ['de bij steekt', 'stak, gestoken'],
+  uitgaan: ['het licht gaat uit', 'ging uit, uitgegaan'],
+  'de rekening': ['geld op je rekening', 'rekening houden met'],
 };
 
 describe("a word's set phrases", () => {
