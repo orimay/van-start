@@ -1,4 +1,4 @@
-"""Voices the Dutch side and Dutch example of every card with a neural voice (edge-tts) into
+"""Voices the Dutch side and Dutch example of every card and old root with a neural voice (edge-tts) into
 public/audio/<key>.mp3 and stamps each card in public/deck.json with `au` / `axb` keys.
 Existing files are skipped, so an interrupted run resumes.
 
@@ -68,7 +68,7 @@ async def main() -> None:
     deck = json.loads(DECK.read_text())
     OUT.mkdir(exist_ok=True)
     texts: dict[str, None] = {}  # deck order, so early lessons get voiced first
-    for card in cards(deck):
+    for card in [*cards(deck), *deck.get('roots', [])]:
         for side, key in (('b', 'au'), ('xb', 'axb')):
             text = spoken(card.get(side) or '')
             if text:

@@ -11,5 +11,6 @@ export function withUuids(node: DeckNode): DeckNode {
     id: uuidOf(node.id),
     ...(node.cards && { cards: node.cards.map(card => ({ ...card, id: uuidOf(card.id) })) }),
     ...(node.children && { children: node.children.map(withUuids) }),
+    ...(node.roots && { roots: node.roots.map(card => ({ ...card, id: uuidOf(card.id) })) }),
   };
 }

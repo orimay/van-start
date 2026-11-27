@@ -36,7 +36,8 @@ const deckCards = cards(JSON.parse(readFileSync('public/deck.json', 'utf8'))) as
 /** The cards a card's note says it is made of: `от: be- (...) + groeten (...)`, `женский род от: de kapper (...) + -ster (...)`; a diminutive is made with -je too. */
 const partsOf = (card: Card & { n?: string }) => {
   const from = /(?:^|; )(уменьш\. |женский род )?от: (.*?)(?:;|$)/.exec(card.n ?? '');
-  return from ? [...from[2]!.matchAll(/([^()+]+?) \(/g)].map(m => m[1]!.trim()).concat(from[1] === 'уменьш. ' ? ['-je'] : []) : [];
+  // An old root (`moeten (старое: встречать)`) is no course card, even when a course word shares its spelling
+  return from ? [...from[2]!.matchAll(/([^()+]+?) \(([^()]*)\)/g)].filter(m => !/^старое: |, книжное$/.test(m[2]!)).map(m => m[1]!.trim()).concat(from[1] === 'уменьш. ' ? ['-je'] : []) : [];
 };
 
 describe('a part a note names', () => {

@@ -3,7 +3,7 @@ import { type CardInput, createEmptyCard, fsrs, type Grade, Rating, State } from
 import { computed, shallowRef, triggerRef } from 'vue';
 import { withUuids } from '@/utils/course-ids';
 import { CUSTOM_ID, emptyCustom } from '@/utils/custom';
-import { cardsOf, type DeckNode, isEarless } from '@/utils/deck';
+import { cardsOf, type DeckNode, isEarless, linkable } from '@/utils/deck';
 import { applyEdits, type Edits, noEdits } from '@/utils/edits';
 import { type KindSwitches, shownCards } from '@/utils/kinds';
 import { type Confusions, linked, unlinkedWithForms, withBases } from '@/utils/confusions';
@@ -74,7 +74,7 @@ const passed = shallowRef<Record<string, string[]>>({});
 /** Cards the learner mixed up with each other. */
 const confusions = shallowRef<Confusions>({});
 /** The deck's cards by id and spelling, with what links to each. */
-const index = computed(() => buildIndex(deck.value ? cardsOf(deck.value) : []));
+const index = computed(() => buildIndex(deck.value ? linkable(deck.value) : []));
 const bases = computed(() => basesOf(index.value));
 /** The mix-ups, each one of forms carried to their bases. */
 const mixedUp = computed(() => withBases(confusions.value, bases.value));
@@ -161,7 +161,7 @@ function forget(removed: string[]) {
 
 function localize(node: DeckNode, overlay: Overlay) {
   node.name = overlay.names[node.id] ?? node.name;
-  for (const card of node.cards ?? []) {
+  for (const card of [...(node.cards ?? []), ...(node.roots ?? [])]) {
     const native = overlay.cards[card.id];
     if (!native) continue;
     card.nr = card.n;

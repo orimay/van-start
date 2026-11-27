@@ -8,6 +8,8 @@ const { isLearned, confusions, unconfuse, familyOf, relearn, settings } = useSto
 const layer = computed(() => sheet.layers.value.at(-1));
 const card = computed(() => layer.value && sheet.index.value.byId.get(layer.value.id));
 const study = computed(() => card.value && toStudyCard(card.value));
+/** An old root notes link to: no game asks it, so it is never learned or mixed up. */
+const root = computed(() => card.value?.k === 'root');
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
 /** Cards built on this one in deck order, the secret one left out; each with the meaning it builds on when the card has several. */
@@ -99,8 +101,8 @@ const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close())
           <PlayButton class="btn-ghost px-2" aria-label="Play example" :sound="exampleKey(study)" @play="speakExample(study)" />
         </div>
         <div class="flex items-center gap-2">
-          <p class="flex-1 text-xs text-stone-500 dark:text-stone-400" data-testid="card-sheet-status" aria-live="polite">{{ isLearned(card.id) ? 'Learned' : 'Not learned yet' }}</p>
-          <button v-if="!choosing && (isLearned(card.id) || learnedFamily.length)" type="button" class="btn-ghost px-2 py-1 text-sm" data-testid="card-sheet-relearn" @click="onRelearn"><span aria-hidden="true">↺</span> Learn again</button>
+          <p class="flex-1 text-xs text-stone-500 dark:text-stone-400" data-testid="card-sheet-status" aria-live="polite">{{ root ? 'Old word, not studied' : isLearned(card.id) ? 'Learned' : 'Not learned yet' }}</p>
+          <button v-if="!root && !choosing && (isLearned(card.id) || learnedFamily.length)" type="button" class="btn-ghost px-2 py-1 text-sm" data-testid="card-sheet-relearn" @click="onRelearn"><span aria-hidden="true">↺</span> Learn again</button>
         </div>
         <div v-if="choosing" role="group" aria-label="Learn again" class="flex flex-col gap-1 rounded-lg bg-stone-100 p-2 dark:bg-stone-800" data-testid="card-sheet-relearn-choices">
           <button v-for="(choice, i) in choices" ref="choiceButtons" :key="choice.label" type="button" :class="i ? 'btn-ghost' : 'btn-primary'" class="px-3 py-2 text-left text-sm" data-testid="card-sheet-relearn-choice" @click="doRelearn(choice.deep)">{{ choice.label }}</button>
@@ -123,7 +125,7 @@ const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close())
             <span v-if="!isLearned(word.id)" class="text-xs text-stone-500 dark:text-stone-400">new</span>
           </button>
         </section>
-        <section class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-mixed">
+        <section v-if="!root" class="flex flex-col gap-1 border-t border-stone-200 pt-2 dark:border-stone-700" data-testid="card-sheet-mixed">
           <div class="flex items-center">
             <p class="flex-1 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Mixed up with</p>
             <button type="button" class="btn-ghost px-2 py-1 text-sm" data-testid="card-sheet-mixed-add" @click="mixing = true">+ Add</button>
@@ -139,5 +141,5 @@ const { dragY, dragging, onDragStart } = useSheetDrag(body, () => sheet.close())
       </div>
     </div>
   </Transition>
-  <MixUpSheet v-if="card" :id="card.id" :open="mixing" @close="mixing = false" />
+  <MixUpSheet v-if="card && !root" :id="card.id" :open="mixing" @close="mixing = false" />
 </template>

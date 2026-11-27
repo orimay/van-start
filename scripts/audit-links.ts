@@ -6,8 +6,10 @@ import { buildIndex, linkSegments } from '../app/utils/links.ts';
 import type { DeckCard, DeckNode } from '../app/utils/deck.ts';
 
 const flat = (node: DeckNode): DeckCard[] => [...(node.cards ?? []), ...(node.children ?? []).flatMap(flat)];
-export const cards = flat(JSON.parse(readFileSync('public/deck.json', 'utf8')));
-const index = buildIndex(cards);
+const deck: DeckNode = JSON.parse(readFileSync('public/deck.json', 'utf8'));
+export const cards = flat(deck);
+// Notes link old roots too, so a root never passes for a course word it shares a spelling with
+const index = buildIndex([...cards, ...(deck.roots ?? [])]);
 
 const bare = (b: string) => b.replace(/^(de|het) /, '').toLowerCase();
 const bySide = new Map(cards.map(c => [bare(c.b), c]));

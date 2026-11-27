@@ -1,11 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import type { DeckCard, DeckNode } from './deck';
+import { linkable, type DeckNode } from './deck';
 import { buildIndex, linkSegments } from './links';
 
 const LANGS = ['en', 'es', 'pt', 'tr', 'ro'];
-const flat = (node: DeckNode): DeckCard[] => [...(node.cards ?? []), ...(node.children ?? []).flatMap(flat)];
-const russian = flat(JSON.parse(readFileSync('public/deck.json', 'utf8')));
+const russian = linkable(JSON.parse(readFileSync('public/deck.json', 'utf8')) as DeckNode);
 const overlays = Object.fromEntries(
   LANGS.map(lang => [lang, JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards as Record<string, string[]>]),
 );

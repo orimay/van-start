@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { cardsOf, type DeckNode } from './deck';
+import { cardsOf, linkable, type DeckNode } from './deck';
 import { buildIndex, linkSegments } from './links';
 
-const cards = cardsOf(JSON.parse(readFileSync('public/deck.json', 'utf8')) as DeckNode);
-const index = buildIndex(cards);
+const deck = JSON.parse(readFileSync('public/deck.json', 'utf8')) as DeckNode;
+const cards = cardsOf(deck);
+const index = buildIndex(linkable(deck));
 
 const STOP = new Set('и в на с к от по для до за о у не а же ли то что как это без старое здесь смысл значение'.split(' '));
 /** The 4-letter stems of a text's Russian words: `руководить` and `руководство` share `руко`. */

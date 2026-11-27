@@ -400,4 +400,13 @@ describe('the course', () => {
     useStore().updateSettings({ language: 'ru' });
     await vi.waitFor(() => expect(cardsOf(useStore().course.value!).map(c => c.id)).toEqual(['35d89e95-b219-4488-8b50-e01a053cc2f6']));
   });
+
+  it("links its notes to its old roots, read in the learner's language", async () => {
+    const course = { id: 'root', name: 'Course', cards: [{ id: 'gemak', f: 'лёгкость', b: 'het gemak', n: 'от: mak (ручной)' }], roots: [{ id: 'dfnijojf-lcbj-eeii-ilfa-oabkafdmmcpg', f: 'ручной', b: 'mak', k: 'root' }] };
+    const english = { names: {}, cards: { gemak: ['ease', '', 'хэмак', 'from: mak (tame)'], 'dfnijojf-lcbj-eeii-ilfa-oabkafdmmcpg': ['tame', '', 'мак'] } };
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json(url.endsWith('deck.json') ? course : english)));
+    useStore().updateSettings({ language: 'en' });
+    await vi.waitFor(() => expect(useStore().index.value.derived.get('35d89e95-b219-4488-8b50-e01a053cc2f6')).toEqual([{ id: 'gemak', gloss: 'tame' }]));
+    expect(useStore().index.value.byId.get('35d89e95-b219-4488-8b50-e01a053cc2f6')?.f).toBe('tame');
+  });
 });

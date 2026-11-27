@@ -6,13 +6,13 @@ import { defineComponent, h, shallowRef } from 'vue';
 import CardSheet from './CardSheet.vue';
 import Answer from './Answer.vue';
 import Prompt from './Prompt.vue';
-import { cardsOf, toStudyCard, type DeckNode } from '@/utils/deck';
+import { linkable, toStudyCard, type DeckNode } from '@/utils/deck';
 import { basesOf, buildIndex, familyOfWord } from '@/utils/links';
 import { type Confusions, linked, unlinked } from '@/utils/confusions';
 
 const { deck, learned, settings } = vi.hoisted(() => ({ deck: { value: undefined as DeckNode | undefined }, learned: new Set<string>(), settings: { value: { language: 'en' } as { language: string; relearnDeep?: boolean } } }));
 mockNuxtImport('useStore', () => () => {
-  const index = buildIndex(deck.value ? cardsOf(deck.value) : []);
+  const index = buildIndex(deck.value ? linkable(deck.value) : []);
   const familyOf = (id: string) => familyOfWord(index, basesOf(index), id);
   return {
     deck,
@@ -45,7 +45,7 @@ const cards = [
   { id: 'ltr-u', f: 'буква «үү»', b: 'u', tr: 'үү', p: 'letter', xb: 'de bus, nu', xm: 'de b[u]s, n[u]', xf: 'Примеры: автобус, сейчас.' },
   { id: 'be', f: 'действие на кого-то', b: 'be-', tr: 'бэ', xb: 'begroeten', xf: 'приветствовать', xt: 'бэхру́тэн' },
 ];
-deck.value = shallowRef({ id: 'root', name: 'root', cards }).value;
+deck.value = shallowRef({ id: 'root', name: 'root', cards, roots: [{ id: 'liezen', f: 'терять', b: 'liezen', tr: 'ли:зэн', k: 'root' as const }] }).value;
 
 /** A browser history: back moves down an entry and tells the page, as the device's back button does. */
 const entries: unknown[] = [{}];
@@ -94,6 +94,21 @@ describe('a word a note derives the card from', () => {
     const w = await doMount('verkopen');
     await findLinks(w)[1]!.trigger('click');
     expect(readSheet(w)).toEqual({ word: 'kopen', transcription: '[ко:пэн]', senses: ['покупать'], example: ['Ik wil brood kopen.', 'Я хочу купить хлеб.'], status: 'Learned', derived: ['verkopen продавать new', 'de koper покупатель new'], related: [], mixedUp: [] });
+  });
+});
+
+describe('a sheet on an old root', () => {
+  it('says no game asks it and lists the words built on it', async () => {
+    const w = await doMount('verliezen');
+    await findLinks(w)[1]!.trigger('click');
+    expect(readSheet(w)).toEqual({ word: 'liezen', transcription: '[ли:зэн]', senses: ['терять'], example: [], status: 'Old word, not studied', derived: ['verliezen терять new'], related: [], mixedUp: [] });
+  });
+
+  it('offers neither learning it again nor a mix-up', async () => {
+    learned.add('liezen');
+    const w = await doMount('verliezen');
+    await findLinks(w)[1]!.trigger('click');
+    expect(['card-sheet-relearn', 'card-sheet-mixed'].filter(testid => w.find(`[data-testid="${testid}"]`).exists())).toEqual([]);
   });
 });
 

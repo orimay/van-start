@@ -4,7 +4,8 @@ import { cardsOf, type DeckCard, type DeckNode } from './deck';
 import { buildIndex, linkBreakdown, linkSegments } from './links';
 
 const ORIGIN = /^(?:(?:pl\. )?(?:[mfn]\.(?:\/[mfn]\.)? )?)(?:от|from|deriva de|kökü|de la|уменьш\. от|diminutive of|diminutivo de|küçültme|diminutiv de la): /;
-const deck = (): DeckCard[] => cardsOf(JSON.parse(readFileSync('public/deck.json', 'utf8')) as DeckNode);
+const top = JSON.parse(readFileSync('public/deck.json', 'utf8')) as DeckNode;
+const deck = (): DeckCard[] => cardsOf(top);
 /** The deck as a learner of `lang` reads it. */
 function deckIn(lang: string): DeckCard[] {
   const cards = deck();
@@ -24,7 +25,7 @@ const unlinked = (segments: Array<{ text: string; link?: string }>) =>
 
 describe.each(['ru', 'en', 'es', 'pt', 'tr', 'ro'])('in %s, every part a card is made of', lang => {
   const cards = deckIn(lang);
-  const index = buildIndex(cards);
+  const index = buildIndex([...cards, ...(top.roots ?? [])]);
 
   it('links to its card from the note', () => {
     const missing = cards.flatMap(c =>

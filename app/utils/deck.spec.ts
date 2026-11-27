@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { splitAffix, toStudyCard } from './deck';
+import { cardsOf, linkable, splitAffix, toStudyCard } from './deck';
 import { play } from './play';
 import { speak } from './speak';
 
@@ -84,5 +84,17 @@ describe('a translated phrase note without the leading article item', () => {
 
   it('reads its items by their Russian twins', () => {
     expect(card.promptKinds).toEqual(['origin']);
+  });
+});
+
+describe('the old roots of a course', () => {
+  const course = { id: 'root', name: 'Course', cards: [{ id: 'gemak', f: 'лёгкость', b: 'het gemak' }], roots: [{ id: 'mak', f: 'ручной', b: 'mak', k: 'root' as const }] };
+
+  it('are no cards of the course', () => {
+    expect(cardsOf(course).map(c => c.b)).toEqual(['het gemak']);
+  });
+
+  it('are linkable after its cards', () => {
+    expect(linkable(course).map(c => c.b)).toEqual(['het gemak', 'mak']);
   });
 });

@@ -7,6 +7,8 @@ type Row = [string, string?, string?, string?, string?];
 const deck: Node = JSON.parse(readFileSync('public/deck.json', 'utf8'));
 const cardsOf = (n: Node): Card[] => [...(n.cards ?? []), ...(n.children ?? []).flatMap(cardsOf)];
 const dutchOf = new Map(cardsOf(deck).map(c => [c.id, c.b]));
+/** An overlay's course cards: its old roots are never asked. */
+const courseRows = (rows: Record<string, Row>) => Object.entries(rows).filter(([id]) => dutchOf.has(id));
 
 /** What a card asks before the answer: its prompt and the note under it. */
 const asked = (prompt: string, notes: (string | undefined)[]) => [prompt, ...notes.filter(Boolean)].join('\n');
@@ -24,7 +26,7 @@ describe('a prompt', () => {
   for (const lang of ['en', 'es', 'pt', 'tr', 'ro']) {
     it(`asks for one card only in ${lang}`, () => {
       const rows: Record<string, Row> = JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
-      const cards = Object.entries(rows).map(([id, [f, , , n, nx]]) => ({ dutch: dutchOf.get(id) ?? id, asked: asked(f, [n, nx]) }));
+      const cards = courseRows(rows).map(([id, [f, , , n, nx]]) => ({ dutch: dutchOf.get(id)!, asked: asked(f, [n, nx]) }));
       expect(clashes(cards)).toEqual([]);
     });
   }
@@ -53,7 +55,7 @@ describe('a front', () => {
   for (const lang of ['en', 'es', 'pt', 'tr', 'ro']) {
     it(`tells its card from every other in ${lang}, without the context`, () => {
       const rows: Record<string, Row> = JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
-      expect(sameSenses(Object.entries(rows).map(([id, [front]]) => ({ dutch: dutchOf.get(id) ?? id, front })))).toEqual([]);
+      expect(sameSenses(courseRows(rows).map(([id, [front]]) => ({ dutch: dutchOf.get(id)!, front })))).toEqual([]);
     });
   }
 });

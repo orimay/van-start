@@ -27,8 +27,8 @@ export interface DeckCard {
   xt?: string;
   /** Sound and letter cards: the example words, the sound or letter in brackets, `de b[u]s`. */
   xm?: string;
-  /** A card the learner can switch off (an example sentence or one of a rule-built series), or a sound. */
-  k?: Kind | 'sound';
+  /** A card the learner can switch off (an example sentence or one of a rule-built series), a sound, or an old root notes link to. */
+  k?: Kind | 'sound' | 'root';
   /** Part of speech; set by scripts/flag-kinds.py. */
   p?: Part;
   /** A word of several parts: the part of each `; ` group of its front, vroeg (рано; ранний). */
@@ -42,6 +42,8 @@ export interface DeckNode {
   name: string;
   cards?: DeckCard[];
   children?: DeckNode[];
+  /** Old or bookish words the notes derive from: they open from a link, and no game asks them. */
+  roots?: DeckCard[];
 }
 
 /** A card as the learner sees it: `prompt` is the side shown, `answer` the side recalled. */
@@ -113,6 +115,9 @@ const partOf = (card: DeckCard): StudyCard['part'] =>
 export function cardsOf(node: DeckNode): DeckCard[] {
   return [...(node.cards ?? []), ...(node.children ?? []).flatMap(cardsOf)];
 }
+
+/** Every card a note can link to: the course's, then its old roots. */
+export const linkable = (node: DeckNode): DeckCard[] => [...cardsOf(node), ...(node.roots ?? [])];
 
 export function toStudyCard(card: DeckCard): StudyCard {
   const promptNote = [card.n, card.nx].filter(Boolean).join('\n') || undefined;

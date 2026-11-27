@@ -5,7 +5,8 @@ import { buildIndex, linkSegments } from './links';
 type Card = { id: string; b: string; n?: string };
 type Node = { cards?: Card[]; children?: Node[] };
 const cards = (node: Node): Card[] => [...(node.cards ?? []), ...(node.children ?? []).flatMap(cards)];
-const deck = cards(JSON.parse(readFileSync('public/deck.json', 'utf8')));
+const top = JSON.parse(readFileSync('public/deck.json', 'utf8')) as Node & { roots?: Card[] };
+const deck = cards(top);
 
 const word = (b: string) => b.replace(/^(de|het) /, '');
 const affixes = (shape: RegExp) => deck.map(c => c.b).filter(b => shape.test(b)).map(b => b.replace('-', ''));
@@ -94,38 +95,11 @@ describe('an affixed word', () => {
   });
 });
 
-// The base is archaic, bookish, or lost its meaning, so the deck holds no card for it: the word links its affix only.
+// The base is lost or kept another sense, so no card, not even an old root, holds it: the word links its affix only.
 const FOSSIL: Record<string, string> = {
-  ontmoeten: 'moeten here is old "meet", not "must"',
-  beginnen: 'ginnen is gone',
-  vergeten: 'geten is gone',
-  verliezen: 'liezen is gone',
-  'het belang': 'belangen is archaic',
-  bederven: 'derven is bookish',
-  bewaren: 'waren is archaic',
-  bewegen: 'old wegen "move", not today\'s wegen "weigh"',
-  verdwijnen: 'dwijnen is gone',
-  'de geschiedenis': 'geschieden is bookish',
-  herinneren: 'inner is gone as a verb',
-  vrolijk: 'vro is gone',
-  besteden: 'stede is archaic',
-  aanwezig: 'wezen is bookish',
   beslissen: 'slissen is gone',
-  gezellig: 'de gezel is archaic',
-  verrukkelijk: 'verrukken is bookish',
-  'het geduld': 'dulden is bookish',
-  beloven: 'loven is bookish',
-  'het gemak': 'mak is too rare',
-  gelijk: 'lijk "body" is gone',
-  gereed: 'reed is gone',
-  'het geweld': 'walden is gone',
-  gemeen: 'meen is gone',
   vaardig: 'de vaart kept another sense',
   zuinig: 'no base left',
-  'de afschuw': 'schuw is too rare',
-  bereiden: 'reiden is gone',
-  'de makelaar': 'makelen is rare',
-  vergaderen: 'gaderen is gone',
 };
 // Past participles and forms: their verb is named with `причастие от:`, not split into parts.
 const FORM = /^(форма «сделанный»|причастие) от: /;
@@ -136,6 +110,8 @@ const inLanguage = (lang: string): Card[] => {
   const rows: Record<string, string[]> = JSON.parse(readFileSync(`public/lang/${lang}.json`, 'utf8')).cards;
   return deck.map(card => ({ ...card, f: rows[card.id]?.[0] ?? '', n: rows[card.id]?.[3] ?? '' }));
 };
+/** The index a note links into: the cards and the old roots. */
+const indexOf = (cards: Card[]) => buildIndex([...cards, ...(top.roots ?? [])] as never);
 /** Top-level parts of a reference list: `ont- (навстречу) + moeten (быть должным)` has two. */
 const partsIn = (list: string) => list.replace(/\((?:[^()]|\([^()]*\))*\)/g, '').split(/ [+=] /).map(p => p.trim()).filter(Boolean);
 const isAffix = (b: string) => /^-|-$/.test(b);
@@ -148,7 +124,7 @@ const linksIn = (item: string, index: ReturnType<typeof buildIndex>, id: string)
 describe('an affixed word', () => {
   it.each(LANGS)('links its base and affix to their cards in %s', (lang) => {
     const cards = inLanguage(lang);
-    const index = buildIndex(cards as never);
+    const index = indexOf(cards);
     const unlinked = cards.filter(c => candidates.some(d => d.id === c.id && !isForm(d)) && !NOT_SPLIT.includes(c.b)).flatMap(card =>
       originItems(card, lang).flatMap(item => {
         const links = linksIn(item, index, card.id);
@@ -160,7 +136,7 @@ describe('an affixed word', () => {
   });
 
   it('keeps a fossil base only for a word that links no base', () => {
-    const index = buildIndex(deck as never);
+    const index = indexOf(deck);
     const stale = Object.keys(FOSSIL).filter(b => {
       const card = deck.find(c => c.b === b);
       return !card || !candidates.includes(card) || originItems(card, 'ru').some(item => linksIn(item, index, card.id).some(l => !isAffix(l)));
